@@ -1,0 +1,89 @@
+Thu Sep 24 12:18:44 2026
+NODELIST     NODES PARTITION       STATE CPUS    S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON              
+angel            1   normal*       down* 6       1:6:1  61000        0      1   (null) Not responding      
+biscotte         1   normal*       mixed 6       1:6:1  61000        0      1   (null) none                
+bosons           1   normal*        idle 24     1:24:1 250000        0      1   (null) none                
+bosons           1       gpu        idle 24     1:24:1 250000        0      1   (null) none                
+chamber          1   normal*        idle 16     1:16:1 124000        0      1   (null) none                
+christopher      1   normal*        idle 6       1:6:1  61000        0      1   (null) none                
+clochette        1   normal*       mixed 6       1:6:1  61000        0      1   (null) none                
+crush            1   normal*       mixed 6       1:6:1  61000        0      1   (null) none                
+cyborg           1   normal*       mixed 4       1:4:1  30000        0      1   (null) none                
+cyclope          1   normal*        idle 24     1:24:1 250000        0      1   (null) none                
+cyclope          1       gpu        idle 24     1:24:1 250000        0      1   (null) none                
+cypher           1   normal*       mixed 16     1:16:1 124000        0      1   (null) none                
+cypher           1       gpu       mixed 16     1:16:1 124000        0      1   (null) none                
+dazzler          1   normal*       mixed 16     1:16:1 124000        0      1   (null) none                
+dazzler          1       gpu       mixed 16     1:16:1 124000        0      1   (null) none                
+diego            1   normal*        idle 4       1:4:1  16000        0      1   (null) none                
+domino           1   normal*       mixed 6       1:6:1  30000        0      1   (null) none                
+duchesse         1   normal*       mixed 6       1:6:1  30000        0      1   (null) none                
+epervier         1   normal*       down* 6       1:6:1  30000        0      1   (null) Not responding      
+felina           1   normal*       mixed 4       1:4:1  30000        0      1   (null) none                
+fifi             1   normal*       mixed 6       1:6:1  61000        0      1   (null) none                
+forge            1   normal*       mixed 6       1:6:1  61000        0      1   (null) none                
+gambit           1   normal*        idle 16     1:16:1 124000        0      1   (null) none                
+gambit           1       gpu        idle 16     1:16:1 124000        0      1   (null) none                
+ghast            1   normal*       mixed 6       1:6:1  30000        0      1   (null) none                
+haurele          1   normal*       mixed 4       1:4:1  30000        0      1   (null) none                
+havok            1   normal*        idle 6       1:6:1  61000        0      1   (null) none                
+husk             1   normal*       down* 6       1:6:1  61000        0      1   (null) Not responding      
+iceberg          1   normal*       mixed 6       1:6:1  61000        0      1   (null) none                
+karma            1   normal*       mixed 64     1:64:1 510000        0      1   (null) none                
+karma            1       gpu       mixed 64     1:64:1 510000        0      1   (null) none                
+lisdal           1   normal*       mixed 4       1:4:1  16000        0      1   (null) none                
+maggott          1   normal*    unknown* 6       1:6:1  61000        0      1   (null) none                
+magma            1       gpu       mixed 12     1:12:1 124000        0      1   (null) none                
+magma            1   normal*       mixed 12     1:12:1 124000        0      1   (null) none                
+mara             1   normal*       mixed 16     1:16:1 124000        0      1   (null) none                
+marrow           1   normal*       mixed 6       1:6:1  61000        0      1   (null) none                
+mimic            1   normal*       down* 6       1:6:1  61000        0      1   (null) Not responding      
+phenix           1   normal*       mixed 6       1:6:1  60000        0      1   (null) none                
+philos           1   normal*        idle 4       1:4:1  30000        0      1   (null) none                
+phoenix1         1   normalx       mixed 48     2:24:1 510000        0      1   (null) none                
+phoenix1         1    multix       mixed 48     2:24:1 510000        0      1   (null) none                
+phoenix2         1   normalx       mixed 48     2:24:1 510000        0      1   (null) none                
+phoenix2         1    multix       mixed 48     2:24:1 510000        0      1   (null) none                
+phoenix3         1   normalx       mixed 48     2:24:1 510000        0      1   (null) none                
+phoenix3         1    multix       mixed 48     2:24:1 510000        0      1   (null) none                
+phoenix4         1   normalx        idle 48     2:24:1 510000        0      1   (null) none                
+phoenix4         1    multix        idle 48     2:24:1 510000        0      1   (null) none                
+phoenix5         1   normalx       mixed 96     2:48:1 510000        0      1   (null) none                
+phoenix5         1  multix96       mixed 96     2:48:1 510000        0      1   (null) none                
+phoenix6         1   normalx     drained 96     2:48:1 510000        0      1   (null) Kill task failed (Jo
+phoenix6         1  multix96     drained 96     2:48:1 510000        0      1   (null) Kill task failed (Jo
+phoenix7         1   normalx        idle 64     2:32:1 510000        0      1   (null) none                
+phoenix7         1  multix96        idle 64     2:32:1 510000        0      1   (null) none                
+phoenix8         1       gpu       mixed 62     1:62:1 510000        0      1   (null) none                
+phoenix8         1   normalx       mixed 62     1:62:1 510000        0      1   (null) none                
+phoenix9         1   normalx   allocated 64     2:32:1 510000        0      1   (null) none                
+phoenix9         1  multix64   allocated 64     2:32:1 510000        0      1   (null) none                
+phoenix10        1   normalx        idle 64     1:64:1 768000        0      1   (null) none                
+phoenix10        1  multix64        idle 64     1:64:1 768000        0      1   (null) none                
+phoenix11        1   normalx       mixed 64     1:64:1 510000        0      1   (null) none                
+phoenix11        1  multix64       mixed 64     1:64:1 510000        0      1   (null) none                
+phoenix12        1   normalx       mixed 64     1:64:1 510000        0      1   (null) none                
+phoenix12        1  multix64       mixed 64     1:64:1 510000        0      1   (null) none                
+phoenix13        1   normalx        idle 64     1:64:1 768000        0      1   (null) none                
+phoenix13        1  multix64        idle 64     1:64:1 768000        0      1   (null) none                
+phoenix14        1   normalx       mixed 64     1:64:1 768000        0      1   (null) none                
+phoenix14        1  multix64       mixed 64     1:64:1 768000        0      1   (null) none                
+prunelle         1   normal*        idle 6       1:6:1  61000        0      1   (null) none                
+psylocke         1   normal*        idle 4       1:4:1  30000        0      1   (null) none                
+quinine          1   normal*       down* 6       1:6:1  61000        0      1   (null) Not responding      
+revanche         1   normal*        idle 10     1:10:1 124000        0      1   (null) none                
+rovni            1   normal*       down* 4       1:4:1  61000        0      1   (null) Not responding      
+rox              1   normal*        idle 4       1:4:1  61000        0      1   (null) none                
+sage             1   normal*        idle 6       1:6:1  61000        0      1   (null) none                
+sarabi           1   normal*        idle 4       1:4:1  30000        0      1   (null) none                
+saravone         1   normal*        idle 10     1:10:1  30000        0      1   (null) none                
+solar            1       gpu        idle 16     1:16:1 124000        0      1   (null) none                
+solar            1   normal*        idle 16     1:16:1 124000        0      1   (null) none                
+summers          1   normal*       inval 6       1:6:1  61000        0      1   (null) Low RealMemory (repo
+sunfire          1   normal*        idle 6       1:6:1  61000        0      1   (null) none                
+synch            1   normal*       down* 10     1:10:1 124000        0      1   (null) Not responding      
+tapir            1   normal*    drained* 6       1:6:1  61000        0      1   (null) Kill task failed : N
+wilbur           1       gpu        idle 12     1:12:1 124000        0      1   (null) none                
+wilbur           1   normal*        idle 12     1:12:1 124000        0      1   (null) none                
+xorn             1   normal*       down* 6       1:6:1  61000        0      1   (null) Not responding      
+yumi             1   normal*       down* 8       1:8:1  61000        0      1   (null) Not responding      

@@ -1,0 +1,64 @@
+#I  HAP warning: Set NEATO_PATH manually if needed.
+#I  HAP warning: Set DOT_PATH manually if needed.
+#I  HAP warning: Set DISPLAY_PATH manually if needed.
+#I  HAP warning: Set ASY_PATH manually if needed.
+C2, s=[1], omega=[1], E2--E6: 
+E2
++-------+-----+-----+---+
+| q \ p |  0  |  1  | 2 |
++-------+-----+-----+---+
+|   0   |  .  |  .  | . |
+|  -1   |  .  |  .  | . |
+|  -2   | Z/2 |  .  | . |
+|  -3   |  0  |  0  | . |
+|  -4   |  0  | Z/2 | 0 |
++-------+-----+-----+---+
+0 = zero group; . = outside the displayed window.
+
+E3
++-------+-----+-----+---+
+| q \ p |  0  |  1  | 2 |
++-------+-----+-----+---+
+|   0   |  .  |  .  | . |
+|  -1   |  .  |  .  | . |
+|  -2   | Z/2 |  .  | . |
+|  -3   |  0  |  0  | . |
+|  -4   |  0  | Z/2 | 0 |
++-------+-----+-----+---+
+0 = zero group; . = outside the displayed window.
+
+E4
++-------+---+-----+---+
+| q \ p | 0 |  1  | 2 |
++-------+---+-----+---+
+|   0   | . |  .  | . |
+|  -1   | . |  .  | . |
+|  -2   | 0 |  .  | . |
+|  -3   | 0 |  0  | . |
+|  -4   | 0 | Z/2 | 0 |
++-------+---+-----+---+
+0 = zero group; . = outside the displayed window.
+
+E5
++-------+---+-----+---+
+| q \ p | 0 |  1  | 2 |
++-------+---+-----+---+
+|   0   | . |  .  | . |
+|  -1   | . |  .  | . |
+|  -2   | 0 |  .  | . |
+|  -3   | 0 |  0  | . |
+|  -4   | 0 | Z/2 | 0 |
++-------+---+-----+---+
+0 = zero group; . = outside the displayed window.
+
+E6
++-------+---+-----+---+
+| q \ p | 0 |  1  | 2 |
++-------+---+-----+---+
+|   0   | . |  .  | . |
+|  -1   | . |  .  | . |
+|  -2   | 0 |  .  | . |
+|  -3   | 0 |  0  | . |
+|  -4   | 0 | Z/2 | 0 |
++-------+---+-----+---+
+0 = zero group; . = outside the displayed window.

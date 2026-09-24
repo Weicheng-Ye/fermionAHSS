@@ -1,0 +1,17 @@
+{
+  "package_smoke": "passed",
+  "finite_twist_checks": 69,
+  "spacegroup_twist_checks": 56,
+  "python_tests": 15,
+  "standalone_examples": [
+    "c2.g",
+    "twisted_c2.g"
+  ],
+  "frozen_files_verified": 74,
+  "cases": 489,
+  "reused_completed_cases": 51,
+  "fresh_memory_pilot": "phoenix4 RealMemory=510000 MiB",
+  "scope": "Five-row E6; no ko certification or stacking extension claim",
+  "runtime_setup": "Compiled GAP JSON 2.2.3 using local conda gcc/g++; installed fermionAHSS package symlink. Polymake 4.15 available.",
+  "review": "Reviewed twist identity/projection, paper degree mapping, nil-versus-zero handling, resource sampling, frozen source hashing, queue cap and continuation guards. No mathematical package source changed."
+}

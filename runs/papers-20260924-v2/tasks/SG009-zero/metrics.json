@@ -1,0 +1,31 @@
+{
+  "allocated_memory_mib": 768000,
+  "cgroup_peak": null,
+  "command": [
+    "/users/invites/cliu/.local/bin/gap",
+    "-q",
+    "--quitonbreak",
+    "-o",
+    "870m",
+    "-K",
+    "870m",
+    "/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924-v2/source/batch/koahss_worker.g"
+  ],
+  "ended_utc": "2026-09-24T10:15:40.616235+00:00",
+  "gap_workspace_limit_mib": 870,
+  "host": "phoenix13.lptmc.jussieu.fr",
+  "inherited_slurm_memory_mib": 1024,
+  "kernel_max_rss_kib": 206040,
+  "measurement_correction": "Actual full-node reservation from submission --mem=0 and controller RealMemory; GAP workspace limit remains the originally applied 870 MiB.",
+  "measurement_method": "getrusage(RUSAGE_CHILDREN), Linux ru_maxrss in KiB",
+  "returncode": 0,
+  "sampled_tree_peak_rss_kib": 326112,
+  "sampling_interval_seconds": 2,
+  "slurm_job_id": "390761",
+  "started_utc": "2026-09-24T10:15:34.086802+00:00",
+  "state": "computed",
+  "system_cpu_seconds": 0.323992,
+  "updated_utc": "2026-09-24T10:15:40.297445+00:00",
+  "user_cpu_seconds": 5.699786,
+  "wall_seconds": 6.529
+}

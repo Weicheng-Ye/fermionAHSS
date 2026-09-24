@@ -1,0 +1,2 @@
+[2026-09-24T21:11:53.874] error: *** JOB 391410 ON phoenix7 CANCELLED AT 2026-09-24T21:11:53 DUE to SIGNAL Terminated ***
+{"certified_ko": false, "completed_e6": 0, "counts": {"interrupted": 1}, "finite_comparison_counts": {}, "space_comparison_counts": {"not_computed": 1}, "total_tasks": 1, "updated_utc": "2026-09-24T21:11:54.240018+00:00"}

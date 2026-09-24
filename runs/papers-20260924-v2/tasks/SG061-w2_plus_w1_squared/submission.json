@@ -1,0 +1,18 @@
+{
+  "command": [
+    "sbatch",
+    "--parsable",
+    "--partition=normalx",
+    "--nodes=1",
+    "--ntasks=1",
+    "--cpus-per-task=1",
+    "--mem=0",
+    "--time=14-00:00:00",
+    "--signal=B:TERM@120",
+    "--job-name=fahss-SG061-w2_plus_w1_squared",
+    "--output=/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924-v2/slurm/SG061-w2_plus_w1_squared-%j.log",
+    "/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924-v2/slurm/SG061-w2_plus_w1_squared.sh"
+  ],
+  "job_id": "390874",
+  "submitted_utc": "2026-09-24T10:14:55.107013+00:00"
+}

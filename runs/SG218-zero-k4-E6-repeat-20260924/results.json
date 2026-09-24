@@ -1,0 +1,309 @@
+[
+  {
+    "certified_ko": false,
+    "completed_pages": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "current_page": 6,
+    "group": "SG218",
+    "job_id": "391410",
+    "metrics": {
+      "allocated_memory_mib": 6144,
+      "cgroup_peak": null,
+      "command": [
+        "/users/invites/cliu/.local/bin/gap",
+        "-q",
+        "--quitonbreak",
+        "-o",
+        "5222m",
+        "-K",
+        "5222m",
+        "/users/invites/cliu/wye/fermionAHSS/runs/SG218-zero-k4-E6-repeat-20260924/source/batch/koahss_worker.g"
+      ],
+      "ended_utc": "2026-09-24T21:11:54.150512+00:00",
+      "gap_workspace_limit_mib": 5222,
+      "host": "phoenix7.lptmc.jussieu.fr",
+      "kernel_max_rss_kib": 1104144,
+      "measurement_method": "getrusage(RUSAGE_CHILDREN), Linux ru_maxrss in KiB",
+      "returncode": -15,
+      "sampled_tree_peak_rss_kib": 1105056,
+      "sampling_interval_seconds": 2,
+      "slurm_job_id": "391410",
+      "started_utc": "2026-09-24T20:27:20.114061+00:00",
+      "state": "interrupted",
+      "system_cpu_seconds": 2.365087,
+      "updated_utc": "2026-09-24T21:11:54.026446+00:00",
+      "user_cpu_seconds": 2667.563772,
+      "wall_seconds": 2674.036
+    },
+    "state": "interrupted",
+    "tables": {
+      "2": [
+        [
+          [],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            0,
+            2,
+            2,
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            2
+          ]
+        ],
+        [
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2,
+            2
+          ]
+        ],
+        [
+          [],
+          [
+            2
+          ]
+        ]
+      ],
+      "3": [
+        [
+          [],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            0,
+            2,
+            2,
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            2
+          ]
+        ],
+        [
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ],
+          []
+        ],
+        [
+          [],
+          [
+            2
+          ]
+        ]
+      ],
+      "4": [
+        [
+          [],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            0,
+            2,
+            2,
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ],
+          []
+        ],
+        [
+          [],
+          [
+            2
+          ]
+        ]
+      ],
+      "5": [
+        [
+          [],
+          [
+            2
+          ],
+          [
+            3
+          ],
+          [
+            0,
+            2,
+            2,
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2
+          ],
+          [
+            2,
+            2
+          ]
+        ],
+        [
+          [
+            2
+          ],
+          [
+            2
+          ],
+          []
+        ],
+        [
+          [],
+          [
+            2
+          ]
+        ]
+      ]
+    },
+    "task": "SG218-zero"
+  }
+]

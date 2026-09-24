@@ -1,0 +1,17 @@
+{
+  "command": [
+    "sbatch",
+    "--parsable",
+    "-p",
+    "normal",
+    "-c",
+    "1",
+    "--mem=1G",
+    "--time=14-00:00:00",
+    "--job-name=fahss-dispatch",
+    "--output=/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924/slurm/dispatch-%j.log",
+    "/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924/slurm/dispatch.sh"
+  ],
+  "job_id": "390594",
+  "submitted_utc": "2026-09-24T10:11:31.362196+00:00"
+}

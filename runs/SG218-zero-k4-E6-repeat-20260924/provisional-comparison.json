@@ -1,0 +1,47 @@
+{
+  "certified_ko": false,
+  "final": false,
+  "layers": [
+    {
+      "computed": [
+        2
+      ],
+      "layer": "p_ip",
+      "matches": false,
+      "paper": []
+    },
+    {
+      "computed": [],
+      "layer": "kitaev",
+      "matches": true,
+      "paper": []
+    },
+    {
+      "computed": [
+        2,
+        2
+      ],
+      "layer": "complex",
+      "matches": true,
+      "paper": [
+        2,
+        2
+      ]
+    },
+    {
+      "computed": [
+        2,
+        2
+      ],
+      "layer": "bosonic",
+      "matches": true,
+      "paper": [
+        2,
+        2
+      ]
+    }
+  ],
+  "page": 5,
+  "source_task": "/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924-v3/tasks/SG218-zero",
+  "updated_utc": "2026-09-24T20:27:42.320516+00:00"
+}

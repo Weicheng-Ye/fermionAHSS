@@ -1,0 +1,37 @@
+{
+  "all_E2_E4_tables_equal_original": true,
+  "final": false,
+  "layers": {
+    "bosonic": {
+      "computed_E4": [
+        2,
+        2
+      ],
+      "paper": [
+        2,
+        2
+      ]
+    },
+    "complex": {
+      "computed_E4": [
+        2,
+        2
+      ],
+      "paper": [
+        2,
+        2
+      ]
+    },
+    "kitaev": {
+      "computed_E4": [],
+      "paper": []
+    },
+    "p_ip": {
+      "computed_E4": [
+        2
+      ],
+      "paper": []
+    }
+  },
+  "updated_utc": "2026-09-24T20:27:57.792512+00:00"
+}

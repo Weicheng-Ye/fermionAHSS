@@ -1,0 +1,39 @@
+{
+  "completed": [],
+  "k": 4,
+  "max_twists": 0,
+  "operations": "chosen",
+  "pages": 5,
+  "previous_basis": null,
+  "previous_boundary": null,
+  "results": "/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924/tasks/table3-C2xC2-row21/events.jsonl",
+  "root": "/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924/source",
+  "seed": 1,
+  "spec": {
+    "factors": [
+      2,
+      2
+    ],
+    "id": "table3-C2xC2",
+    "kind": "abelian",
+    "label": "C2 x C2",
+    "source": "https://arxiv.org/pdf/1811.00536v3#page=8",
+    "source_rows": [
+      {
+        "fermionic_group": "Q8^f",
+        "paper_omega": "x^2 + x*y + y^2",
+        "paper_omega_kind": "quaternion",
+        "paper_s": "0",
+        "parameters": {},
+        "quotient_factors_in_paper_order": [
+          2,
+          2
+        ],
+        "row": 21,
+        "source": "https://arxiv.org/pdf/1811.00536v3#page=8",
+        "twist_source": "https://arxiv.org/pdf/1811.00536v3#page=69"
+      }
+    ]
+  },
+  "twists": "paper"
+}

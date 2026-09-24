@@ -1,0 +1,13 @@
+PartitionName=normalx
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO ExclusiveTopo=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=14-00:00:00 MinNodes=0 LLN=YES MaxCPUsPerNode=UNLIMITED MaxCPUsPerSocket=UNLIMITED
+   Nodes=phoenix[1-14]
+   PriorityJobFactor=1 PriorityTier=30 RootOnly=NO ReqResv=NO OverSubscribe=FORCE:1
+   OverTimeLimit=NONE PreemptMode=SUSPEND
+   State=UP TotalCPUs=894 TotalNodes=14 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerCPU=1000 MaxMemPerNode=UNLIMITED
+   TRES=cpu=894,mem=7914000M,node=14,billing=894,gres/gpu=1,gres/shard=1
+

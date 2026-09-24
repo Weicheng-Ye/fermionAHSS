@@ -1,0 +1,22 @@
+{
+  "allocated_memory_mib": 6144,
+  "command": [
+    "/users/invites/cliu/.local/bin/gap",
+    "-q",
+    "--quitonbreak",
+    "-o",
+    "5222m",
+    "-K",
+    "5222m",
+    "/users/invites/cliu/wye/fermionAHSS/runs/SG218-zero-E4-20260924/source/batch/koahss_worker.g"
+  ],
+  "gap_workspace_limit_mib": 5222,
+  "host": "phoenix7.lptmc.jussieu.fr",
+  "sampled_tree_peak_rss_kib": 333868,
+  "sampling_interval_seconds": 2,
+  "slurm_job_id": "391409",
+  "started_utc": "2026-09-24T20:26:34.198244+00:00",
+  "state": "running",
+  "updated_utc": "2026-09-24T20:27:12.251550+00:00",
+  "wall_seconds": 38.052
+}

@@ -1,0 +1,22 @@
+{
+  "allocated_memory_mib": 1024,
+  "command": [
+    "/users/invites/cliu/.local/bin/gap",
+    "-q",
+    "--quitonbreak",
+    "-o",
+    "870m",
+    "-K",
+    "870m",
+    "/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924-v2/source/batch/koahss_worker.g"
+  ],
+  "gap_workspace_limit_mib": 870,
+  "host": "phoenix13.lptmc.jussieu.fr",
+  "sampled_tree_peak_rss_kib": 185592,
+  "sampling_interval_seconds": 2,
+  "slurm_job_id": "390750",
+  "started_utc": "2026-09-24T10:15:04.091653+00:00",
+  "state": "running",
+  "updated_utc": "2026-09-24T10:15:06.094533+00:00",
+  "wall_seconds": 2.002
+}

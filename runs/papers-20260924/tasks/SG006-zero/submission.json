@@ -1,0 +1,18 @@
+{
+  "command": [
+    "sbatch",
+    "--parsable",
+    "--partition=normalx",
+    "--nodes=1",
+    "--ntasks=1",
+    "--cpus-per-task=1",
+    "--mem=0",
+    "--time=14-00:00:00",
+    "--signal=B:TERM@120",
+    "--job-name=fahss-SG006-zero",
+    "--output=/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924/slurm/SG006-zero-%j.log",
+    "/users/invites/cliu/wye/fermionAHSS/runs/papers-20260924/slurm/SG006-zero.sh"
+  ],
+  "job_id": "390616",
+  "submitted_utc": "2026-09-24T10:11:32.909368+00:00"
+}
