@@ -1,6 +1,0 @@
-{
-  "job_id": "391410",
-  "requested_utc": "2026-09-24T21:12:06.054767+00:00",
-  "reason": "User requested cancellation of redundant k=4 through E6 repeat; original job 391379 retained.",
-  "scancel_returncode": 0
-}

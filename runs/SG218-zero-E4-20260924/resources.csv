@@ -1,2 +1,0 @@
-task,group,job_id,state,host,wall_seconds,allocated_memory_mib,gap_workspace_limit_mib,gnu_time_max_rss_kib,kernel_max_rss_kib,sampled_tree_peak_rss_kib,cgroup_peak_bytes
-SG218-zero,SG218,391409,computed,phoenix7.lptmc.jussieu.fr,38.219,6144,5222,,236680,333868,

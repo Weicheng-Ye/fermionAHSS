@@ -5,7 +5,6 @@ connective real K-theory Atiyah–Hirzebruch spectral sequence, through E6.
 It computes actual kernels, images, torsion, and representative maps. The
 calibrated secondary and degree-zero-through-three tertiary operations use
 a fixed normalized group-bar comparison with the supplied HAP resolution.
-No transport-model setting is needed.
 
 The output is the five-row associated-graded calculation, not the total
 ko group. Other coefficient rows and abutment extensions are outside its
@@ -68,6 +67,9 @@ are:
 - `k`: largest displayed physical dimension `p+q+3`, with `-1 <= k <= 6`.
 - Optional `n`: number of pages, starting at E2, with `1 <= n <= 5`.
   Omit it to return one E6 table.
+
+The dimension cutoff `k` and the page number are independent: `k=4, n=5`
+computes E2 through E6 at cutoff 4. E6 does not mean dimension six.
 
 Each table has rows in order `[-4,-3,-2,-1,0]`. Entry
 `table[q+5][p+1]` is `E_r^(p,q)`, for `0 <= p <= k-q-3`.
@@ -170,6 +172,22 @@ The [formula reference](doc/README.md) records the complete implemented
 secondary and tertiary expressions, chi-word encoding, lifts, signs,
 calibration coefficients, and source maps. The lower helper is `chi7_tail`,
 with secondary coefficients epsilon `(1,0,0)` and eta `(1,0,1)`.
+The notes and callbacks use the same differential names:
+
+| Differential | Source row | Target row | Name |
+| --- | ---: | ---: | --- |
+| d3 | 0 | -2 | `Tau` |
+| d4 | -1 | -4 | `Psi` |
+| d5 | 0 | -4 | `T` |
+
+The binary representative of `Tau` is written \(\tau'\), and the integral
+representative of `Psi` is written \(\psi'\). The tertiary low selectors
+form the vector \(\boldsymbol{\zeta}=(\zeta_1,\zeta_2,\zeta_3)=(0,1,0)\):
+the R1 rank selector followed by the two R2 suspension selectors.
+This vector is distinct from the secondary epsilon and eta vectors and
+the cochain helpers \(\zeta_{i,n}\). The rational-phase helper \(\Theta_m\)
+is a separate object from the differential `Psi`.
+
 Direct secondary inputs are supported through degree seven; T inputs are
 supported only in degrees zero through three. The page window needs at
 most `Tau_3`, `Psi_4`, and `T_3`.
@@ -177,8 +195,6 @@ most `Tau_3`, `Psi_4`, and `T_3`.
 Final T uses the Danus reference with zero rank correction and `mu_R=0`,
 plus `2 beta_3,s P^1_s rho_3,s` in input degree three. Its universal helper
 is fixed; no local residual solution or injective-J shortcut selects it.
-The coefficient-one correction belongs only to the separate legacy
-`TReference` interface and is not applied to this final T.
 
 The Python worker bounds per-cochain and pure chain-operator memo tables
 to 256 entries by default. Nonnegative environment variables
@@ -186,6 +202,24 @@ to 256 entries by default. Nonnegative environment variables
 them; zero disables the corresponding memoization. These are entry limits,
 not process-memory guarantees. Bar comparison chains and higher-degree
 universal contractors can be expensive.
+
+## Paper comparisons and batch calculations
+
+Batch scripts, extracted reference tables, and run artifacts are maintained
+locally in `batch/`, `references/`, and `runs/`; they are not included in
+the tracked package or a fresh clone. Where these local files are available,
+`batch/README.md` describes catalogue generation, isolated Slurm jobs,
+runtime and memory measurements, and comparison reports. The extracted
+tables come from Wang–Gu's Table III and Ning et al.'s tables for all 230
+full space groups; see the bibliography below.
+
+For the space-group calculations, the natural representation
+\(G\to O(3)\) supplies \(s=w_1\), with either \(\omega=0\) or
+\(\omega=w_2+w_1^2\). The paper's electronic tables provide the comparison
+for the zero-omega twist. The paper spatial dimension is \(d=p+q+2\), so
+the package cutoff `k=4` includes the three-dimensional layers. Comparisons
+check associated-graded layers or phase counts; they do not resolve stacking
+extensions. Reference entries missing from the paper remain unreported.
 
 ## Verification and development status
 
@@ -204,3 +238,19 @@ The original MIT license and attribution are preserved in [LICENSE](LICENSE).
 
 The [verification record](doc/verification.json) and [logs](doc/verification/)
 record the checks run on this distribution.
+
+## References
+
+1. Robert E. Mosher and Martin C. Tangora,
+   [*Cohomology Operations and Applications in Homotopy Theory*](https://store.doverpublications.com/products/9780486466644).
+   Harper & Row (1968); Dover reprint (2008).
+   Background on cohomology operations and their homotopy-theoretic applications.
+2. Qing-Rui Wang and Zheng-Cheng Gu,
+   [*Construction and classification of symmetry protected topological phases in interacting fermion systems*](https://arxiv.org/abs/1811.00536),
+   *Physical Review X* **10**, 031055 (2020),
+   [doi:10.1103/PhysRevX.10.031055](https://doi.org/10.1103/PhysRevX.10.031055).
+   Table III supplies the finite-group comparison cases.
+3. Shang-Qiang Ning, Xing-Yu Ren, Qing-Rui Wang, Yang Qi, and Zheng-Cheng Gu,
+   [*Classification of Interacting Topological Crystalline Superconductors in Three Dimensions and Beyond*](https://arxiv.org/abs/2512.25069),
+   arXiv:2512.25069 (2025).
+   Source of the 230-space-group comparison tables.

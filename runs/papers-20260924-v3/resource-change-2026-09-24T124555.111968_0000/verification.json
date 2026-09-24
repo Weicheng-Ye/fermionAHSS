@@ -1,9 +1,0 @@
-{
-  "allocation_mib": 6144,
-  "gap_limit_mib": 5222,
-  "python_tests": 16,
-  "replacement_count": 53,
-  "running_jobs_preserved": true,
-  "verified_started_worker_count": 53,
-  "verified_utc": "2026-09-24T12:47:47.864484+00:00"
-}

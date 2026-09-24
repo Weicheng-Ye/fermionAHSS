@@ -13,7 +13,7 @@ The runtime family is `chi7_tail` in input degrees zero through seven,
 with epsilon `(1,0,0)` and eta `(1,0,1)`. Its word identities, right-product
 suspension, and Thom calibration are the mathematical inputs to the
 implementation. The exact common integral lift satisfies
-`rho M'=psi'` and `d_s M'=2 tau'`. The square-zero assertion `J[Tau]=0`
+`rho M'=tau'` and `d_s M'=2 psi'`. The square-zero assertion `J[Tau]=0`
 means an integral coboundary, not a literally zero cochain.
 
 The source-workspace provenance is
@@ -45,7 +45,8 @@ Thus final T adds `2 beta_3,s P^1_s rho_3,s`, which can contribute only
 in input degree three here. The old coefficient-one correction belongs
 only to legacy `TReference`.
 
-The nonzero finite data are essential: low selectors `(0,1,0)`, V2 source
+The nonzero finite data are essential: tertiary low-selector vector
+\(\boldsymbol{\zeta}=(\zeta_1,\zeta_2,\zeta_3)=(0,1,0)\), V2 source
 values `(0,3/4,0,3/4,1/4)`, R3 selectors `(1,0,1,1,1)`, xi `3/4`,
 and suspension periods `(3/4,1/4,0,1/2,1/2)`. The R3 source calculation
 has a 46-by-94 matrix and all 63 cycle-obstruction checks pass; source

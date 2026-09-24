@@ -6,12 +6,12 @@ This is a transcription of the production
 integral cup signs, \(d_s\), and whole-formula transfer. The explicit helper
 definitions and data are in [universal_helpers.md](universal_helpers.md).
 
-The names are easy to interchange accidentally:
+The notes use the same names as the GAP callbacks:
 
-| Differential | GAP callback | Note name | Cochain output |
-| --- | --- | --- | --- |
-| \(d_3:E_3^{n,0}\to E_3^{n+3,-2}\) | `Tau` | \(\Psi\) | Binary \(\psi'\), degree \(n+3\) |
-| \(d_4:E_4^{n,-1}\to E_4^{n+4,-4}\) | `Psi` | \(\Theta\) | Integral \(\tau'\), degree \(n+4\) |
+| Differential | Name | Cochain output |
+| --- | --- | --- |
+| \(d_3:E_3^{n,0}\to E_3^{n+3,-2}\) | `Tau` | Binary \(\tau'\), degree \(n+3\) |
+| \(d_4:E_4^{n,-1}\to E_4^{n+4,-4}\) | `Psi` | Integral \(\psi'\), degree \(n+4\) |
 
 The other \(d_3\), from row \(-2\) to row \(-4\), is the primary
 \(J=\beta_s(\operatorname{Sq}^2+\omega)\), called `Dtilde`.
@@ -74,7 +74,7 @@ is not the degree-five characteristic class also denoted \(q(\omega)\).
 The uncorrected integral secondary expression is
 
 \[
-\tau_{\rm ref}
+\psi_{\rm ref}
 =\frac12\left(d_s\widetilde F+\frac{d_sq}{2}\right)
 =\frac{d_s(2\widetilde F+q)}4.
 \tag{S5}
@@ -84,7 +84,7 @@ All the displayed divisions are exact for a valid defining system and
 the prescribed helpers. The implementation checks the final projected
 numerator rather than rounding or replacing a failed identity.
 
-## 3. Final degree-four operation: GAP `Psi`
+## 3. Final degree-four operation: `Psi`
 
 Define the **integer sum**
 
@@ -96,9 +96,9 @@ Z=\widetilde{s\smile u}+\widetilde{\omega\smile e}.
 The calibrated cochain is
 
 \[
-\boxed{\tau'
+\boxed{\psi'
 =\frac{d_s(2\widetilde F+q+2Z)}4
-=\tau_{\rm ref}+\frac{d_sZ}{2}.}
+=\psi_{\rm ref}+\frac{d_sZ}{2}.}
 \tag{S7}
 \]
 
@@ -119,9 +119,9 @@ Relative to `chi7_tail`, the coefficients of
 
 GAP projects \(2\widetilde F+q+2Z\) using the integral sign-coefficient
 chain map, differentiates, checks divisibility by four, and returns the
-quotient. It also checks \(d_s\tau'=0\).
+quotient. It also checks \(d_s\psi'=0\).
 
-## 4. Final degree-three operation: GAP `Tau`
+## 4. Final degree-three operation: `Tau`
 
 Now require \(d_sA=0\), with \(a=\rho A\). Define
 
@@ -147,7 +147,7 @@ Here \(G\) is binary of degree \(n+2\), and \(L,M\) are integer
 cochains of degree \(n+3\). The final binary result is
 
 \[
-\boxed{\psi'=\rho M+\kappa
+\boxed{\tau'=\rho M+\kappa
 =F+\rho\!\left(\frac{q-d_s\widetilde G}{2}\right)+s^3\smile a.}
 \tag{S11}
 \]
@@ -181,20 +181,20 @@ The cup-one term is part of the formula. The identities are
 
 \[
 dh=\rho Z+\kappa,\qquad
-\rho M'=\psi',\qquad d_sM'=2\tau',\qquad
-d\psi'=0,\qquad d_s\tau'=0.
+\rho M'=\tau',\qquad d_sM'=2\psi',\qquad
+d\tau'=0,\qquad d_s\psi'=0.
 \tag{S14}
 \]
 
 For integral input the evaluator stores the projected \(M'\) and computes
-the matched \(\tau'\) as \(d_sM'/2\). For mod-two input it uses (S7).
-These are compatible representatives. The literal bar \(\psi'\), along
+the matched \(\psi'\) as \(d_sM'/2\). For mod-two input it uses (S7).
+These are compatible representatives. The literal bar \(\tau'\), along
 with \(A,b,s,\omega\), is passed on to the tertiary defining system.
 
 The square-zero assertion is the cohomological statement
 
 \[
-J[\psi']=0\in H^{n+6}(X;\mathbf Z_s),
+J[\tau']=0\in H^{n+6}(X;\mathbf Z_s),
 \qquad J=\beta_s(\operatorname{Sq}^2+\omega).
 \tag{S15}
 \]

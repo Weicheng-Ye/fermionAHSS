@@ -3,7 +3,7 @@
 This is a transcription of the formulas evaluated by the current GAP
 `T` callback and its bundled Python kernel, as of 2026-09-23. The
 cochain notation and signs are fixed in [conventions.md](conventions.md);
-the lower operation \(\psi_n\) is GAP `Tau`, described in
+the lower operation \(\tau_n\) represents `Tau`, described in
 [secondary_operations.md](secondary_operations.md). The universal source
 operators below are specified in [universal_helpers.md](universal_helpers.md).
 
@@ -12,6 +12,21 @@ The production entry points are
 [`koAHSSNaturalTCallback`](../gap/natural_tertiary.gi).
 Degrees outside \(0\leq n\leq3\) are rejected. The old local-R chooser
 is not part of this formula.
+
+The differential names are `Tau` for \(d_3\) from row 0 to row −2,
+`Psi` for \(d_4\) from row −1 to row −4, and `T` for \(d_5\)
+from row 0 to row −4. The binary cochain \(\tau_n(A,b)\) represents `Tau`.
+The rational-phase helper \(\Theta_m\) below is a separate object.
+
+The tertiary low-selector vector is
+
+\[
+\boldsymbol{\zeta}=(\zeta_1,\zeta_2,\zeta_3)=(0,1,0).
+\]
+
+Its entries select the R1 rank normalization and the two R2 suspension
+terms, respectively. It is distinct from the secondary epsilon and eta
+vectors and from the cochain helpers \(\zeta_{i,n}\).
 
 ## 1. Defining system and returned integral differential
 
@@ -24,13 +39,13 @@ Choose the defining cochains
 \[
 a=\rho A,\qquad b\in C^{n+1}(X;\mathbf F_2),\qquad
 c\in C^{n+2}(X;\mathbf F_2),
-\qquad db=Da,\quad dc=\psi_n(A,b),
+\qquad db=Da,\quad dc=\tau_n(A,b),
 \]
 
 where the literal primary representative is
 \(Da=Sq^2a+\omega a+s\rho(d\widetilde a/2)\), representing
 \(Sq^2a+sSq^1a+\omega a\) in cohomology. The same calibrated
-lower representative \(\psi_n\) is used here and in the page callback:
+lower representative \(\tau_n\) is used here and in the page callback:
 `chi7_tail`, secondary epsilon \((1,0,0)\), and eta \((1,0,1)\).
 
 For a binary degree-\(r\) cochain \(z\), including noncocycles, write
@@ -96,7 +111,7 @@ whose \(\operatorname{Tau}_n\) class vanishes. The target is
 
 The second image is understood in the quotient by the first image.
 The defining-system solver adjusts \(b\) by a closed cochain when needed
-to make \(\psi_n(A,b)\) exact before solving for \(c\). Changes of the
+to make \(\tau_n(A,b)\) exact before solving for \(c\). Changes of the
 allowed defining system are handled by this target quotient.
 
 ## 2. Shared boundary phase, prism, and A-only splitting
@@ -201,7 +216,7 @@ negative inputs. For \(n=2,3\), set \(k=k_0\), and define
 y=Q_Db,\quad
 \lambda=\rho\frac{\widetilde g+\widetilde s\smile\widetilde b
                          -\widetilde{g+sb}}2,
-\quad \psi_n=y+k+d\lambda.
+\quad \tau_n=y+k+d\lambda.
 \tag{S23}
 \]
 
@@ -263,11 +278,11 @@ s_I=s+d\gamma,\quad A_I=(-1)^\gamma A,
 \]
 
 with \(s_I\) reduced modulo two. Evaluate the **current lower formula**
-\(\psi_I=\psi_0^{s_I,\omega}(A_I,b_I)\), and put
+\(\tau_I=\tau_0^{s_I,\omega}(A_I,b_I)\), and put
 
 \[
 \boxed{R_0(A,b)=(-1)^{\epsilon_A(v_0)}R_+(N,b)
-            +\mathsf h\bigl(\rho I(E\psi_I)\bigr).}
+            +\mathsf h\bigl(\rho I(E\tau_I)\bigr).}
 \tag{R0o}
 \]
 
@@ -295,7 +310,7 @@ N=\rho\frac{\widetilde g+\widetilde{sb}-\widetilde{g+sb}}2,\\
 \lambda=N+b\cup_1e_0+p_0\cup_2e_0+p_0\cup_3de_0\\
 \hphantom{\lambda={}}+s\bigl(b\cup_2e_0+p_0\cup_3e_0
                               +p_0\cup_4de_0\bigr),\\
-\psi_1=y+k+d\lambda,\qquad
+\tau_1=y+k+d\lambda,\qquad
 \operatorname{Pol}_1(y,k)=y\cup_3k+k\cup_4dy+Q^1k.
 \end{gathered}
 \]
@@ -309,15 +324,15 @@ literal production assembler is
 \boxed{\begin{aligned}
 \widehat R_1={}&-I\Theta_3\bigl(d(b^+\ell),Q_D(b^+\ell)\bigr)-V_1\\
 &+\mathsf h\bigl(\operatorname{Pol}_1(y,k)+E\lambda
-+\psi_1\cup_3d\lambda+EQ^1b^++s\psi_1\bigr),\\
++\tau_1\cup_3d\lambda+EQ^1b^++s\tau_1\bigr),\\
 \mathcal O_1={}&\mathsf h(Ec)+\widehat R_1.
 \end{aligned}}
 \tag{R1}
 \]
 
 The rank-normalization term would be
-\(-\varepsilon_R(P_\omega\cup_s A)/4\); its evaluated coefficient is
-\(\varepsilon_R=0\). This scalar is distinct from the lower
+\(-\zeta_1(P_\omega\cup_s A)/4\); its evaluated coefficient is
+\(\zeta_1=0\). This scalar is distinct from the lower
 secondary epsilon vector \((1,0,0)\). The negative prism sign in (R1)
 is part of the fixed right-prism convention.
 
@@ -336,7 +351,7 @@ L_2=\tfrac14P_\omega\cup_s A.
 \end{gathered}
 \]
 
-The evaluated selectors are \(\alpha=1,\ \beta=0\). With the
+The evaluated selectors are \(\zeta_2=1,\ \zeta_3=0\). With the
 fixed A-only source \(V_2\) of \(\Theta_4(p,k)\), the actual phase is
 
 \[
@@ -352,7 +367,7 @@ fixed A-only source \(V_2\) of \(\Theta_4(p,k)\), the actual phase is
 Each \(\mathsf h\) in (R2) is a separate half-lift, exactly as in
 [`phase_eval.phase2`](../python/phase_eval.py). Combining
 these brackets changes the real phase by an integral cochain in general.
-The potential \((\beta/2)\widetilde{s^2\omega a}\) term is zero.
+The potential \((\zeta_3/2)\widetilde{s^2\omega a}\) term is zero.
 The quarter-cubic term is **present**, and this is the current
 \(R_2=R_2^{\rm sharp}\) family.
 
@@ -404,7 +419,7 @@ The literal production formula is therefore
 \widehat R_3={}&\mathsf h\bigl(\operatorname{Pol}_3(y,k)+E\lambda
                               +(y+k)\cup_5d\lambda\bigr)
                    -\Pi_3^+-V_3\\
-&+\mathsf h(EQ^1b+s\psi_3)
+&+\mathsf h(EQ^1b+s\tau_3)
   +L_3+N_3+2O_3^{\mathrm{corr}}+M_3,\\
 \mathcal O_3={}&\mathsf h(Ec)+\widehat R_3
                          +\tfrac23\widetilde{P^1_s\rho_3 A}.
@@ -519,7 +534,7 @@ GAP solves only the allowed defining-system equations for \(b,c\). It
 then transports the **full phase** to and from the normalized bar model,
 including the homotopy corrections to both defining cochains, and takes
 the signed boundary in the resolution model. The kernel checks
-\(ds=d\omega=0\), \(d_sA=0\), \(db=Da\), \(dc=\psi_n(A,b)\) on all
+\(ds=d\omega=0\), \(d_sA=0\), \(db=Da\), \(dc=\tau_n(A,b)\) on all
 relevant faces; GAP checks exact divisibility and closure of the resulting
 integral cochain. A failed identity is an error, not a request for a
 different local R.

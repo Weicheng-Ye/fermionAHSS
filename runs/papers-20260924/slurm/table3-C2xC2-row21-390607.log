@@ -1,1 +1,0 @@
-{"certified_ko": false, "completed_e6": 6, "counts": {"PENDING": 142, "computed": 6, "not_submitted": 341}, "finite_comparison_counts": {"not_computed": 78, "order_matches_extensions_unresolved": 12}, "space_comparison_counts": {"layers_match": 1, "not_computed": 229, "twist_not_tabulated": 230}, "total_tasks": 489, "updated_utc": "2026-09-24T10:11:52.767873+00:00"}

@@ -22,20 +22,22 @@ not needed separately.
 
 ## Names and fixed coefficients
 
-| Differential | Rows | GAP name | Note name |
+The notes and GAP use the same differential names throughout.
+
+| Differential | Rows | Name | Formula or representative |
 | --- | --- | --- | --- |
 | d2 | 0 to -1 | `Dbar` | D rho2 |
 | d2 | -1 to -2 | `D` | Sq2 + s Sq1 + omega |
 | d3 | -2 to -4 | `Dtilde` | J = beta_s(Sq2 + omega) |
-| d3 | 0 to -2 | `Tau` | Psi |
-| d4 | -1 to -4 | `Psi` | Theta / cochain tau |
-| d5 | 0 to -4 | `T` | T |
+| d3 | 0 to -2 | `Tau` | Binary \(\tau'\) |
+| d4 | -1 to -4 | `Psi` | Integral \(\psi'\) |
+| d5 | 0 to -4 | `T` | Integral tertiary operation |
 
 | Datum | Value |
 | --- | --- |
 | Chi family | `chi7_tail` |
 | Secondary epsilon, eta | `(1,0,0)`, `(1,0,1)` |
-| Tertiary low selectors epsilon, alpha, beta | `(0,1,0)` |
+| Tertiary low-selector vector \(\boldsymbol{\zeta}=(\zeta_1,\zeta_2,\zeta_3)\) | `(0,1,0)` |
 | Current R2 | `R2sharp = R2old - A^cup3/4` |
 | Final T rank correction and mu_R | `0`, `0`, relative to Danus |
 | R3 selectors c4,cN,cO,cM,epsilon_c | `(1,0,1,1,1)` |
@@ -43,6 +45,11 @@ not needed separately.
 | V2 source values | `(0,3/4,0,3/4,1/4)` |
 | R3 suspension periods | `(3/4,1/4,0,1/2,1/2)` |
 | Prime-three coefficient | `2`; contributes only in input degree three here |
+
+The entries of \(\boldsymbol{\zeta}\) select the R1 rank normalization and
+the two R2 suspension terms, respectively. This vector is distinct from
+the secondary epsilon and eta vectors and from the cochain helpers
+\(\zeta_{i,n}\).
 
 Do not replace the nonzero universal source values by zero, mix chi
 families, apply the cubic adjustment twice, or transfer the old

@@ -1,2 +1,0 @@
-[2026-09-24T12:16:55.990] error: *** JOB 390864 ON phoenix4 CANCELLED AT 2026-09-24T12:16:55 DUE to SIGNAL Terminated ***
-{"certified_ko": false, "completed_e6": 51, "counts": {"PENDING": 131, "computed": 51, "interrupted": 6, "not_submitted": 301}, "finite_comparison_counts": {"not_computed": 6, "order_differs": 3, "order_matches_extensions_unresolved": 81}, "space_comparison_counts": {"layer_discrepancy": 3, "layers_match": 10, "not_computed": 217, "twist_not_tabulated": 230}, "total_tasks": 489, "updated_utc": "2026-09-24T10:16:57.036024+00:00"}

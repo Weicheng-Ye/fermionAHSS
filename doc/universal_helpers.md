@@ -133,6 +133,7 @@ d\chi_n(a)=Sq^2Sq^2a+e_a\cup_{n-2}e_a,
 
 ## 3. The prescribed boundary phase Theta
 
+The rational-phase helper \(\Theta_m\) is separate from the differential `Psi`.
 The exact helper is `theta` in
 [phase_eval.py](../python/phase_eval.py). Write
 
@@ -572,20 +573,24 @@ the JSON, and the runtime checks their source hashes and basis ordering.
 
 ## 8. Evaluated normalization selectors
 
-The lower-operation calibration tuples epsilon `(1,0,0)` and eta
-`(1,0,1)` are distinct from the following tertiary scalar selectors.
+The tertiary low selectors form the vector
+\(\boldsymbol{\zeta}=(\zeta_1,\zeta_2,\zeta_3)=(0,1,0)\).
+Its entries select the R1 rank normalization and the two R2 suspension
+terms, respectively. This vector is distinct from the lower-operation
+calibration vectors epsilon `(1,0,0)` and eta `(1,0,1)`, and from the
+cochain helpers \(\zeta_{i,n}\).
 The packaged selector data are
 [low_calibration.json](../python/low_calibration.json) and
 [high_calibration.json](../python/high_calibration.json).
 
 | Selector | Actual value | Fixed period or convention |
 | --- | ---: | --- |
-| R1 rank selector `epsilon` | `0` | rank period `2` |
-| R2 suspension selector `alpha` | `1` | order-four period `1/4`, orientation `j=1` |
-| R2 suspension selector `beta` | `0` | `kappa_6 V2(Ss)=3/2`, `Uraw(Tor)=-1/2` |
+| R1 rank selector \(\zeta_1\) | `0` | rank period `2` |
+| R2 suspension selector \(\zeta_2\) | `1` | order-four period `1/4`, orientation `j=1` |
+| R2 suspension selector \(\zeta_3\) | `0` | `kappa_6 V2(Ss)=3/2`, `Uraw(Tor)=-1/2` |
 | Odd base selector `eta` | `0` | base period `0`, source `(B,C)=(7/8,0)` |
 | New final-T rank ambiguity coefficient | `0` | Danus reference |
-| New final-T twist ambiguity `mu_R` | `0` | Euler value `Xi(D)=V2(D)=13/4`, with full J-plus-Theta indeterminacy |
+| New final-T twist ambiguity `mu_R` | `0` | Euler value `Xi(D)=V2(D)=13/4`, with full J-plus-Psi indeterminacy |
 | R3 `xi` | `3/4` | cubic period |
 | R3 `(c4,cN,cO,cM,epsilon_c)` | `(1,0,1,1,1)` | current `R2sharp` family |
 | Final-T prime-three coefficient | `2` | only input degree three in this range |

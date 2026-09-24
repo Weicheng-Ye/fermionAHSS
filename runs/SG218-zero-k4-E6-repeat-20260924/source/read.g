@@ -1,1 +1,0 @@
-ReadPackage("fermionAHSS", "load.g");
