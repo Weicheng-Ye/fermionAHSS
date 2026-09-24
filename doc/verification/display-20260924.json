@@ -1,0 +1,39 @@
+{
+  "invalid_inputs_passed": 11,
+  "wide_output_matches_format": true,
+  "stdout_format_preserved": true,
+  "invalid_commands": [
+    "koAHSSFormat();",
+    "koAHSSFormat(t,2,3);",
+    "koAHSSFormat(t,1);",
+    "koAHSSFormat(t,7);",
+    "koAHSSFormat([t],3);",
+    "koAHSSFormat([t,[[[]],[],[],[],[]]]);",
+    "koAHSSFormat([[],[],[],[],[]]);",
+    "t[1][1]:=[1];;koAHSSFormat(t);",
+    "t[1][1]:=rec(status:=\"error\");;koAHSSFormat(t);",
+    "Unbind(t[1][2]);;koAHSSFormat(t);",
+    "koAHSSFormat(t,\"E2\");"
+  ],
+  "date": "2026-09-24",
+  "change": "Separate AHSS formatter/display; presentation rows q=0 through -4. Stored results and mathematical operations unchanged.",
+  "commands": [
+    "SetPackagePath(\"fermionAHSS\", staging); LoadPackage(\"fermionAHSS\"); Assert(0,TestPackage(\"fermionAHSS\"));",
+    "gap -q --quitonbreak examples/c2.g",
+    "gap -q --quitonbreak examples/twisted_c2.g"
+  ],
+  "display_fixture": "tst/display.tst",
+  "fixture_assertions": 16,
+  "package_smoke_passed": true,
+  "standalone_examples_passed": 2,
+  "dependency_skips": 0,
+  "review": "Independent code review passed after fixing README export example to use an unformatted stream.",
+  "scope": "Formatting checks and bounded C2 page calculations; no full mathematical suite rerun for this presentation-only change.",
+  "changed_source_sha256": {
+    "gap/display.gi": "637da920ea77c36d65700504bfd5b287d94b03c97249cf7ae396121aa49c03f7",
+    "gap/koahss.gd": "f4dfa3796f76f5c630f9087d12b9534f67cc91de132836a8003f5b0657afc090",
+    "load.g": "1f7a5e82bbeaa3aa9a860b70f3506b13b781db13fda1bca970f2e9fe03f2b9cb",
+    "tst/display.tst": "07ff291a96dda307c4bb495a7369daa266020cb38aa887897f1aca39ef360529",
+    "tst/smoke.tst": "91fa5236735b3db80d2c1fb6596d14644eaf8a18be773b693ad7c003013261a4"
+  }
+}

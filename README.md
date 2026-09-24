@@ -100,6 +100,42 @@ For general groups, establish the basis before choosing nonzero twist vectors.
 A group resolution models BG, not an arbitrary space with that fundamental
 group or `B^2 Z2`.
 
+## Displaying the AHSS
+
+Use the separate display function to draw the page with **q=0 at the top
+and q=-4 at the bottom**, and p increasing from left to right:
+
+```gap
+pages := koAHSS(CyclicGroup(2), 0, 0, 1, 5);;
+koAHSSDisplay(pages);       # print E2 through E6
+koAHSSDisplay(pages, 6);    # print only E6
+
+final := koAHSS(CyclicGroup(2), 0, 0, 1);;
+koAHSSDisplay(final);       # a single table is labeled E6 by default
+koAHSSDisplay(pages[1], 2); # label an extracted table E2
+```
+
+Each displayed cell uses `Z`, `Z/2`, `Z/4`, etc.; repeated factors use
+powers and ` + ` denotes direct sum. `0` is the zero group, `.` is outside
+the requested display window, and `?` is unresolved. These last two symbols
+must not be read as zero. Raw data keep their original q=-4 through q=0
+row order; formatting never changes or recomputes them.
+
+`koAHSSFormat` accepts the same arguments and returns the formatted string
+without printing it, for example:
+
+```gap
+out := OutputTextFile("C2-E6.txt", false);;
+SetPrintFormattingStatus(out, false);
+PrintTo(out, koAHSSFormat(pages, 6));
+CloseStream(out);
+```
+
+A list of pages must start at E2, as returned by `koAHSS(...,n)`.
+For an extracted single page supply its page number explicitly if it is
+not E6. The display shows the page groups; the raw invariant lists do not
+contain differential maps, so no arrows are inferred.
+
 ## Advanced evaluation
 
 `koAHSSpages(space,s,omega,k[,n])` accepts an explicit HAP space or other

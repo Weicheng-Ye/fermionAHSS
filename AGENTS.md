@@ -20,6 +20,7 @@ an explicit change in the project's intended scope.
 - `PackageInfo.g`, `init.g`, `read.g`, `load.g`: package metadata and loaders.
 - `gap/koahss.gd`: public declarations; `gap/group_api.gi`: finite-group entry.
 - `gap/pages.gi`: exact page quotients and unresolved dependency propagation.
+- `gap/display.gi`: read-only text formatting with q=0 through q=-4 downward.
 - `gap/hap.gi`, `cochains.gi`, `natural_bar.gi`: cochains and bar transport.
 - `gap/natural_words.gi`, `data/`: chi words and exact compiled ANF data.
 - `gap/natural_secondary.gi`, `natural_tertiary.gi`: production operations.
@@ -48,6 +49,8 @@ with `koAHSSpages`. No transport option is needed.
   one E6 table. With it, return E2 through E(n+1).
 - Rows are `q=-4,-3,-2,-1,0`; GAP entry is `table[q+5][p+1]`. Their lengths
   are `max(0,k-q-2)`. Retain hidden targets of outgoing maps.
+  The display functions reverse rows only for presentation; never change the
+  stored order. Display `0` for zero, `.` for outside the window, `?` for unresolved.
 - Exact invariant lists: `[]` is zero, `[0]` is Z, `[2]` is Z/2. Unresolved
   records are not zero or classifications. Invalid identities remain errors.
 - Both integral rows use Z_s. Twists are degree-one/two binary cocycles in

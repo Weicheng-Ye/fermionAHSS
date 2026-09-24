@@ -8,3 +8,4 @@ gap> Assert(0, koAHSS(CyclicGroup(2), 0, 0, -1) = [[[0]],[],[],[],[]]);
 gap> R := ResolutionFiniteGroup(CyclicGroup(2),4);;
 gap> B := koAHSSHAPSpace(R,koAHSSNaturalOperations());;
 gap> Assert(0, koAHSS(CyclicGroup(2),[1],[1],1,5) = koAHSSpages(B,[1],[1],1,5));
+gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"display.tst"),rec(compareFunction:="uptowhitespace")));

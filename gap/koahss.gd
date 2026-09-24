@@ -1,4 +1,6 @@
 DeclareGlobalFunction("koAHSS");
+DeclareGlobalFunction("koAHSSFormat");
+DeclareGlobalFunction("koAHSSDisplay");
 DeclareGlobalFunction("koAHSSpages");
 DeclareGlobalFunction("koAHSSPageData");
 DeclareGlobalFunction("koAHSSCochainSpace");

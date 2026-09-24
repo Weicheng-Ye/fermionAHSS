@@ -12,7 +12,8 @@ fi;
 # s=[1] is its sign character; omega=[1] is its degree-two binary generator.
 twistedC2Pages := koAHSS(CyclicGroup(2), [1], [1], 1, 5);;
 Assert(0, Length(twistedC2Pages) = 5);
-Print("C2, s=[1], omega=[1], E2--E6: ", twistedC2Pages, "\n");
+Print("C2, s=[1], omega=[1], E2--E6: ", "\n");
+koAHSSDisplay(twistedC2Pages);
 
 # Reuse a chosen resolution when the coordinates of the twists matter.
 c2Resolution := ResolutionFiniteGroup(CyclicGroup(2), 4);;

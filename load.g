@@ -22,6 +22,7 @@ CallFuncList(function()
         Read(Filename(directory, "gap/koahss.gd"));
     fi;
     Read(Filename(directory, "gap/pages.gi"));
+    Read(Filename(directory, "gap/display.gi"));
     for component in ["cochains.gi", "natural_words.gi", "natural_bar.gi", "native_coherence.gi", "hap.gi", "phases.gi", "adem.gi", "universal_adem.gi", "integer_equations.gi", "secondary.gi", "natural_secondary.gi", "secondary_corrected.gi", "secondary_squarezero.gi", "normalization.gi", "secondary_coherence.gi", "defining_systems.gi", "tertiary_correction.gi", "tertiary_candidates.gi", "tertiary_equations.gi", "natural_tertiary.gi", "group_api.gi"] do
         Read(Filename(directory, Concatenation("gap/", component)));
     od;
