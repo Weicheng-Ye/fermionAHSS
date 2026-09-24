@@ -1,0 +1,9 @@
+
+#I  HAP warning: Set NEATO_PATH manually if needed.
+#I  HAP warning: Set DOT_PATH manually if needed.
+#I  HAP warning: Set DISPLAY_PATH manually if needed.
+#I  HAP warning: Set BROWSER_PATH manually if needed.
+#I  No errors detected while testing package fermionahss version 0.1.0
+#I  using the test file `/var/folders/x1/ltncmvyd3f9616crr59k2kjc0000gp/T/ferm\
+ion-package-vm6q2bv2/gaproot/pkg/fermionAHSS/tst/smoke.tst'
+LOAD_CHECK_OK

@@ -1,0 +1,41 @@
+# AI Assistants
+.claude/
+.agent/
+.worktrees/
+.superpowers/
+
+# Ignore the docs directory and all its contents
+bin/
+docs/
+temp/
+/*.md
+!/README.md
+!/AGENTS.md
+
+# Local diagnostic suites; the tracked package test is tst/smoke.tst.
+tst/homotopy.tst
+tst/linalg.tst
+tst/relations.tst
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Text editor & IDE temporary files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+
+# Python execution artifacts
+__pycache__/
+*.py[cod]

@@ -1,0 +1,578 @@
+{
+  "schema": 1,
+  "created_utc": "2026-09-24T09:04:11.106795+00:00",
+  "gap_command": [
+    "gap",
+    "-q",
+    "--quitonbreak"
+  ],
+  "scope": "Bounded group API checks, no full catalogue",
+  "valid": [
+    {
+      "label": "trivial-E2-E3",
+      "group_expression": "CyclicGroup(1)",
+      "arguments": {
+        "s": 0,
+        "omega": 0,
+        "k": 1,
+        "n": 2
+      },
+      "requested_resolution_depth": 3,
+      "exit_code": 0,
+      "status": "passed",
+      "matches_explicit_resolution": true,
+      "page_numbers": [
+        2,
+        3
+      ],
+      "resolution_length": 3,
+      "row_lengths": [
+        3,
+        2,
+        1,
+        0,
+        0
+      ],
+      "tables": [
+        [
+          [
+            [
+              0
+            ],
+            [],
+            []
+          ],
+          [
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ]
+          ],
+          [],
+          []
+        ],
+        [
+          [
+            [
+              0
+            ],
+            [],
+            []
+          ],
+          [
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ]
+          ],
+          [],
+          []
+        ]
+      ]
+    },
+    {
+      "label": "C3-E2-E3",
+      "group_expression": "CyclicGroup(3)",
+      "arguments": {
+        "s": 0,
+        "omega": 0,
+        "k": 2,
+        "n": 2
+      },
+      "requested_resolution_depth": 4,
+      "exit_code": 0,
+      "status": "passed",
+      "matches_explicit_resolution": true,
+      "page_numbers": [
+        2,
+        3
+      ],
+      "resolution_length": 4,
+      "row_lengths": [
+        4,
+        3,
+        2,
+        1,
+        0
+      ],
+      "tables": [
+        [
+          [
+            [
+              0
+            ],
+            [],
+            [
+              3
+            ],
+            []
+          ],
+          [
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ],
+            []
+          ],
+          [
+            [
+              2
+            ]
+          ],
+          []
+        ],
+        [
+          [
+            [
+              0
+            ],
+            [],
+            [
+              3
+            ],
+            []
+          ],
+          [
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ],
+            []
+          ],
+          [
+            [
+              2
+            ]
+          ],
+          []
+        ]
+      ]
+    },
+    {
+      "label": "S3-E2-E3",
+      "group_expression": "SymmetricGroup(3)",
+      "arguments": {
+        "s": 0,
+        "omega": 0,
+        "k": 2,
+        "n": 2
+      },
+      "requested_resolution_depth": 4,
+      "exit_code": 0,
+      "status": "passed",
+      "matches_explicit_resolution": true,
+      "page_numbers": [
+        2,
+        3
+      ],
+      "resolution_length": 4,
+      "row_lengths": [
+        4,
+        3,
+        2,
+        1,
+        0
+      ],
+      "tables": [
+        [
+          [
+            [
+              0
+            ],
+            [],
+            [
+              2
+            ],
+            []
+          ],
+          [
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ],
+            [
+              2
+            ]
+          ],
+          [
+            [
+              2
+            ]
+          ],
+          []
+        ],
+        [
+          [
+            [
+              0
+            ],
+            [],
+            [
+              2
+            ],
+            []
+          ],
+          [
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ],
+            [
+              2
+            ]
+          ],
+          [
+            [
+              2
+            ]
+          ],
+          []
+        ]
+      ]
+    },
+    {
+      "label": "C2-k6-E2",
+      "group_expression": "CyclicGroup(2)",
+      "arguments": {
+        "s": 0,
+        "omega": 0,
+        "k": 6,
+        "n": 1
+      },
+      "requested_resolution_depth": 8,
+      "exit_code": 0,
+      "status": "passed",
+      "matches_explicit_resolution": true,
+      "page_numbers": [
+        2
+      ],
+      "resolution_length": 8,
+      "row_lengths": [
+        8,
+        7,
+        6,
+        5,
+        4
+      ],
+      "tables": [
+        [
+          [
+            [
+              0
+            ],
+            [],
+            [
+              2
+            ],
+            [],
+            [
+              2
+            ],
+            [],
+            [
+              2
+            ],
+            []
+          ],
+          [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ]
+          ],
+          [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ]
+          ],
+          [
+            [
+              0
+            ],
+            [],
+            [
+              2
+            ],
+            []
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "C2-k6-E2-E3",
+      "group_expression": "CyclicGroup(2)",
+      "arguments": {
+        "s": 0,
+        "omega": 0,
+        "k": 6,
+        "n": 2
+      },
+      "requested_resolution_depth": 8,
+      "exit_code": 0,
+      "status": "passed",
+      "matches_explicit_resolution": true,
+      "page_numbers": [
+        2,
+        3
+      ],
+      "resolution_length": 8,
+      "row_lengths": [
+        8,
+        7,
+        6,
+        5,
+        4
+      ],
+      "tables": [
+        [
+          [
+            [
+              0
+            ],
+            [],
+            [
+              2
+            ],
+            [],
+            [
+              2
+            ],
+            [],
+            [
+              2
+            ],
+            []
+          ],
+          [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ]
+          ],
+          [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ]
+          ],
+          [
+            [
+              0
+            ],
+            [],
+            [
+              2
+            ],
+            []
+          ]
+        ],
+        [
+          [
+            [
+              0
+            ],
+            [],
+            [
+              2
+            ],
+            [],
+            [
+              2
+            ],
+            [],
+            [
+              2
+            ],
+            []
+          ],
+          [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [],
+            []
+          ],
+          [
+            [
+              2
+            ],
+            [
+              2
+            ],
+            [],
+            [],
+            []
+          ],
+          [
+            [
+              0
+            ],
+            [],
+            [],
+            []
+          ]
+        ]
+      ]
+    }
+  ],
+  "invalid": [
+    {
+      "label": "wrong arity",
+      "expression": "koAHSS(CyclicGroup(2),0,0);",
+      "expected_error": "usage:",
+      "status": "passed",
+      "exit_code": 1,
+      "stderr": "Error, usage: koAHSS(group, s, omega, k[, n]) at ./gap/group_api.gi:7 called from"
+    },
+    {
+      "label": "nongroup",
+      "expression": "koAHSS(2,0,0,1);",
+      "expected_error": "first argument must be a GAP group",
+      "status": "passed",
+      "exit_code": 1,
+      "stderr": "Error, koAHSS: the first argument must be a GAP group at ./gap/group_api.gi:10 called from"
+    },
+    {
+      "label": "bad k",
+      "expression": "koAHSS(CyclicGroup(2),0,0,7);",
+      "expected_error": "must be an integer in [-1..6]",
+      "status": "passed",
+      "exit_code": 1,
+      "stderr": "Error, koAHSS: k = max(p+q+3) must be an integer in [-1..6] at ./gap/group_api.gi:13 called from"
+    },
+    {
+      "label": "bad n",
+      "expression": "koAHSS(CyclicGroup(2),0,0,1,0);",
+      "expected_error": "must be in [1..5]",
+      "status": "passed",
+      "exit_code": 1,
+      "stderr": "Error, koAHSS: n counts pages beginning with E2 and must be in [1..5] at ./gap/group_api.gi:19 called from"
+    },
+    {
+      "label": "infinite group",
+      "expression": "koAHSS(FreeAbelianGroup(1),0,0,1);",
+      "expected_error": "requires a finite group",
+      "status": "passed",
+      "exit_code": 1,
+      "stderr": "Error, koAHSS: automatic resolution construction requires a finite group; use koAHSSH\\\nAPSpace with an explicit integral resolution at ./gap/group_api.gi:23 called from"
+    },
+    {
+      "label": "removed options",
+      "expression": "koAHSSHAPSpace(ResolutionFiniteGroup(CyclicGroup(2),3),koAHSSNaturalOperations(),rec());",
+      "expected_error": "koAHSSHAPSpace(resolution[, operations])",
+      "status": "passed",
+      "exit_code": 1,
+      "stderr": "Error, koAHSSHAPSpace(resolution[, operations]) at ./gap/hap.gi:37 called from"
+    }
+  ],
+  "status": "passed"
+}

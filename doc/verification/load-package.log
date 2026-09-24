@@ -1,0 +1,21 @@
+
+#I  HAP warning: Set NEATO_PATH manually if needed.
+#I  HAP warning: Set DOT_PATH manually if needed.
+#I  HAP warning: Set DISPLAY_PATH manually if needed.
+#I  HAP warning: Set BROWSER_PATH manually if needed.
+true
+C2, untwisted, E2--E6: 
+[ [ [ [ 0 ], [  ], [ 2 ] ], [ [  ], [  ] ], [ [ 2 ] ], [  ], [  ] ], 
+  [ [ [ 0 ], [  ], [ 2 ] ], [ [  ], [  ] ], [ [ 2 ] ], [  ], [  ] ], 
+  [ [ [ 0 ], [  ], [ 2 ] ], [ [  ], [  ] ], [ [ 2 ] ], [  ], [  ] ], 
+  [ [ [ 0 ], [  ], [ 2 ] ], [ [  ], [  ] ], [ [ 2 ] ], [  ], [  ] ], 
+  [ [ [ 0 ], [  ], [ 2 ] ], [ [  ], [  ] ], [ [ 2 ] ], [  ], [  ] ] ]
+true
+C2, s=[1], omega=[1], E2--E6: 
+[ [ [ [  ], [ 2 ], [  ] ], [ [  ], [  ] ], [ [ 2 ] ], [  ], [  ] ], 
+  [ [ [  ], [ 2 ], [  ] ], [ [  ], [  ] ], [ [ 2 ] ], [  ], [  ] ], 
+  [ [ [  ], [ 2 ], [  ] ], [ [  ], [  ] ], [ [  ] ], [  ], [  ] ], 
+  [ [ [  ], [ 2 ], [  ] ], [ [  ], [  ] ], [ [  ] ], [  ], [  ] ], 
+  [ [ [  ], [ 2 ], [  ] ], [ [  ], [  ] ], [ [  ] ], [  ], [  ] ] ]
+true
+LOAD_CHECK_OK

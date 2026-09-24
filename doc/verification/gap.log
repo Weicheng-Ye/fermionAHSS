@@ -1,0 +1,42 @@
+#I  HAP warning: Set NEATO_PATH manually if needed.
+#I  HAP warning: Set DOT_PATH manually if needed.
+#I  HAP warning: Set DISPLAY_PATH manually if needed.
+#I  HAP warning: Set BROWSER_PATH manually if needed.
+Core tests passed: lattices, page quotients, affine phase families.
+Physical-dimension windows: 16 dependency cases and outside-target checks pass\
+ed.
+Adem tests passed: 5054 binary systems, 7 cochain systems, 
+36 relation checks, 6 nonzero dihedral residuals.
+Universal Adem helper: all 32768 equations, 
+1024
+  source encodings/pullbacks, normalized degeneracies, face naturality, resour\
+ce guards passed.
+Cartan kind1/kind2 nonzero simplicial relation primitives passed.
+Secondary references: nonzero twisted/untwisted cochains, exact identities, pr\
+imary obstruction, helper reuse, constraints, and unavailable cups passed.
+Natural simplicial word and signed-cup checks: 47.
+Natural head-family secondary formula: verified relative-suspension obstructio\
+n [0,1].
+Natural matched-pair cup-one correction: 81 checks, 24 old failures detected.
+Revised Psi-note correction: degree-nine specification, convention guard, nonz\
+ero matched pair, raw-reference audit, reuse, and formal extension passed.
+Psi-note square-zero inference: injective/noninjective quotients, admissibilit\
+y, matched lifts, and b variation passed.
+Secondary normalization tests passed: 127 comparisons and corrections.
+Secondary coherence: nonzero normalization, integral carry transport, incompat\
+ible coefficients, reference validation, and full witness lattice passed.
+Tertiary equation tests passed: 
+21 integral, torsion, compatibility, and defining-system regressions.
+Natural tertiary tests passed: 5 exact twisted defining systems.
+Unresolved-cell propagation and coefficient-one dispatch tests passed.
+HAP tests passed: cyclic squares, twisted primaries, 105 cup identities.
+Native coherence tests passed: 180 integral chain identities, 
+161
+  exact signed/mod-two cup comparisons, nonzero S3 associator, cache eviction;\
+ bar transport trapped. Calibrated Tau/Psi/T not covered.
+Natural bar chain-map, homotopy, and local-coefficient checks: 231.
+Signed cup identities and mod-two agreement: 379 passed.
+Integral cup products with local coefficients: 432 passed.
+Pontryagin-square Bockstein and k=1 correction tests passed.
+Calibrated natural secondary operations: 8 end-to-end checks.
+FERMION_BAR_REGRESSIONS_OK

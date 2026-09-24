@@ -1,0 +1,133 @@
+{
+  "date": "2026-09-24",
+  "package": "fermionAHSS",
+  "version": "0.1.0",
+  "transport": "fixed group bar",
+  "source_workspace": "/Users/victor/Workspace/secondary_operations2",
+  "commands": {
+    "python": "python3 -m unittest discover -s python -p test_*.py -v (68 original tests temporarily copied next to the flattened runtime; removed after passing)",
+    "gap": "gap -q --quitonbreak <temporary regression harness>",
+    "rejections": "python3 <temporary run_rejections.py> (32 non-Dold-Kan upstream cases)",
+    "examples": [
+      "gap -q --quitonbreak examples/c2.g",
+      "gap -q --quitonbreak examples/twisted_c2.g"
+    ],
+    "package": "TestPackage(\"fermionAHSS\");"
+  },
+  "gap_fixture_modules": [
+    "core",
+    "physical_dimension",
+    "adem",
+    "universal_adem",
+    "secondary",
+    "natural_words",
+    "natural_secondary",
+    "secondary_corrected",
+    "secondary_squarezero",
+    "normalization",
+    "secondary_coherence",
+    "tertiary_equations",
+    "natural_tertiary",
+    "unresolved",
+    "hap",
+    "native_coherence",
+    "natural_bar",
+    "integral",
+    "natural_operations"
+  ],
+  "gap_fixture_adaptation": "Original koAHSS/tst fixtures read after the independent loader. Removed the obsolete third-argument model record from the natural_tertiary fixture; no expected mathematical values changed.",
+  "results": {
+    "python": {
+      "passed": 68,
+      "seconds": 234.52
+    },
+    "gap": {
+      "passed_modules": 19,
+      "direct_tertiary_fixtures": 5,
+      "direct_tertiary_degrees": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "mathematical_rejections": 32,
+    "group_api_valid_cases": 5,
+    "group_api_rejections": 6,
+    "package_load_routes": 4,
+    "standalone_examples": 2,
+    "dependency_skips": 0,
+    "installed_destination": {
+      "LoadPackage": true,
+      "ReadPackage": true,
+      "TestPackage": true,
+      "ValidatePackageInfo": true,
+      "DoldKan_constructor_absent": true,
+      "direct_T1": [
+        0
+      ],
+      "package_symlink": "/Users/victor/.gap/pkg/fermionAHSS"
+    }
+  },
+  "excluded": "Dold-Kan-specific upstream tests are outside this bar-only distribution. No full group catalogue was run.",
+  "math_status": {
+    "certified_ko": false,
+    "scope": "Five ko rows through E6, tertiary inputs 0-3; no abutment extension claim."
+  },
+  "path_migration": "GAP uses ../python/worker.py; phase_eval.py uses parents[1] for package data. Only the phase_eval.py hash in r3_source.json and the dependent r3_source.json hash in high_calibration.json changed; mathematical payloads compared equal.",
+  "review": "Independent code review completed; example bootstrap and MIT license findings fixed.",
+  "runtime_sha256": {
+    "data/chi-calibrated-degree7-anf.g": "7f80e7b770e1a1929b49f5b4e9765d2bf17c3a0e15dd6c9f05f8876be296cb05",
+    "data/chi-head-degree4-anf.g": "fea5cc567fd9b0951b73e4f3206870d908d0f04729df39721aaf16c515093160",
+    "data/chi-head-degree6.g": "c05898a1efa13f3981f82c2f3c0c7438e394a20254287f9e6048f6bad112066e",
+    "data/chi-tail-degree6.g": "9207da8f9039d7b2c04cc637da979096e85802428e8ce784c08ef9c78a6a939a",
+    "gap/adem.gi": "6c16c5d38dab2cd95d53c14b21cc04e41167049acc36b1b576e3841836d6e7ae",
+    "gap/cochains.gi": "2c2f2ba3732dff37dba696136766c2272d9d5517561087f1a8fbc6bd9902daf7",
+    "gap/defining_systems.gi": "b2f5e53155383cf99864bfbeef45d77bd300943a357521ab273d2009f03452f8",
+    "gap/group_api.gi": "52c1853d5bab412d8dcb55353ad94bb212cc5e75132639ea755e510b00fd09f2",
+    "gap/hap.gi": "d9d167eefdb041e446bf9bd051b563ef7dad589c70cba591530c779b92196714",
+    "gap/integer_equations.gi": "b347b00e97cefe67a2272e6fdc074574bf014d6d48c1aa7145a410a11526d6eb",
+    "gap/koahss.gd": "e97545284d5639ced3efd04c5d6cda274dd32ef44a363486b0862eb5db9851f1",
+    "gap/native_coherence.gi": "b7ea6a294637e2ad1b92fae8377bf166d9490ab728869f58f3941edd018723c6",
+    "gap/natural_bar.gi": "f16518b2d6f8e1008d1eca15d348edc68ac703c09a1c429690734245cdcf4159",
+    "gap/natural_secondary.gi": "680439fe8a0c2461102965fd4b929a7dcae9a3819a6ea671b06d4f93a87c2fdd",
+    "gap/natural_tertiary.gi": "7f9ee672e52a93ba582f9d00517f8f235cef080a898f986bf1a5756721f0e785",
+    "gap/natural_words.gi": "365499c5b61362ce199b9ccfc5050caeaf5bf19f6293430c63f0a096f2fcc3b1",
+    "gap/normalization.gi": "9477ef2f9b46a66f378ff20bd09b3a0d5fe93bdeaa88be95cc8a52261f3d49de",
+    "gap/pages.gi": "10466663de9d05d68ebd90baccd053d7c99cfc5d94293cc651786c42590ce42e",
+    "gap/phases.gi": "ca7a8e997623936a0af19645043a0a9d2cd8960101b62aa30eab83a28cb0c6cd",
+    "gap/secondary.gi": "bb03e1451c887fe4676aad9c715faaaacea33d61a7e7ae0236344441b75252bb",
+    "gap/secondary_coherence.gi": "64704acb5ccf800a4de54153d1cdb938a1c0b05debf026fb264e05b27e067ac0",
+    "gap/secondary_corrected.gi": "af9c8fceabd288438f2755bf036050b83d4f512a3a72f4855a91a7bbd557fe40",
+    "gap/secondary_squarezero.gi": "7333f807c783e51ca2e476a73c4b20386e51c98fae119400c2eca5f811bda11e",
+    "gap/tertiary_candidates.gi": "718a58648e25ca78a618b5ece9e9965088c02e7075a16847e195d7b34b80bfc4",
+    "gap/tertiary_correction.gi": "258be350344c2065f9d1c531b9c0cfbc6c72671e60ed3091af24203d9d0d7d1c",
+    "gap/tertiary_equations.gi": "d6edd32e07563293814fcd565ff997b9ef697e433597a39c96af58b947b10ca8",
+    "gap/universal_adem.gi": "85cd38c99b0402a4ab63277c13cd5c2e0fe52f38f2aa0ceba3523cd28bb574f9",
+    "python/__init__.py": "2d4a4125957f7314866f274b142e541f509a2d7a33ba6bcbbcdcde02d79a73e9",
+    "python/chain_models.py": "6075fb741d9ca33d5ff43d550e82b86741ad7745355bcf9c32eadef7248e913f",
+    "python/cochain_tools.py": "14f4bc5606696ce65bbae8d2e6c6e27cf7563afce7a981f67a30d0f293fff60e",
+    "python/exterior_bar.py": "b2e7449cd096fe8eca5f6b8a1c80bbed69bc0127c84f87901f481182e019f4bf",
+    "python/high_calibration.json": "d65d75e2fd27fdfc88f7529af4b4110ee708b7f2f59bfbcb25b8d8bcbc8201d3",
+    "python/high_calibration.py": "83da52f6f9fe43ac8123453371d6a1f75818594e82ae004814ff8aeff1b84bbf",
+    "python/high_calibration_periods/F.json": "a77c365bbe861e72aca2a16c3e59b22c4c7ae35467a7dc7661a9b78d6bff38cd",
+    "python/high_calibration_periods/V.json": "1c3863fae9123cb7ebf1f53489f102b937e218b6916111b8cc04011f6bad6b9c",
+    "python/high_calibration_periods/W.json": "fce7d9a535285d295ab24cb1ea5ca15af54812b53b66b296ec5d243a979e7b25",
+    "python/high_calibration_periods/Y.json": "1367c42b8a0d2184a4229e5b2d883934193388bdfe3b387146a041f19d667228",
+    "python/high_calibration_periods/ZT.json": "41961a4c40607dfaf7c8527549f0d1534ae552776ac9dd0d5feae909a14564f4",
+    "python/high_phase.py": "65456828be50e527bff89cf532e6382baf7472a286035b31fa571d416e6a304c",
+    "python/low_calibration.json": "cc26f571a882173b827bedd077ed5149123c0f7f1080d0c2a1737e1fa0d35f3a",
+    "python/low_calibration.py": "3b4bdc8e24fe5738e615c20b5c883ccaeee4505558410fdaf9d187b036aeed72",
+    "python/low_phases.py": "c6b6fd43e75f740971c8e56339d66be11452d9ed70f285b792dafaf07a6b7052",
+    "python/mod3_power.py": "1f437f33a7912d42db4c91b39bfe1b6a9f9818fefd80b9bfc6df49482803b251",
+    "python/odd_comparison.py": "63ddaf3172975fc4ed1bee56804d55490add32dd2cb6dd69b233264336fad3ea",
+    "python/odd_primitive.py": "da6f6a1c21727104e8eded0a7450c053dadaa72b743792d412fc6a60f8d20cea",
+    "python/phase_eval.py": "d1f1a6f1e9a4777facbfbc2b41fff512565471df07b529e5e802484a19527136",
+    "python/r3_chain.py": "dc042a772f5f543a17afa336e1348fab9792d822269b5bce3fa5e04e0e5d2736",
+    "python/r3_source.json": "5ea3f0acb6b1a0e2dc66b233c813c1de502aeccb88fc683c0d8f10930c431f54",
+    "python/r3_source.py": "86a3e9d243d9fa76d43223dd6eb7fb47b3d73a5515b159e171ccc0668a636d92",
+    "python/runtime_cache.py": "9e4665eddf08f20762c8f8d44bd89c5921e9c0dd682cdc6dea7967214d8b6310",
+    "python/source_primitive.py": "f6070dca030d42e33dc85cf969d01ed1c579bb09efa30f7a9c7545a2eca7a8c8",
+    "python/worker.py": "8d85471ba3094a7a4ec8b887e38e986d27134128cac37c08f108b48ba6e151ac"
+  }
+}
