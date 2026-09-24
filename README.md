@@ -1,16 +1,8 @@
 # fermionAHSS
 
-An exact GAP package for the five rows `q = -4,-3,-2,-1,0` of the twisted
-connective real K-theory Atiyah–Hirzebruch spectral sequence, through E6.
-It computes actual kernels, images, torsion, and representative maps. The
-calibrated secondary and degree-zero-through-three tertiary operations use
-a fixed normalized group-bar comparison with the supplied HAP resolution.
+An exact GAP package for the five rows `q = -4,-3,-2,-1,0` of the twisted connective real K-theory Atiyah–Hirzebruch spectral sequence (AHSS), through E6. It aims to calculate the classification of fermionic symmetry-protected topological (SPT) phases with various different fermionic symmetry groups up to (5+1)-dimension.
 
-The output is the five-row associated-graded calculation, not the total
-ko group. Other coefficient rows and abutment extensions are outside its
-scope; saved calculations retain `certified_ko: false`. Unavailable
-operations give unresolved entries, while invalid cochains and identities
-remain errors. See [mathematical status](doc/mathematical-status.md).
+The output is the different pages of the AHSS in these five rows. Other coefficient rows and abutment extensions are outside the implementation scope. See [READEME](doc/READEMD.md) for more mathematical details.
 
 ## Installation and loading
 
@@ -202,24 +194,6 @@ to 256 entries by default. Nonnegative environment variables
 them; zero disables the corresponding memoization. These are entry limits,
 not process-memory guarantees. Bar comparison chains and higher-degree
 universal contractors can be expensive.
-
-## Paper comparisons and batch calculations
-
-Batch scripts, extracted reference tables, and run artifacts are maintained
-locally in `batch/`, `references/`, and `runs/`; they are not included in
-the tracked package or a fresh clone. Where these local files are available,
-`batch/README.md` describes catalogue generation, isolated Slurm jobs,
-runtime and memory measurements, and comparison reports. The extracted
-tables come from Wang–Gu's Table III and Ning et al.'s tables for all 230
-full space groups; see the bibliography below.
-
-For the space-group calculations, the natural representation
-\(G\to O(3)\) supplies \(s=w_1\), with either \(\omega=0\) or
-\(\omega=w_2+w_1^2\). The paper's electronic tables provide the comparison
-for the zero-omega twist. The paper spatial dimension is \(d=p+q+2\), so
-the package cutoff `k=4` includes the three-dimensional layers. Comparisons
-check associated-graded layers or phase counts; they do not resolve stacking
-extensions. Reference entries missing from the paper remain unreported.
 
 ## Verification and development status
 
