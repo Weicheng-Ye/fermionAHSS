@@ -590,8 +590,8 @@ The packaged selector data are
 | R2 suspension selector \(\zeta_2\) | `1` | order-four period `1/4`, orientation `j=1` |
 | R2 suspension selector \(\zeta_3\) | `0` | `kappa_6 V2(Ss)=3/2`, `Uraw(Tor)=-1/2` |
 | Odd base selector `eta` | `0` | base period `0`, source `(B,C)=(7/8,0)` |
-| New final-T rank ambiguity coefficient | `0` | Danus reference |
-| New final-T twist ambiguity `mu_R` | `0` | Euler value `Xi(D)=V2(D)=13/4`, with full `Dtilde` and `Psi` indeterminacy |
+| Final-T rank correction coefficient | `0` | rank-six `BPSO(6)=BPU(4)` comparison |
+| Final-T twist ambiguity `mu_R` | `0` | Euler value `Xi(D)=V2(D)=13/4`, with full `Dtilde` and `Psi` indeterminacy |
 | R3 `xi` | `3/4` | cubic period |
 | R3 `(c4,cN,cO,cM,epsilon_c)` | `(1,0,1,1,1)` | current `R2sharp` family |
 | Final-T prime-three coefficient | `2` | only input degree three in this range |
@@ -615,20 +615,15 @@ rules are
 \epsilon_c=2(\xi-\tfrac14)\pmod2.
 \]
 
-The preceding comparison uses `kappa_6=-I`. None of these fixed source
-normalizations is an additional local choice in a GAP calculation. The
-old `TReference` coefficient one belongs to a different reference and is
-not applied to the new final natural T.
+The preceding comparison uses `kappa_6=-I`. The source normalizations
+above are fixed in the packaged calibration data.
 
 ## 9. Provenance and scope
 
 This is a summary of the actual packaged formulas and finite data, checked
-against their source on 2026-09-23. It does not replace the longer source
-proofs in
-tertiary_R_Danus (source-workspace provenance: `notes/extra/tertiary_R_Danus/README.md`; not bundled),
-tertiary_T_degree3 (source-workspace provenance: `notes/extra/tertiary_T_degree3/README.md`; not bundled), or the
-saved executable
-verification record (source-workspace provenance: `notes/extra/tertiary_T_degree3/gap_verification_20260923/README.md`; not bundled).
+against their source on 2026-09-23. The unbundled source proofs and
+historical executable checks are described in
+[mathematical-status.md](mathematical-status.md).
 Some copied module header comments still describe verification prototypes;
 their functions are now the kernels imported by the production worker.
 The production domain of the tertiary assembler remains inputs `0,1,2,3`.

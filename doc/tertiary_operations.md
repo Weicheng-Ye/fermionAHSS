@@ -96,10 +96,8 @@ By contrast, changing a rational phase by an **integral cochain** changes
 not necessarily the literal GAP output. The separate half-lifts and
 integer coefficients below retain the kernel's representative convention.
 
-The calibrated ko correction relative to this Danus reference has rank
-coefficient zero and \(\mu_R=0\). The coefficient-two three-primary
-term in (T) remains present. The legacy `TReference` coefficient-one
-correction must not be applied to this final `T`.
+Final `T` has rank correction coefficient zero and \(\mu_R=0\).
+The coefficient-two three-primary term is included in (T).
 
 On the page, the domain consists of classes in \(\ker\operatorname{Dbar}\)
 whose \(\operatorname{Tau}_n\) class vanishes. The target is
@@ -295,8 +293,8 @@ branch has \(s=d\epsilon_A\), so the top endpoint is the positive
 oriented input. This is a canonical gauge determined by \(A\), not a
 chosen primitive of \(s\).
 
-Source: [`low_phases.R0`](../python/low_phases.py), with
-derivation in R0_fixed.md (source-workspace provenance: `notes/extra/tertiary_R_Danus/R0_fixed.md`; not bundled).
+Implementation: [`low_phases.R0`](../python/low_phases.py).
+For the source proofs, see [mathematical-status.md](mathematical-status.md).
 
 ## 4. Input degree one
 

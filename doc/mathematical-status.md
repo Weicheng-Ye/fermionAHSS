@@ -29,7 +29,7 @@ do not select production maps.
 
 ## Fixed tertiary family
 
-The Danus universal helper and final T are implemented only in input degrees
+The universal helper R and final T are implemented only in input degrees
 zero through three. The general signed R0, R1, R2, and R3 family is used;
 the compact even-input family is not silently spliced into it. R0 retains
 full and quarter-input carries. Current R2 is
@@ -41,10 +41,10 @@ The source supplements establish low-degree first-b descent, additivity,
 and the specified suspension comparisons. These are separate claims from
 residual solvability, exact boundary, and absolute normalization. The
 rank-six `BPSO(6)=BPU(4)` comparison fixes the `q(omega)A` correction to
-zero relative to Danus. The signed Euler calculation gives `mu_R=0`.
+zero for the formulas in [tertiary_operations.md](tertiary_operations.md).
+The signed Euler calculation gives `mu_R=0`.
 Thus final T adds `2 beta_3,s P^1_s rho_3,s`, which can contribute only
-in input degree three here. The old coefficient-one correction belongs
-only to legacy `TReference`.
+in input degree three here.
 
 The nonzero finite data are essential: tertiary low-selector vector
 \(\boldsymbol{\zeta}=(\zeta_1,\zeta_2,\zeta_3)=(0,1,0)\), V2 source
@@ -70,8 +70,8 @@ such as R=-U(c), would not define the required universal R(A,b).
 
 Original research-workspace provenance (not bundled runtime dependencies):
 
-- `notes/extra/tertiary_R_Danus/`: general R formulas and suspension
-  arguments, including `r3.md` and `r2_cubic_normalization.md`.
+- General R formulas and suspension arguments: `R0_fixed.md`, `r3.md`,
+  and `r2_cubic_normalization.md` (unbundled source notes).
 - `notes/extra/tertiary_T_degree3/`: low-degree T descent, additivity,
   rank-six calibration, and normalization arguments.
 - `notes/extra/tertiary_T_degree3/mu_verification/`: exact Euler calibration

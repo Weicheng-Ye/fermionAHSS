@@ -184,8 +184,8 @@ Direct secondary inputs are supported through degree seven; T inputs are
 supported only in degrees zero through three. The page window needs at
 most `Tau_3`, `Psi_4`, and `T_3`.
 
-Final T uses the Danus reference with zero rank correction and `mu_R=0`,
-plus `2 beta_3,s P^1_s rho_3,s` in input degree three. Its universal helper
+Final T has zero rank correction and `mu_R=0`, and includes
+`2 beta_3,s P^1_s rho_3,s` in input degree three. Its universal helper
 is fixed; no local residual solution or shortcut based on injectivity of
 `Dtilde` selects it.
 

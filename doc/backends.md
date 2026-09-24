@@ -77,9 +77,9 @@ representative; abstract ranks do not supply that information.
 `operations.Tau(ctx)`, `operations.Psi(ctx)`, and `operations.T(ctx)` return
 target cocycle vectors. `ctx` contains `degree`, `cochain`, `s`, `omega`,
 `backend`, and current-page `source` and `target` cells. It also records the
-tertiary reference and correction coefficient. Final Danus T has coefficient
-zero. The separate legacy `TReference` callback receives its coefficient-one
-correction exactly once; an explicit final `T` takes precedence.
+tertiary reference and correction coefficient. Final `T` has correction
+coefficient zero. The separate legacy `TReference` callback receives its
+coefficient-one correction exactly once; an explicit final `T` takes precedence.
 
 A callback may return `fail` or an unresolved record when unavailable.
 Bad callback types, invalid cocycles, failed identities, and inadequate
