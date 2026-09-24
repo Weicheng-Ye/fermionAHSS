@@ -24,14 +24,19 @@ not needed separately.
 
 The notes and GAP use the same differential names throughout.
 
-| Differential | Rows | Name | Formula or representative |
-| --- | --- | --- | --- |
-| d2 | 0 to -1 | `Dbar` | D rho2 |
-| d2 | -1 to -2 | `D` | Sq2 + s Sq1 + omega |
-| d3 | -2 to -4 | `Dtilde` | J = beta_s(Sq2 + omega) |
-| d3 | 0 to -2 | `Tau` | Binary \(\tau'\) |
-| d4 | -1 to -4 | `Psi` | Integral \(\psi'\) |
-| d5 | 0 to -4 | `T` | Integral tertiary operation |
+| Differential | Rows | Function |
+| --- | --- | --- |
+| d2 | 0 to -1 | `Dbar` |
+| d2 | -1 to -2 | `D` |
+| d3 | -2 to -4 | `Dtilde` |
+| d3 | 0 to -2 | `Tau` |
+| d4 | -1 to -4 | `Psi` |
+| d5 | 0 to -4 | `T` |
+
+The primary functions are defined in [conventions.md](conventions.md).
+The formulas for `Tau` and `Psi` are in
+[secondary_operations.md](secondary_operations.md), and those for `T`
+are in [tertiary_operations.md](tertiary_operations.md).
 
 | Datum | Value |
 | --- | --- |

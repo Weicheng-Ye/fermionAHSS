@@ -95,16 +95,17 @@ For a binary degree-`n` cochain `a`, let `F_1,...,F_M` be all ordered
 
 \[
 \boxed{\quad
-\chi_n(a)=\sum_{c\in\mathcal C_n}\prod_{j\in J(c)}x_j\pmod2.
+\chi_n(a)=\sum_{c\in\mathcal C_n}\prod_{j\in\operatorname{faces}(c)}x_j\pmod2.
 \quad}
 \]
 
 The complete explicit coefficient list `C_n` is the `monomials` array of
 the degree-`n` record. To decode an integer `c`, expand it in radix
 `2^bitsPerFace`; its nonzero digits are the **one-based face indices** in
-`J(c)`. GAP stores vertex positions starting at one. Python subtracts one
-from those vertex positions, but not from the conceptual ordering of the
-faces. Products are square-free because `x_j^2=x_j` over F2. Thus the data
+\(\operatorname{faces}(c)\). GAP stores vertex positions starting at one.
+Python subtracts one from those vertex positions, but not from the
+conceptual ordering of the faces. Products are square-free because
+`x_j^2=x_j` over F2. Thus the data
 file and this decoding rule specify every coefficient; the large word
 lists are not additional runtime inputs.
 
@@ -590,7 +591,7 @@ The packaged selector data are
 | R2 suspension selector \(\zeta_3\) | `0` | `kappa_6 V2(Ss)=3/2`, `Uraw(Tor)=-1/2` |
 | Odd base selector `eta` | `0` | base period `0`, source `(B,C)=(7/8,0)` |
 | New final-T rank ambiguity coefficient | `0` | Danus reference |
-| New final-T twist ambiguity `mu_R` | `0` | Euler value `Xi(D)=V2(D)=13/4`, with full J-plus-Psi indeterminacy |
+| New final-T twist ambiguity `mu_R` | `0` | Euler value `Xi(D)=V2(D)=13/4`, with full `Dtilde` and `Psi` indeterminacy |
 | R3 `xi` | `3/4` | cubic period |
 | R3 `(c4,cN,cO,cM,epsilon_c)` | `(1,0,1,1,1)` | current `R2sharp` family |
 | Final-T prime-three coefficient | `2` | only input degree three in this range |

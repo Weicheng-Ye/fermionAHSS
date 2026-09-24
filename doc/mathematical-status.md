@@ -13,7 +13,7 @@ The runtime family is `chi7_tail` in input degrees zero through seven,
 with epsilon `(1,0,0)` and eta `(1,0,1)`. Its word identities, right-product
 suspension, and Thom calibration are the mathematical inputs to the
 implementation. The exact common integral lift satisfies
-`rho M'=tau'` and `d_s M'=2 psi'`. The square-zero assertion `J[Tau]=0`
+`rho M'=tau'` and `d_s M'=2 psi'`. The square-zero assertion `Dtilde[Tau]=0`
 means an integral coboundary, not a literally zero cochain.
 
 The source-workspace provenance is
@@ -24,7 +24,8 @@ bundled. The packaged [ANF data](../data/chi-calibrated-degree7-anf.g) and
 [helper reference](universal_helpers.md) fully specify runtime evaluation.
 Historical `head`, `tail6`, and constrained degree-nine references have
 different normalizations and cannot be interchanged with `chi7_tail`.
-Local residual and injective-J diagnostics do not select production maps.
+Local residual solves and diagnostics based on injectivity of `Dtilde`
+do not select production maps.
 
 ## Fixed tertiary family
 

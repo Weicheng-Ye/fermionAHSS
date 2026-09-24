@@ -186,7 +186,8 @@ most `Tau_3`, `Psi_4`, and `T_3`.
 
 Final T uses the Danus reference with zero rank correction and `mu_R=0`,
 plus `2 beta_3,s P^1_s rho_3,s` in input degree three. Its universal helper
-is fixed; no local residual solution or injective-J shortcut selects it.
+is fixed; no local residual solution or shortcut based on injectivity of
+`Dtilde` selects it.
 
 The Python worker bounds per-cochain and pure chain-operator memo tables
 to 256 entries by default. Nonnegative environment variables

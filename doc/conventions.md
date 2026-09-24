@@ -47,7 +47,7 @@ Lifting a sum and adding its lifts are different operations:
 
 The code distinguishes them. In particular the secondary correction
 \(z=\widetilde{s\smile u}+\widetilde{\omega\smile e}\) is an **integer
-sum**, while the nonlinear binary expressions \(F,G,\tau\) are reduced
+sum**, while the nonlinear binary expressions \(F,G,\tau'\) are reduced
 before being lifted. Division by two in an integral formula means exact
 integer division after the indicated numerator has been assembled.
 
@@ -164,18 +164,20 @@ The primary maps adjoining the higher differentials are
 \[
 \begin{aligned}
 D(a)&=\operatorname{Sq}^2(a)+s\smile e(a)+\omega\smile a,\\
-\overline D(A)&=D(\rho A),\qquad A\in Z^n(X;\mathbf Z_s),\\
-J(a)&=\beta_s\bigl(\operatorname{Sq}^2[a]+\omega\smile[a]\bigr),
+\operatorname{Dbar}(A)&=D(\rho A),\qquad A\in Z^n(X;\mathbf Z_s),\\
+\operatorname{Dtilde}(a)&=\beta_s\bigl(\operatorname{Sq}^2[a]+\omega\smile[a]\bigr),
 \quad
 \beta_s[z]=\left[\frac{d_s\widetilde z}{2}\right].
 \end{aligned}
 \tag{C7}
 \]
 
-Here \(D,\overline D\) have degree two and \(J\) has degree three.
-GAP calls them `D`, `Dbar`, and `Dtilde`. Their cohomological expressions
+Here \(D,\operatorname{Dbar}\) have degree two and
+\(\operatorname{Dtilde}\) has degree three. These names agree with the
+GAP functions `D`, `Dbar`, and `Dtilde`. Their cohomological expressions
 are \(D=\operatorname{Sq}^2+s\operatorname{Sq}^1+\omega\),
-\(\overline D=D\rho\), and \(J=\beta_s(\operatorname{Sq}^2+\omega)\).
+\(\operatorname{Dbar}=D\rho\), and
+\(\operatorname{Dtilde}=\beta_s(\operatorname{Sq}^2+\omega)\).
 They are evaluated on normalized group-bar cochains in the same convention
 as the secondary formulas, then transferred to the supplied resolution.
 
@@ -213,8 +215,8 @@ b_E=f^*b_R+H^*p_E\pmod2.
 \tag{C10}
 \]
 
-Then \(db_E=p_E\). Let \(\tau_E\) be the binary representative of `Tau`
-on the bar resolution. For the tertiary operation, after arranging
+Then \(db_E=p_E\). Let \(\tau_E\) denote the representative \(\tau'\)
+of `Tau` on the bar resolution. For the tertiary operation, after arranging
 \(dc_R=g^*\tau_E\), set
 
 \[
@@ -223,8 +225,8 @@ c_E=f^*c_R+H^*\tau_E\pmod2.
 \]
 
 An input can survive the secondary quotient even when the initially chosen
-\(b_R\) has nonzero \([\tau]\). `koAHSSDefiningSystem` then changes it
-by a closed \(h\) with \([Dh]=[\tau]\), reevaluates the same natural
+\(b_R\) has nonzero \([g^*\tau_E]\). `koAHSSDefiningSystem` then changes it
+by a closed \(h\) with \([Dh]=[g^*\tau_E]\), reevaluates the same natural
 formula, and solves for \(c_R\). This chooses allowed defining cochains;
 it does not choose \(\chi,\zeta\), or a residual \(R_n\) on the space.
 

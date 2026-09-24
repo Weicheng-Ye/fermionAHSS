@@ -8,13 +8,18 @@ definitions and data are in [universal_helpers.md](universal_helpers.md).
 
 The notes use the same names as the GAP callbacks:
 
-| Differential | Name | Cochain output |
-| --- | --- | --- |
-| \(d_3:E_3^{n,0}\to E_3^{n+3,-2}\) | `Tau` | Binary \(\tau'\), degree \(n+3\) |
-| \(d_4:E_4^{n,-1}\to E_4^{n+4,-4}\) | `Psi` | Integral \(\psi'\), degree \(n+4\) |
+| Differential | Function |
+| --- | --- |
+| \(d_3:E_3^{n,0}\to E_3^{n+3,-2}\) | `Tau` |
+| \(d_4:E_4^{n,-1}\to E_4^{n+4,-4}\) | `Psi` |
+
+For a fixed defining cochain \(b\), the cochain representatives of
+\(\operatorname{Tau}_n(A)\) and \(\operatorname{Psi}_n(a)\) are
+\(\tau'\) and \(\psi'\), respectively. They have degrees \(n+3\)
+over \(\mathbf F_2\) and \(n+4\) over \(\mathbf Z_s\).
 
 The other \(d_3\), from row \(-2\) to row \(-4\), is the primary
-\(J=\beta_s(\operatorname{Sq}^2+\omega)\), called `Dtilde`.
+\(\operatorname{Dtilde}=\beta_s(\operatorname{Sq}^2+\omega)\).
 
 ## 1. Common input and the first defining cochain
 
@@ -194,8 +199,8 @@ with \(A,b,s,\omega\), is passed on to the tertiary defining system.
 The square-zero assertion is the cohomological statement
 
 \[
-J[\tau']=0\in H^{n+6}(X;\mathbf Z_s),
-\qquad J=\beta_s(\operatorname{Sq}^2+\omega).
+\operatorname{Dtilde}[\tau']=0\in H^{n+6}(X;\mathbf Z_s),
+\qquad \operatorname{Dtilde}=\beta_s(\operatorname{Sq}^2+\omega).
 \tag{S15}
 \]
 
@@ -210,9 +215,9 @@ Writing cohomology groups with their coefficients, the maps are
 
 \[
 \operatorname{Tau}_n:
-\ker\!\left(\overline D:H^n(X;\mathbf Z_s)\to H^{n+2}(X;\mathbf F_2)\right)
+\ker\!\left(\operatorname{Dbar}:H^n(X;\mathbf Z_s)\to H^{n+2}(X;\mathbf F_2)\right)
 \longrightarrow
-\frac{\ker\!\left(J:H^{n+3}(X;\mathbf F_2)\to H^{n+6}(X;\mathbf Z_s)\right)}
+\frac{\ker\!\left(\operatorname{Dtilde}:H^{n+3}(X;\mathbf F_2)\to H^{n+6}(X;\mathbf Z_s)\right)}
 {D H^{n+1}(X;\mathbf F_2)},
 \tag{S16}
 \]
@@ -220,9 +225,9 @@ Writing cohomology groups with their coefficients, the maps are
 \[
 \operatorname{Psi}_n:
 \frac{\ker\!\left(D:H^n(X;\mathbf F_2)\to H^{n+2}(X;\mathbf F_2)\right)}
-{\overline D H^{n-2}(X;\mathbf Z_s)}
+{\operatorname{Dbar} H^{n-2}(X;\mathbf Z_s)}
 \longrightarrow
-\frac{H^{n+4}(X;\mathbf Z_s)}{JH^{n+1}(X;\mathbf F_2)}.
+\frac{H^{n+4}(X;\mathbf Z_s)}{\operatorname{Dtilde} H^{n+1}(X;\mathbf F_2)}.
 \tag{S17}
 \]
 

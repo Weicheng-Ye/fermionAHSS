@@ -3,7 +3,7 @@
 This is a transcription of the formulas evaluated by the current GAP
 `T` callback and its bundled Python kernel, as of 2026-09-23. The
 cochain notation and signs are fixed in [conventions.md](conventions.md);
-the lower operation \(\tau_n\) represents `Tau`, described in
+the lower differential `Tau` is described in
 [secondary_operations.md](secondary_operations.md). The universal source
 operators below are specified in [universal_helpers.md](universal_helpers.md).
 
@@ -15,7 +15,9 @@ is not part of this formula.
 
 The differential names are `Tau` for \(d_3\) from row 0 to row −2,
 `Psi` for \(d_4\) from row −1 to row −4, and `T` for \(d_5\)
-from row 0 to row −4. The binary cochain \(\tau_n(A,b)\) represents `Tau`.
+from row 0 to row −4. For a fixed defining cochain \(b\),
+\(\tau_n(A,b)\) denotes the representative \(\tau'\) of
+\(\operatorname{Tau}_n(A)\) from [secondary_operations.md](secondary_operations.md).
 The rational-phase helper \(\Theta_m\) below is a separate object.
 
 The tertiary low-selector vector is
@@ -99,12 +101,12 @@ coefficient zero and \(\mu_R=0\). The coefficient-two three-primary
 term in (T) remains present. The legacy `TReference` coefficient-one
 correction must not be applied to this final `T`.
 
-On the page, the domain consists of classes in \(\ker\overline D\)
+On the page, the domain consists of classes in \(\ker\operatorname{Dbar}\)
 whose \(\operatorname{Tau}_n\) class vanishes. The target is
 
 \[
 \frac{H^{n+5}(X;\mathbf Z_s)}
- {JH^{n+2}(X;\mathbf F_2)
+ {\operatorname{Dtilde} H^{n+2}(X;\mathbf F_2)
  +\operatorname{Psi}_{n+1}\!\left(\ker\bigl(D:H^{n+1}(X;\mathbf F_2)
                  \longrightarrow H^{n+3}(X;\mathbf F_2)\bigr)\right)}.
 \]
