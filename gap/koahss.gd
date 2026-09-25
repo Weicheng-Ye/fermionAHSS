@@ -1,4 +1,6 @@
 DeclareGlobalFunction("koAHSS");
+DeclareGlobalFunction("koFull");
+DeclareGlobalFunction("koAHSSExtensionFromLayers");
 DeclareGlobalFunction("koAHSSFormat");
 DeclareGlobalFunction("koAHSSDisplay");
 DeclareGlobalFunction("koAHSSpages");

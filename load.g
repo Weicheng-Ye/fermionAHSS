@@ -26,6 +26,14 @@ CallFuncList(function()
     for component in ["cochains.gi", "natural_words.gi", "natural_bar.gi", "native_coherence.gi", "hap.gi", "phases.gi", "adem.gi", "universal_adem.gi", "integer_equations.gi", "secondary.gi", "natural_secondary.gi", "secondary_corrected.gi", "secondary_squarezero.gi", "normalization.gi", "secondary_coherence.gi", "defining_systems.gi", "tertiary_correction.gi", "tertiary_candidates.gi", "tertiary_equations.gi", "natural_tertiary.gi", "group_api.gi"] do
         Read(Filename(directory, Concatenation("gap/", component)));
     od;
+    Read(Filename(directory, "gap/extensions.gi"));
+    Read(Filename(directory, "gap/extension_lifts.gi"));
+    Read(Filename(directory, "gap/extension_bar.gi"));
+    Read(Filename(directory, "gap/extension_degree_six.gi"));
+    Read(Filename(directory, "gap/extension_equivalence.gi"));
+    Read(Filename(directory, "gap/extension_relations.gi"));
+    Read(Filename(directory, "gap/extension_audit.gi"));
+    Read(Filename(directory, "gap/stacking_extensions.gi"));
     BindGlobal("KOAHSS_PACKAGE_VERSION", "0.1.0");
     BindGlobal("FERMION_AHSS_PACKAGE_VERSION", "0.1.0");
 end, []);

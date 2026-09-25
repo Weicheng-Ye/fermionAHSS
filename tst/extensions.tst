@@ -1,0 +1,33 @@
+# Exact relation vectors, correlated images and marked Smith bases.
+gap> extOracle := function(images) return function(layer,i,m,lower) return rec(status:="computed",lowerPresentationId:=lower.presentationId,lowerCoordinates:=images.(layer.name)[i],witness:=rec(kind:="test-relation")); end; end;;
+gap> extSame := koAHSSExtensionFromLayers(rec(D:=[2,2],C:=[2,2]),extOracle(rec(C:=[[1,0],[1,0]])));;
+gap> extDifferent := koAHSSExtensionFromLayers(rec(D:=[2,2],C:=[2,2]),extOracle(rec(C:=[[1,0],[0,1]])));;
+gap> Assert(0,extSame.invariants=[2,2,4] and extDifferent.invariants=[4,4]);
+gap> Assert(0,extSame.relationMatrix=[[2,0,0,0],[0,2,0,0],[-1,0,2,0],[-1,0,0,2]]);
+gap> Assert(0,extSame.smith.U*extSame.relationMatrix*extSame.smith.V=extSame.smith.S);
+gap> Assert(0,extSame.smith.V*extSame.smith.inverseV=IdentityMat(4));
+gap> Assert(0,extSame.basis.expressions=extSame.smith.inverseV{extSame.smith.activeIndices});
+gap> extEquivalent := koAHSSExtensionFromLayers(rec(D:=[2,2],C:=[2,2]),extOracle(rec(C:=[[3,2],[1,0]])));;
+gap> Assert(0,extEquivalent.invariants=extSame.invariants);
+gap> extChain := koAHSSExtensionFromLayers(rec(D:=[2],C:=[2],B:=[2],A:=[2]),extOracle(rec(C:=[[1]],B:=[[0,1]],A:=[[0,0,1]])));;
+gap> Assert(0,extChain.invariants=[16]);
+gap> extFree := koAHSSExtensionFromLayers(rec(D:=[0],C:=[2]),extOracle(rec(C:=[[1]])));;
+gap> Assert(0,extFree.invariants=[0] and extFree.basis.orders=[0]);
+gap> Assert(0,AbsInt(extFree.filtration[2].inclusionMatrix[1][1])=2);
+gap> extLiftOne := koAHSSExtensionFromLayers(rec(D:=[4,2],C:=[2]),extOracle(rec(C:=[[2,0]])));;
+gap> extLiftTwo := koAHSSExtensionFromLayers(rec(D:=[4,2],C:=[2]),extOracle(rec(C:=[[0,1]])));;
+gap> Assert(0,extLiftOne.invariants=[2,2,4] and extLiftTwo.invariants=[4,4]);
+gap> extSplit := koAHSSExtensionFromLayers(rec(D:=[2],C:=[2]),extOracle(rec(C:=[[0]])));;
+gap> Assert(0,extSplit.invariants=[2,2]);
+gap> extPrime := koAHSSExtensionFromLayers(rec(D:=[6]),fail);;
+gap> Assert(0,extPrime.invariants=[2,3] and extPrime.basis.orders=[6]);
+gap> extEmpty := koAHSSExtensionFromLayers(rec(),fail);;
+gap> Assert(0,extEmpty.status="computed" and extEmpty.invariants=[]);
+gap> extUnknown := koAHSSExtensionFromLayers(rec(D:=[2],C:=[2]),fail);;
+gap> Assert(0,extUnknown.status="unresolved" and not IsBound(extUnknown.group) and not IsBound(extUnknown.invariants));
+gap> Assert(0,extUnknown.lowerModel.smith.invariants=[2] and extUnknown.pendingLayer="C");
+gap> extFreeQuotient := koAHSSExtensionFromLayers(rec(D:=[2],C:=[0]),fail);;
+gap> Assert(0,extFreeQuotient.invariants=[0,2]);
+gap> extError := function(f) local old,result; old:=BreakOnError; BreakOnError:=false; result:=CALL_WITH_CATCH(f,[]); BreakOnError:=old; return result[1]=false; end;;
+gap> Assert(0,extError(function() return koAHSSExtensionFromLayers(rec(D:=[2],C:=[2]),function(l,i,m,h) return rec(status:="computed",lowerPresentationId:="wrong",lowerCoordinates:=[1],witness:=true); end); end));
+Error, koAHSS: extension oracle returned a different lower basis

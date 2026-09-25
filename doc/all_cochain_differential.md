@@ -183,7 +183,7 @@ For \(2\le k\le5\), define on \(X\times I\)
 \begin{aligned}
 (a_I,b_I)&=p_k(A\ell,B\ell),\\
 c_I&=\delta(C\ell)+H_k(A\ell,B\ell),\\
-\boxed{G_k(A,B,C)&=-I\,\mathcal K_{k+1}(a_I,b_I,c_I).}
+G_k(A,B,C)&=-I\,\mathcal K_{k+1}(a_I,b_I,c_I).
 \end{aligned}
 \tag{A12}
 \]

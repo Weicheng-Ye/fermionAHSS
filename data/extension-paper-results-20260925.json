@@ -1,0 +1,501 @@
+{
+  "certified_ko": false,
+  "distinctCalculations": 4,
+  "gapVersion": "4.15.1",
+  "matches": 17,
+  "mismatches": 0,
+  "results": [
+    {
+      "actual": [
+        2,
+        2
+      ],
+      "caseId": "wang-gu-C2-unitary-split",
+      "expected": [
+        2,
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 1,
+      "relationMatrix": [
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 0,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        2,
+        2
+      ],
+      "caseId": "wang-gu-C2-unitary-split",
+      "expected": [
+        2,
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 2,
+      "relationMatrix": [
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 1,
+      "status": "computed"
+    },
+    {
+      "caseId": "wang-gu-C2-unitary-split",
+      "expected": [
+        0,
+        8
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "packageDegree": 3,
+      "pendingLayer": "C",
+      "reason": "stacking lift and lower reduction are implemented only in degrees 1 and 2 on the normalized group-bar backend",
+      "source": "wang_gu_2020",
+      "spatialDimension": 2,
+      "status": "unresolved"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-unitary-split",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 4,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        4
+      ],
+      "caseId": "wang-gu-C2-unitary-nonsplit",
+      "expected": [
+        4
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 1,
+      "relationMatrix": [
+        [
+          2,
+          0
+        ],
+        [
+          -1,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 0,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-unitary-nonsplit",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 2,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 1,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        0
+      ],
+      "caseId": "wang-gu-C2-unitary-nonsplit",
+      "expected": [
+        0
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 3,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 2,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-unitary-nonsplit",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 4,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        2
+      ],
+      "caseId": "wang-gu-C2-antiunitary-split",
+      "expected": [
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 1,
+      "relationMatrix": [
+        [
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 0,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        8
+      ],
+      "caseId": "wang-gu-C2-antiunitary-split",
+      "expected": [
+        8
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 2,
+      "relationMatrix": [
+        [
+          2,
+          0,
+          0
+        ],
+        [
+          -1,
+          2,
+          0
+        ],
+        [
+          0,
+          -1,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 1,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-antiunitary-split",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 3,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 2,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-antiunitary-split",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 4,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-antiunitary-nonsplit",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 1,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 0,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        2
+      ],
+      "caseId": "wang-gu-C2-antiunitary-nonsplit",
+      "expected": [
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 2,
+      "relationMatrix": [
+        [
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 1,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        2
+      ],
+      "caseId": "wang-gu-C2-antiunitary-nonsplit",
+      "expected": [
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 3,
+      "relationMatrix": [
+        [
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 2,
+      "status": "computed"
+    },
+    {
+      "caseId": "wang-gu-C2-antiunitary-nonsplit",
+      "expected": [
+        16
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "packageDegree": 4,
+      "pendingLayer": "C",
+      "reason": "stacking lift and lower reduction are implemented only in degrees 1 and 2 on the normalized group-bar backend",
+      "source": "wang_gu_2020",
+      "spatialDimension": 3,
+      "status": "unresolved"
+    },
+    {
+      "caseId": "crystalline-Cs-spinless",
+      "expected": [
+        16
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "packageDegree": 4,
+      "pendingLayer": "C",
+      "reason": "stacking lift and lower reduction are implemented only in degrees 1 and 2 on the normalized group-bar backend",
+      "source": "zhang_ning_qi_gu_2024",
+      "spatialDimension": 3,
+      "status": "unresolved"
+    },
+    {
+      "actual": [],
+      "caseId": "crystalline-Cs-spin-half",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 4,
+      "relationMatrix": [],
+      "source": "zhang_ning_qi_gu_2024",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "crystalline-C2-spinless",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 4,
+      "relationMatrix": [],
+      "source": "zhang_ning_qi_gu_2024",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "crystalline-C2-spin-half",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 4,
+      "relationMatrix": [],
+      "source": "zhang_ning_qi_gu_2024",
+      "spatialDimension": 3,
+      "status": "computed"
+    }
+  ],
+  "schemaVersion": 1,
+  "scope": "five-row-stacking-model",
+  "unresolved": 3,
+  "verificationDate": "2026-09-25",
+  "command": "gap -q --quitonbreak examples/extension_papers.g",
+  "sourceSHA256": {
+    "gap/extensions.gi": "e7e59af2cb9993af7f5dc9dcd045a650d148a56edccb8723e478830b0bdb405f",
+    "gap/stacking_extensions.gi": "e56e15f6e858e83cbf8339f24862659078c915c078e8359a7d7d20d2a9ddc7c1",
+    "gap/group_api.gi": "13206a4b65b986bda5e4c2dd287d6e673cf393f199b409b58aa6549f3e389954",
+    "gap/pages.gi": "473b32e0587da2201fc5aff9cae913846a3f839ef32126e118ac7a2a05e8b691",
+    "gap/display.gi": "2fcb1d1302a7ab21c7a74577a2a9e91ba8793f2d2c47a53af4c85f28d5d9cf5d",
+    "gap/koahss.gd": "f1e3fa8a14c0a920b1285a5e93101d81a8c4a903a86cd247c32c16f49c6357e4",
+    "load.g": "f86d3b05c8065c5005bd5fa3a6f1a018d271bfac5dfa2b44fe01cc5924b4b368",
+    "data/stacking-low-phase.json": "51b82cefb2a53b203fb35d9e34ffcf439c613f4372ce4a1a65bc3896f1b91ee1",
+    "data/extension-paper-samples.json": "4e401b5e3afe28c6297455f3de7439b436b5f64b89fb7da2b4a73b8c9d773c71",
+    "examples/extension_papers.g": "490337431041c42630a60ffb43945ceb8b2047099207550d16bd52491f82a96b"
+  }
+}

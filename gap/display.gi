@@ -1,8 +1,8 @@
-# Human-readable view of raw koAHSS/koAHSSpages invariant tables.  Storage
+# Human-readable view of raw and tagged koAHSS invariant tables.  Storage
 # remains q=-4,...,0; only the display reverses rows to q=0,...,-4.
 InstallGlobalFunction(koAHSSFormat, function(arg)
     local result, selected, isCell, isTable, cellText, centered, formatTable,
-        tables, pageNumbers, width;
+        tables, pageNumbers, width, index;
     if not Length(arg) in [1,2] then
         Error("usage: koAHSSFormat(result[, r])");
     fi;
@@ -37,7 +37,43 @@ InstallGlobalFunction(koAHSSFormat, function(arg)
         od;
         return true;
     end;
-    if isTable(result) then
+    if IsRecord(result) and IsBound(result.kind)
+        and result.kind in ["koAHSSResult", "koFullResult"] then
+        if not IsBound(result.pages) or not IsRecord(result.pages)
+            or not IsBound(result.pages.kind) or result.pages.kind<>"koAHSSPages" then
+            Error("koAHSSFormat: detailed results must contain tagged koAHSSPages");
+        fi;
+        if result.kind="koFullResult" and selected=fail then selected:=6; fi;
+        result := result.pages;
+    fi;
+    if IsRecord(result) and IsBound(result.kind) and result.kind="koAHSSPages" then
+        if not IsBound(result.pageNumbers) or not IsList(result.pageNumbers)
+            or not IsDenseList(result.pageNumbers)
+            or not Length(result.pageNumbers) in [1..5]
+            or not ForAll(result.pageNumbers, r -> IsInt(r) and r in [2..6])
+            or Length(Set(result.pageNumbers))<>Length(result.pageNumbers)
+            or not IsBound(result.tables) or not IsList(result.tables)
+            or not IsDenseList(result.tables)
+            or Length(result.tables)<>Length(result.pageNumbers)
+            or not ForAll(result.tables,isTable) then
+            Error("koAHSSFormat: malformed tagged pages; expected distinct page labels in [2..6] and matching valid tables");
+        fi;
+        width := Length(result.tables[1][1]);
+        if not ForAll(result.tables, table -> Length(table[1])=width) then
+            Error("koAHSSFormat: all pages must have the same display window");
+        fi;
+        if selected=fail then
+            tables := result.tables;
+            pageNumbers := result.pageNumbers;
+        else
+            index := Position(result.pageNumbers,selected);
+            if index=fail then
+                Error("koAHSSFormat: the requested page is absent from result");
+            fi;
+            tables := [result.tables[index]];
+            pageNumbers := [selected];
+        fi;
+    elif isTable(result) then
         tables := [result];
         if selected=fail then pageNumbers := [6];
         else pageNumbers := [selected]; fi;
@@ -58,7 +94,7 @@ InstallGlobalFunction(koAHSSFormat, function(arg)
             pageNumbers := [selected];
         fi;
     else
-        Error("koAHSSFormat: expected a raw five-row table or E2-first list of pages with valid invariant cells");
+        Error("koAHSSFormat: expected a raw five-row table, E2-first list, tagged pages, or detailed result with valid invariant cells");
     fi;
     cellText := function(cell)
         local factors, pair, term;

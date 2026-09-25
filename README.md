@@ -2,7 +2,15 @@
 
 An exact GAP package for the five rows `q = -4,-3,-2,-1,0` of the twisted connective real K-theory Atiyah–Hirzebruch spectral sequence (AHSS), through E6. It aims to calculate the classification of fermionic symmetry-protected topological (SPT) phases with various different fermionic symmetry groups up to (5+1)-dimension.
 
-The output is the different pages of the AHSS in these five rows. Other coefficient rows and abutment extensions are outside the implementation scope. See [READEME](doc/READEMD.md) for more mathematical details.
+`koAHSS` returns the AHSS pages in these five rows. `koFull` also assembles
+the supported stacking extensions and explicitly marks unsupported degrees
+unresolved. The abstract extension assembler accepts arbitrary finitely
+generated abelian layers and exact relation vectors; the production cochain
+engine solves complete flat representatives and measures higher-layer
+relations on a bounded finite group-bar model. Other coefficient rows
+remain outside the scope. See the [formula reference](doc/README.md),
+[extension API and limits](doc/extensions.md), and
+[mathematical status](doc/mathematical-status.md).
 
 ## Installation and loading
 
@@ -49,7 +57,7 @@ table := koAHSS(G, 0, 0, 1);;       # one E6 table
 pages := koAHSS(G, 0, 0, 1, 5);;    # E2, E3, E4, E5, E6
 ```
 
-`koAHSS(group, s, omega, k[, n])` constructs an integral HAP resolution for
+`koAHSS(group, s, omega, k[, n][, options])` constructs an integral HAP resolution for
 a finite group and installs the fixed calibrated operations. Its arguments
 are:
 
@@ -59,6 +67,10 @@ are:
 - `k`: largest displayed physical dimension `p+q+3`, with `-1 <= k <= 6`.
 - Optional `n`: number of pages, starting at E2, with `1 <= n <= 5`.
   Omit it to return one E6 table.
+- Optional `options`: `rec(details:=true)` returns a detailed result with
+  labeled pages, representative maps and the retained computation context.
+  The default, or `rec(details:=false)`, preserves the existing raw output.
+  Unknown options and nonboolean `details` values are errors.
 
 The dimension cutoff `k` and the page number are independent: `k=4, n=5`
 computes E2 through E6 at cutoff 4. E6 does not mean dimension six.
@@ -94,6 +106,66 @@ For general groups, establish the basis before choosing nonzero twist vectors.
 A group resolution models BG, not an arbitrary space with that fundamental
 group or `B^2 Z2`.
 
+## Stacking extensions
+
+The main extension entry point attempts every package degree from -1
+through the requested cutoff, sharing one AHSS calculation:
+
+```gap
+full := koFull(CyclicGroup(2), 0, 0, 2);;
+full.degrees;                       # [-1,0,1,2]
+full.invariants;                    # one result per degree
+full.degreeResults[2+2];            # detailed degree-two result
+koAHSSDisplay(full);                # the same E6 table display
+```
+
+The result at degree `j` is indexed by `j+2`. A completed entry is an
+abelian invariant list; an unresolved entry is a status record, never an
+assumed zero. Detailed completed results retain the group, measured
+relation vectors, one joint integer presentation, Smith transformations,
+the cyclic/free basis, and filtration maps. Relations with the same
+nonzero lower image are distinguished from relations with independent
+lower images.
+
+An existing detailed E6 calculation can be reused directly:
+
+```gap
+ahss := koAHSS(CyclicGroup(2), 0, 0, 2, 5, rec(details:=true));;
+full := koFull(ahss);;
+koAHSSDisplay(full.pages, 6);
+```
+
+`koFull(ahss)` retains its labeled pages and exact backend. It requires
+E6 and the in-memory context; raw tables and earlier-page results cannot
+supply extension representatives. Requesting detailed AHSS output alone
+does not calculate extensions. `koAHSSDisplay(full)` selects E6 by default;
+`koAHSSDisplay(full.pages)` displays all retained pages.
+
+For higher layers, the engine first solves the full differential equation
+for each chosen generator. An A-layer representative therefore retains
+its actual B, C and D defining cochains. It changes B or C choices when a
+later equation requires it, stores immutable full lifts in one common
+bar basis, and uses those same lifts for every subsequent relation.
+Stacking powers are identified by explicit boundary comparisons with the
+ordered product of the recorded lower generators.
+
+The complete-state runtime covers degrees 3–5. The degree-six path
+additionally requires the fixed finite section described in
+[the degree-six implementation](python/stacking_model/production_g6_section.py). A higher-degree result
+is completed only after its bounded normal-form audit verifies all finite
+products and the resulting abelian multiplication table; free quotients
+split in the intended abelian abutment category. The measured C2
+presentations recover `[0,8]` in unitary degree 3 and `[16]` in degree 4
+with `s=omega=[1]`. Verification outcomes, including the additional audit,
+are recorded in [paper comparisons](doc/extension-paper-comparisons.md).
+
+The separate low-degree adapter retains its degree-one C-layer support
+for arbitrary valid `omega`, and degree-two C/B support when `omega=0`.
+Incomplete page data, missing witnesses and resource limits remain
+explicitly unresolved. The implementation retains `certified_ko=false`;
+see [extensions.md](doc/extensions.md) for the exact scope and limits.
+The papers' spatial dimension `d` corresponds to package degree `d+1`.
+
 ## Displaying the AHSS
 
 Use the separate display function to draw the page with **q=0 at the top
@@ -107,6 +179,10 @@ koAHSSDisplay(pages, 6);    # print only E6
 final := koAHSS(CyclicGroup(2), 0, 0, 1);;
 koAHSSDisplay(final);       # a single table is labeled E6 by default
 koAHSSDisplay(pages[1], 2); # label an extracted table E2
+
+ahss := koAHSS(CyclicGroup(2), 0, 0, 1, rec(details:=true));;
+koAHSSDisplay(ahss);        # detailed result: same E6 text
+koAHSSDisplay(ahss.pages);  # tagged page payload: same E6 text
 ```
 
 Each displayed cell uses `Z`, `Z/2`, `Z/4`, etc.; repeated factors use
@@ -125,10 +201,18 @@ PrintTo(out, koAHSSFormat(pages, 6));
 CloseStream(out);
 ```
 
-A list of pages must start at E2, as returned by `koAHSS(...,n)`.
+A raw list of pages must start at E2, as returned by `koAHSS(...,n)`.
 For an extracted single page supply its page number explicitly if it is
 not E6. The display shows the page groups; the raw invariant lists do not
 contain differential maps, so no arrows are inferred.
+
+Detailed results use a tagged payload
+`rec(kind:="koAHSSPages",pageNumbers:=[...],tables:=[...])`.
+For these inputs an optional page number selects an actual stored page;
+an absent page is an error. `koAHSSDisplay` and `koAHSSFormat` accept this
+payload, a detailed AHSS result, or a `koFull` result. Their table text is
+unchanged, and no extension summary is appended. A full result selects E6
+by default; its `.pages` payload displays every stored page.
 
 ## Advanced evaluation
 
@@ -214,6 +298,14 @@ The original MIT license and attribution are preserved in [LICENSE](LICENSE).
 The [verification record](doc/verification.json) and [logs](doc/verification/)
 record the checks run on this distribution.
 
+The [extension sample record](doc/extension-paper-comparisons.md) separates
+literature expectations from actual computations and preserves dated
+verification evidence. Its initial 2026-09-25 low-degree snapshot is
+historical: the three unresolved entries there predate the complete-state
+extension engine. The higher-layer follow-up supersedes that capability
+assessment; consult the recorded run outcomes for completed comparisons
+and any remaining limits.
+
 ## References
 
 1. Robert E. Mosher and Martin C. Tangora,
@@ -224,8 +316,13 @@ record the checks run on this distribution.
    [*Construction and classification of symmetry protected topological phases in interacting fermion systems*](https://arxiv.org/abs/1811.00536),
    *Physical Review X* **10**, 031055 (2020),
    [doi:10.1103/PhysRevX.10.031055](https://doi.org/10.1103/PhysRevX.10.031055).
-   Table III supplies the finite-group comparison cases.
+   Table III supplies the historical finite-group page comparisons;
+   Table VII supplies the full invertible-phase extension samples.
 3. Shang-Qiang Ning, Xing-Yu Ren, Qing-Rui Wang, Yang Qi, and Zheng-Cheng Gu,
    [*Classification of Interacting Topological Crystalline Superconductors in Three Dimensions and Beyond*](https://arxiv.org/abs/2512.25069),
    arXiv:2512.25069 (2025).
    Source of the 230-space-group comparison tables.
+4. Jian-Hao Zhang, Shang-Qiang Ning, Yang Qi, and Zheng-Cheng Gu,
+   [*Construction and classification of crystalline topological superconductor and insulators in three-dimensional interacting fermion systems*](https://arxiv.org/abs/2204.13558).
+   Table I supplies crystalline-superconductor extension samples, with the
+   crystalline-to-internal symmetry mapping described in Section V.

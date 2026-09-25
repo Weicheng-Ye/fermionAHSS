@@ -85,7 +85,7 @@ BindGlobal("KOAHSS_NormalizeGroup", function(group)
         project := x -> Image(map, x));
 end);
 
-BindGlobal("KOAHSS_ComputePageData", function(args)
+BindGlobal("KOAHSS_ComputePageContext", function(args)
     local space, s, omega, bound, count, backend, cells, maps, zeroGroup,
         getCell, getMap, key, emptyCell, validateGroup, makeBaseCell,
         makeDerivedCell, makeUnresolvedCell, mergeUnresolved, isZero,
@@ -364,17 +364,29 @@ BindGlobal("KOAHSS_ComputePageData", function(args)
         od;
         Add(result, row);
     od;
-    if Length(args) = 4 then return result[1]; fi;
-    return result;
+    # Keep the exact backend, hidden cells and quotient maps together.  In
+    # particular, rebuilding a backend would change the meaning of twist
+    # vectors and of representatives already lifted through these pages.
+    return rec(kind := "koAHSSContext", space := space, backend := backend,
+        maxDegree := bound, cohomologyCapacity := maxDegree,
+        computedThrough := lastPage, pageNumbers := pageNumbers,
+        pageData := result, getCell := getCell, getMap := getMap,
+        cells := cells, maps := maps);
+end);
+
+BindGlobal("KOAHSS_ComputePageData", function(args)
+    local context;
+    context := KOAHSS_ComputePageContext(args);
+    if Length(args) = 4 then return context.pageData[1]; fi;
+    return context.pageData;
 end);
 
 InstallGlobalFunction(koAHSSPageData, function(arg)
     return KOAHSS_ComputePageData(arg);
 end);
 
-InstallGlobalFunction(koAHSSpages, function(arg)
-    local data, classify, classifyCell;
-    data := KOAHSS_ComputePageData(arg);
+BindGlobal("KOAHSS_ClassifyPage", function(data)
+    local classifyCell;
     classifyCell := function(cell)
         local result;
         if not KOAHSS_IsUnresolved(cell) then return AbelianInvariants(cell.group); fi;
@@ -392,7 +404,12 @@ InstallGlobalFunction(koAHSSpages, function(arg)
         fi;
         return result;
     end;
-    classify := table -> List(table, row -> List(row, classifyCell));
-    if Length(arg) = 4 then return classify(data); fi;
-    return List(data, classify);
+    return List(data, row -> List(row, classifyCell));
+end);
+
+InstallGlobalFunction(koAHSSpages, function(arg)
+    local data;
+    data := KOAHSS_ComputePageData(arg);
+    if Length(arg) = 4 then return KOAHSS_ClassifyPage(data); fi;
+    return List(data, KOAHSS_ClassifyPage);
 end);

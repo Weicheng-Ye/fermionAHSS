@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "reference_checked_date": "2026-09-25",
+  "conventions": {
+    "paper_spatial_dimension": "d=p+q+2",
+    "package_degree": "k=p+q+3=d+1",
+    "full_result_index": "k+2=d+3",
+    "invariants": "[] is zero; [0] is Z; positive entries are cyclic torsion orders",
+    "twist_coordinates": "CyclicGroup(2), standard HAP cyclic resolution with one basis element in each degree; [1] is the nonzero binary cocycle",
+    "scope": "Full stacking groups, including intrinsic invertible phases; not products of E6 layers",
+    "certified_ko": false
+  },
+  "sources": {
+    "wang_gu_2020": {
+      "arxiv_id": "1811.00536v3",
+      "url": "https://arxiv.org/abs/1811.00536v3",
+      "full_text_url": "https://arxiv.org/html/1811.00536v3",
+      "location": "Appendix E.2, Table VII, printed page 67; cocycles in equations (E23)-(E24)",
+      "comparison_kind": "fermionic invertible phases",
+      "note": "Tables III and VI exclude intrinsic Kitaev and p+ip phases in dimensions one and two; Table VII includes them."
+    },
+    "zhang_ning_qi_gu_2024": {
+      "arxiv_id": "2204.13558v2",
+      "url": "https://arxiv.org/abs/2204.13558v2",
+      "full_text_url": "https://arxiv.org/pdf/2204.13558",
+      "location": "Table I, printed page 4; Section V, printed page 47; Supplement S-3.1-S-3.2, printed page 54",
+      "comparison_kind": "three-dimensional crystalline topological superconductors",
+      "note": "Reflection becomes antiunitary internal symmetry and spinless/spin-1/2 are exchanged by the stated crystalline equivalence. Table II concerns charge-conserving insulators and is not used."
+    }
+  },
+  "cases": [
+    {
+      "id": "wang-gu-C2-unitary-split",
+      "source": "wang_gu_2020",
+      "fermionic_symmetry": "Z2^f x Z2",
+      "group_expression": "CyclicGroup(2)",
+      "s": 0,
+      "omega": 0,
+      "cutoff": 4,
+      "expected_by_package_degree": {
+        "1": [
+          2,
+          2
+        ],
+        "2": [
+          2,
+          2
+        ],
+        "3": [
+          0,
+          8
+        ],
+        "4": []
+      }
+    },
+    {
+      "id": "wang-gu-C2-unitary-nonsplit",
+      "source": "wang_gu_2020",
+      "fermionic_symmetry": "Z4^f",
+      "group_expression": "CyclicGroup(2)",
+      "s": 0,
+      "omega": [
+        1
+      ],
+      "cutoff": 4,
+      "expected_by_package_degree": {
+        "1": [
+          4
+        ],
+        "2": [],
+        "3": [
+          0
+        ],
+        "4": []
+      }
+    },
+    {
+      "id": "wang-gu-C2-antiunitary-split",
+      "source": "wang_gu_2020",
+      "fermionic_symmetry": "Z2^f x Z2^T",
+      "group_expression": "CyclicGroup(2)",
+      "s": [
+        1
+      ],
+      "omega": 0,
+      "cutoff": 4,
+      "expected_by_package_degree": {
+        "1": [
+          2
+        ],
+        "2": [
+          8
+        ],
+        "3": [],
+        "4": []
+      }
+    },
+    {
+      "id": "wang-gu-C2-antiunitary-nonsplit",
+      "source": "wang_gu_2020",
+      "fermionic_symmetry": "Z4^Tf",
+      "group_expression": "CyclicGroup(2)",
+      "s": [
+        1
+      ],
+      "omega": [
+        1
+      ],
+      "cutoff": 4,
+      "expected_by_package_degree": {
+        "1": [],
+        "2": [
+          2
+        ],
+        "3": [
+          2
+        ],
+        "4": [
+          16
+        ]
+      }
+    },
+    {
+      "id": "crystalline-Cs-spinless",
+      "source": "zhang_ning_qi_gu_2024",
+      "crystalline_symmetry": "Cs=C1h reflection, spinless",
+      "group_expression": "CyclicGroup(2)",
+      "s": [
+        1
+      ],
+      "omega": [
+        1
+      ],
+      "cutoff": 4,
+      "paper_spatial_dimension": 3,
+      "expected_by_package_degree": {
+        "4": [
+          16
+        ]
+      },
+      "reuse_case": "wang-gu-C2-antiunitary-nonsplit"
+    },
+    {
+      "id": "crystalline-Cs-spin-half",
+      "source": "zhang_ning_qi_gu_2024",
+      "crystalline_symmetry": "Cs=C1h reflection, spin-1/2",
+      "group_expression": "CyclicGroup(2)",
+      "s": [
+        1
+      ],
+      "omega": 0,
+      "cutoff": 4,
+      "paper_spatial_dimension": 3,
+      "expected_by_package_degree": {
+        "4": []
+      },
+      "reuse_case": "wang-gu-C2-antiunitary-split"
+    },
+    {
+      "id": "crystalline-C2-spinless",
+      "source": "zhang_ning_qi_gu_2024",
+      "crystalline_symmetry": "C2 rotation, spinless",
+      "group_expression": "CyclicGroup(2)",
+      "s": 0,
+      "omega": [
+        1
+      ],
+      "cutoff": 4,
+      "paper_spatial_dimension": 3,
+      "expected_by_package_degree": {
+        "4": []
+      },
+      "reuse_case": "wang-gu-C2-unitary-nonsplit"
+    },
+    {
+      "id": "crystalline-C2-spin-half",
+      "source": "zhang_ning_qi_gu_2024",
+      "crystalline_symmetry": "C2 rotation, spin-1/2",
+      "group_expression": "CyclicGroup(2)",
+      "s": 0,
+      "omega": 0,
+      "cutoff": 4,
+      "paper_spatial_dimension": 3,
+      "expected_by_package_degree": {
+        "4": []
+      },
+      "reuse_case": "wang-gu-C2-unitary-split"
+    }
+  ],
+  "source_conflicts_not_tested": [
+    {
+      "source": "zhang_ning_qi_gu_2024",
+      "crystalline_symmetry": "S4 four-fold rotoreflection, spin-1/2; abstract cyclic group C4, not the symmetric group",
+      "paper_spatial_dimension": 3,
+      "table_location": "Table I, printed page 4",
+      "table_invariants": [
+        2,
+        2
+      ],
+      "body_location": "Supplement S-3.8, printed page 63, conclusion following equations (S17)-(S21)",
+      "body_invariants": [
+        4
+      ],
+      "comparison_status": "not-run",
+      "note": "The body describes a nontrivial extension to Z4; no single expected group is selected for this conflicting source entry."
+    }
+  ],
+  "recorded_results": "extension-paper-results-20260925-full.json",
+  "historical_recorded_results": "extension-paper-results-20260925.json"
+}
