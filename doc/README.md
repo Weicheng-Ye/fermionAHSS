@@ -13,6 +13,11 @@ formulas and calibration data while updating transport and Python paths.
 | [universal_helpers.md](universal_helpers.md) | Chi ANF decoding and degree table, zeta words, universal contractors, finite source tables, and every normalization selector |
 | [backends.md](backends.md) | HAP, cochain, and page interfaces; direct-operation audits and exact quotient conventions |
 | [mathematical-status.md](mathematical-status.md) | Implemented range, mathematical assumptions, historical verification, and unresolved scope |
+| [dimension_indexed_differentials.md](dimension_indexed_differentials.md) | Explicit nonlinear differential through k=6 on the first-two-layer domain, the residual correction, and a literal square-zero proof |
+| [all_cochain_differential.md](all_cochain_differential.md) | Piecewise extension to arbitrary cochains with first component δ_sA, complete degree table, exact square-zero proof, and unchanged defining-system obstructions; not a natural local extension |
+| [g6_repair.md](g6_repair.md) | Section repair retaining full T3, with exact square-zero and degree-six stacking identities, a finite implementation, and the historical projection construction |
+| [Four-cochain stacking](../../fermionAHSS_stacking/ALL_COCHAIN_STACKING.md) | Separate research implementation through k=6: explicit corrections, strict all-cochain compatibility, and legal exchange coboundaries; global choices are stated |
+| [Worked (Z/4)^4 obstruction](all_cochain_differential.md#the-z4-four-factor-obstruction) | Incorporated in both differential notes: A=2 admits B,C but no D, including all lower choices, the detecting cycle, and verification scope |
 
 The large chi word lists are encoded exactly by
 [data/chi-calibrated-degree7-anf.g](../data/chi-calibrated-degree7-anf.g)
@@ -70,8 +75,3 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [phase_eval.py](../python/phase_eval.py) | Shared lower phase and source splitting |
 | [mod3_power.py](../python/mod3_power.py) | Prime-three formula and signed transport |
 | [pages.gi](../gap/pages.gi) | Exact homology, surviving representatives, and page quotients |
-
-References labeled **source-workspace provenance** refer to the original
-`secondary_operations2` research workspace. They are not runtime dependencies
-or bundled proof files. In particular, historical verification claims are
-not claims that a fresh installation has rerun those calculations.
