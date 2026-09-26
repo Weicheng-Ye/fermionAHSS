@@ -1,6 +1,7 @@
 # Exact comparison with a marked, ordered product of flat representatives.
-# The verified equation is target = d(gauge) xtimes canonical. No reordering
-# or associativity of the cochain product is assumed by this certificate.
+# The reference equation is target = d(gauge) xtimes canonical; transferred
+# models use target = act(gauge,canonical). No reordering or associativity
+# of the cochain product is assumed by either certificate.
 # Copyright (c) 2026 koAHSS contributors. Distributed under the MIT license.
 
 BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
@@ -11,11 +12,15 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
         verify,leadingEquation,search,stages,stageNumber,stage,diagnostics,
         stageChoices,stageAttempts,stageMaxChoices,stageMaxLeading,remaining,
         anyLimited,allExact,stageName,j,stageNames,requestedStages,preferred,
-        activeGenerators,kernelSource,seen,independent;
+        activeGenerators,kernelSource,seen,independent,transferred,applyGauge;
     if not Length(arg) in [4,5] then
         Error("koFull: gauge comparison needs model, degree, target, canonical[, options]");
     fi;
     model:=arg[1]; k:=arg[2]; target:=arg[3]; canonical:=arg[4];
+    transferred:=IsRecord(model) and IsBound(model.act);
+    if transferred and not IsFunction(model.act) then
+        Error("koFull: act must be a function");
+    fi;
     options:=rec(); if Length(arg)=5 then options:=arg[5]; fi;
     if not IsRecord(model) or not IsBound(model.dimension) or not IsFunction(model.dimension)
         or not IsBound(model.coboundary) or not IsFunction(model.coboundary)
@@ -70,6 +75,15 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
         od;
     end;
     isZero:=state->ForAll(fields,f->ForAll(state.(f),x->x=0));
+    applyGauge:=function(gauge)
+        local boundary,product;
+        if transferred then product:=model.act(k,gauge,canonical);
+        else
+            boundary:=model.d(k-1,gauge); checkState(k,boundary);
+            product:=model.xtimes(k,boundary,canonical);
+        fi;
+        checkState(k,product); return product;
+    end;
     checkState(k,target); checkState(k,canonical);
     initial:=model.d(k,target); checkState(k+1,initial);
     if not isZero(initial) then Error("koFull: gauge comparison target is not flat"); fi;
@@ -77,17 +91,18 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
     if not isZero(initial) then Error("koFull: gauge comparison canonical product is not flat"); fi;
     zeroState:=model.zero(k-1); checkState(k-1,zeroState);
     if not isZero(zeroState) then Error("koFull: gauge model zero is not zero"); fi;
-    zeroBoundary:=model.d(k-1,zeroState); checkState(k,zeroBoundary);
-    if not isZero(zeroBoundary) then Error("koFull: gauge differential is not pointed at zero"); fi;
-    if model.xtimes(k,zeroBoundary,canonical)<>canonical then
+    if not transferred then
+        zeroBoundary:=model.d(k-1,zeroState); checkState(k,zeroBoundary);
+        if not isZero(zeroBoundary) then Error("koFull: gauge differential is not pointed at zero"); fi;
+    fi;
+    if applyGauge(zeroState)<>canonical then
         Error("koFull: the zero boundary is not a left unit for the canonical product");
     fi;
     synthetic:=ShallowCopy(model);
     synthetic.d:=function(degree,gauge)
         local boundary,product,difference,j;
         if degree<>k-1 then Error("koFull: gauge equation evaluated in the wrong degree"); fi;
-        boundary:=model.d(k-1,gauge); checkState(k,boundary);
-        product:=model.xtimes(k,boundary,canonical); checkState(k,product);
+        product:=applyGauge(gauge);
         difference:=rec();
         for j in [1..4] do
             difference.(fields[j]):=product.(fields[j])-target.(fields[j]);
@@ -101,20 +116,36 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
     diagnostics:=[]; anyLimited:=false;
     verify:=function(lift)
         local boundary,product,curvature,answer;
-        boundary:=model.d(k-1,lift.state); checkState(k,boundary);
-        curvature:=model.d(k,boundary); checkState(k+1,curvature);
-        if not isZero(curvature) then
-            Error("koFull: gauge boundary failed the exact square-zero identity");
+        if not transferred then
+            boundary:=model.d(k-1,lift.state); checkState(k,boundary);
+            curvature:=model.d(k,boundary); checkState(k+1,curvature);
+            if not isZero(curvature) then
+                Error("koFull: gauge boundary failed the exact square-zero identity");
+            fi;
         fi;
-        product:=model.xtimes(k,boundary,canonical); checkState(k,product);
+        product:=applyGauge(lift.state);
         if product<>target then Error("koFull: gauge witness failed its ordered product equality"); fi;
         answer:=rec(status:="computed",gauge:=StructuralCopy(lift.state),
-            boundary:=StructuralCopy(boundary),product:=StructuralCopy(product),
+            product:=StructuralCopy(product),
             target:=StructuralCopy(target),canonical:=StructuralCopy(canonical),
-            equalityVerified:=true,boundaryFlatnessVerified:=true,
+            equalityVerified:=true,
             targetFlatnessVerified:=true,canonicalFlatnessVerified:=true,
-            equation:="target = d(gauge) xtimes canonical",
             definingSystemWitness:=ShallowCopy(lift.witness));
+        if transferred then
+            curvature:=model.d(k,product); checkState(k+1,curvature);
+            if not isZero(curvature) then
+                Error("koFull: transferred gauge action produced a nonflat state");
+            fi;
+            answer.equation:="target = act(gauge, canonical)";
+            answer.certificateLevel:="transfer-R"; answer.actionFlatnessVerified:=true;
+            if IsBound(model.transferCertificate) then
+                answer.transferCertificate:=model.transferCertificate(k,lift.state,canonical,target);
+            fi;
+        else
+            answer.boundary:=StructuralCopy(boundary);
+            answer.boundaryFlatnessVerified:=true;
+            answer.equation:="target = d(gauge) xtimes canonical";
+        fi;
         # This is a zero of the comparison equation, not a claim that the
         # gauge itself is flat under the original nonlinear differential.
         answer.definingSystemWitness.comparisonEquationVerified:=true;
@@ -293,6 +324,7 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
     od;
     search:=rec(leadingChoices:=attempts,differentialEvaluations:=choices,
         maxLeadingChoices:=maxLeadingChoices,maxChoices:=maxChoices,integerRadius:=radius);
+    if transferred then search.equivalenceScope:="resolution gauges"; fi;
     if result<>fail then
         result.search:=search; result.attemptedStages:=diagnostics;
         MakeImmutable(result); return result;

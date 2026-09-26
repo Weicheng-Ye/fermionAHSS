@@ -13,7 +13,8 @@ formulas and calibration data while updating transport and Python paths.
 | [universal_helpers.md](universal_helpers.md) | Chi ANF decoding and degree table, zeta words, universal contractors, finite source tables, and every normalization selector |
 | [backends.md](backends.md) | HAP, cochain, and page interfaces; direct-operation audits and exact quotient conventions |
 | [extensions.md](extensions.md) | Detailed AHSS results, `koFull`, retained flat tuples, exact boundary comparisons, common-coordinate Smith presentations, and finite quotient audits |
-| [transfer.md](transfer.md) | Resolution-transfer plan review, exact retraction preflight, completeness counterexample, and Smith-preparation reuse; production transfer remains unimplemented |
+| [transfer.md](transfer.md) | Initial resolution-transfer plan review, exact retraction preflight, completeness counterexample, and historical prerequisite measurements |
+| [resolution-extensions.md](resolution-extensions.md) | Supplied-resolution API, native extension searches, sparse normalized transport, independent bar certification and fallback |
 | [extension-paper-comparisons.md](extension-paper-comparisons.md) | Full-group literature fixtures, dimension and twist conventions, and recorded comparison outcomes |
 | [extension-gauge-verification.md](extension-gauge-verification.md) | Staged higher-layer gauges, the C2h regression witness, and bounded verification evidence |
 | [mathematical-status.md](mathematical-status.md) | Implemented range, mathematical assumptions, historical verification, and unresolved scope |

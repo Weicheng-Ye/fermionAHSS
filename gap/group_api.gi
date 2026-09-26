@@ -1,14 +1,23 @@
-# Finite groups use an integral HAP resolution with fixed bar transport.
+# Finite groups or supplied integral HAP resolutions use fixed bar transport.
 # Nonzero twist vectors are coordinates in this resolution, not abstract
 # cohomology-class labels; use the explicit-resolution API to control a basis.
 InstallGlobalFunction(koAHSS, function(arg)
     local group, k, count, depth, resolution, space, pageArgs, options,
-        hasCount, context, tables, result, completed, modelId, calibrationId;
+        hasCount, context, tables, result, completed, modelId, calibrationId,
+        suppliedResolution,available;
     if not Length(arg) in [4..6] then
-        Error("usage: koAHSS(group, s, omega, k[, n][, options])");
+        Error("usage: koAHSS(group or HAP resolution, s, omega, k[, n][, options])");
     fi;
-    group := arg[1];
-    if not IsGroup(group) then Error("koAHSS: the first argument must be a GAP group"); fi;
+    suppliedResolution:=IsBoundGlobal("IsHapResolution") and
+        CallFuncList(ValueGlobal("IsHapResolution"),[arg[1]]);
+    if suppliedResolution then
+        resolution:=arg[1]; group:=resolution!.group;
+    else
+        group:=arg[1];
+        if not IsGroup(group) then
+            Error("koAHSS: the first argument must be a GAP group or an integral HAP resolution");
+        fi;
+    fi;
     k := arg[4];
     if not IsInt(k) or not k in [-1..6] then
         Error("koAHSS: k = max(p+q+3) must be an integer in [-1..6]");
@@ -35,13 +44,20 @@ InstallGlobalFunction(koAHSS, function(arg)
     if IsBound(options.details) and not IsBool(options.details) then
         Error("koAHSS: details must be true or false");
     fi;
-    if not IsFinite(group) then
+    if not suppliedResolution and not IsFinite(group) then
         Error("koAHSS: automatic resolution construction requires a finite group; use koAHSSHAPSpace with an explicit integral resolution");
     fi;
     if LoadPackage("hap")=fail then Error("fermionAHSS requires the GAP package hap"); fi;
     if count<=2 then depth:=Maximum(3,k+2); else depth:=Maximum(3,k+3); fi;
-    resolution := CallFuncList(ValueGlobal("ResolutionFiniteGroup"),[group,depth]);
-    if resolution=fail then Error("koAHSS: HAP could not construct the finite-group resolution"); fi;
+    if suppliedResolution then
+        available:=ValueGlobal("EvaluateProperty")(resolution,"length");
+        if not IsInt(available) or available<depth then
+            Error("koAHSS: supplied resolution needs length at least ",depth);
+        fi;
+    else
+        resolution := CallFuncList(ValueGlobal("ResolutionFiniteGroup"),[group,depth]);
+        if resolution=fail then Error("koAHSS: HAP could not construct the finite-group resolution"); fi;
+    fi;
     space := koAHSSHAPSpace(resolution,koAHSSNaturalOperations());
     pageArgs := [space,arg[2],arg[3],k];
     if hasCount then Add(pageArgs,count); fi;
@@ -55,6 +71,7 @@ InstallGlobalFunction(koAHSS, function(arg)
     modelId := "normalized-group-bar-five-row";
     calibrationId := "chi7_tail/Danus/zeta010/R2-cubic/muR0/prime3-2";
     context.resolution := resolution;
+    context.suppliedResolution:=suppliedResolution;
     context.group := group;
     context.modelId := modelId;
     context.calibrationId := calibrationId;

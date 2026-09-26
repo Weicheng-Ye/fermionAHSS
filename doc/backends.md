@@ -2,7 +2,11 @@
 
 ## HAP resolutions
 
-The high-level `koAHSS(group,s,omega,k[,n])` wrapper supports finite groups.
+The high-level `koAHSS(group,s,omega,k[,n])` wrapper constructs resolutions
+for finite groups. Its first argument can also be an explicit integral
+HAP resolution: `koAHSS(R,s,omega,k[,n][,options])` preserves R and its
+twist basis. `koFull` accepts the same explicit-resolution first argument;
+see [native extension searches](resolution-extensions.md).
 For an explicitly constructed integral HAP resolution, use:
 
 ```gap

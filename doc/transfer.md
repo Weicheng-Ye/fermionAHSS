@@ -4,10 +4,15 @@ Review date: 2026-09-26. The input was version 3 of the proposed
 four-cochain transfer plan, dated 2026-09-26 and based on commit `760baf1`.
 The plan was supplied as `~/Downloads/plan.md`.
 
-**The production transfer is not implemented.** The existing `koFull`
-continues to use its complete-bar higher extension model. This revision
-implements exact Smith-preparation reuse, a sparse comparison preflight,
-and bounded tests of several required model identities. These are
+**Status at the initial review:** the production transfer was not implemented.
+The subsequent [native-resolution implementation](resolution-extensions.md)
+adds an opt-in transfer with independent reference certification and fallback;
+it does not assume the completeness theorem discussed below. The review
+and prerequisite measurements in this document remain the initial findings.
+
+At that review, `koFull` still used its complete-bar higher extension model.
+The initial revision implemented exact Smith-preparation reuse, a sparse
+comparison preflight, and bounded tests of several required model identities. These were
 prerequisites, not an implementation of `xtimes_R` or a claim of identical
 classifications on arbitrary resolutions.
 
@@ -192,8 +197,10 @@ coordinates. Support counts cover g only: they do not include the future
 face/H closure or global flag tests. The limits are accounting bounds;
 the underlying transport builds a chain before its size can be checked.
 
-No new `koFull` option is installed. Degree six, low-degree adapters,
-calibrated formulas and numerical payloads retain their current behavior.
+The initial prerequisite revision installed no new `koFull` option.
+The later opt-in API is documented in [resolution extensions](resolution-extensions.md).
+Degree six, low-degree adapters, calibrated formulas and numerical payloads
+retain their original behavior.
 
 ## Exact Smith-preparation reuse and verification
 

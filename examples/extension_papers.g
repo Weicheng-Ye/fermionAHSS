@@ -11,16 +11,21 @@ if not IsBoundGlobal("FERMION_AHSS_PACKAGE_VERSION") then
 fi;
 CallFuncList(function()
     local fixture, cache, rows, case, full, degree, result, row, matches,
-        unresolved, mismatches, key, report, file, slash, prefix, name, j, vector;
+        unresolved, mismatches, key, report, file, slash, prefix, name, j, vector,
+        extensionOptions,comparison,powerWitness;
     file:=INPUT_FILENAME(); slash:=Positions(file,'/'); prefix:="";
     if not IsEmpty(slash) then prefix:=file{[1..Last(slash)]}; fi;
     fixture:=JsonStringToGap(StringFile(Concatenation(
         prefix,"../data/extension-paper-samples.json")));
     cache:=rec(); rows:=[]; matches:=0; unresolved:=0; mismatches:=0;
+    extensionOptions:=rec();
+    if IsBoundGlobal("FERMIONAHSS_EXTENSION_MODEL") then
+        extensionOptions.extensionModel:=ValueGlobal("FERMIONAHSS_EXTENSION_MODEL");
+    fi;
     for case in fixture.cases do
         if IsBound(case.reuse_case) then full:=cache.(case.reuse_case);
         else
-            full:=koFull(CyclicGroup(2),case.s,case.omega,case.cutoff);
+            full:=koFull(CyclicGroup(2),case.s,case.omega,case.cutoff,extensionOptions);
             cache.(case.id):=full;
             Print("Completed ",case.id,": ",full.status,"\n");
         fi;
@@ -30,6 +35,8 @@ CallFuncList(function()
                 spatialDimension:=degree-1,expected:=case.expected_by_package_degree.(key),
                 input:=rec(group:="CyclicGroup(2)",s:=case.s,omega:=case.omega,cutoff:=case.cutoff),
                 status:=result.status);
+            if IsBound(result.modelSelection) then row.modelSelection:=result.modelSelection; fi;
+            if IsBound(result.certificateLevel) then row.certificateLevel:=result.certificateLevel; fi;
             if result.status="computed" then
                 row.actual:=result.invariants; row.relationMatrix:=result.relationMatrix;
                 row.match:=row.actual=row.expected;
@@ -48,13 +55,17 @@ CallFuncList(function()
                     od;
                     for vector in result.extensionVectors do
                         if IsBound(vector.result.witness.stackedState) then
-                            Add(row.powerWitnesses,rec(layer:=vector.layer,order:=vector.order,
+                            comparison:=vector.result.witness.reduction.canonicalComparison;
+                            powerWitness:=rec(layer:=vector.layer,order:=vector.order,
                                 lowerCoordinates:=vector.result.lowerCoordinates,
                                 stackedState:=vector.result.witness.stackedState,
                                 canonicalLowerProduct:=vector.result.witness.reduction.canonicalLowerProduct,
-                                gauge:=vector.result.witness.reduction.canonicalComparison.gauge,
-                                boundary:=vector.result.witness.reduction.canonicalComparison.boundary,
-                                equalityVerified:=vector.result.witness.reduction.canonicalComparison.equalityVerified));
+                                gauge:=comparison.gauge,equalityVerified:=comparison.equalityVerified);
+                            if IsBound(comparison.boundary) then powerWitness.boundary:=comparison.boundary; fi;
+                            if IsBound(comparison.certificateLevel) then
+                                powerWitness.certificateLevel:=comparison.certificateLevel;
+                            fi;
+                            Add(row.powerWitnesses,powerWitness);
                         fi;
                     od;
                 fi;
@@ -68,8 +79,15 @@ CallFuncList(function()
     od;
     report:=rec(schemaVersion:=1,gapVersion:=GAPInfo.Version,
         scope:="five-row-stacking-model",certified_ko:=false,
+        extensionModel:=full.extensionModel,
         distinctCalculations:=Length(RecNames(cache)),matches:=matches,
         unresolved:=unresolved,mismatches:=mismatches,results:=rows);
     WriteAll(OutputTextUser(),Concatenation("EXTENSION_PAPER_RESULTS ",GapToJsonString(report),"\n"));
     Assert(0,mismatches=0);
+    if IsBound(extensionOptions.extensionModel) and extensionOptions.extensionModel="transfer" then
+        Assert(0,unresolved=0 and matches=Length(rows));
+        Assert(0,ForAll(Filtered(rows,row->row.packageDegree in [3..5]),row->
+            IsBound(row.modelSelection) and row.modelSelection.selected="transfer" and
+            not row.modelSelection.fallback));
+    fi;
 end,[]);

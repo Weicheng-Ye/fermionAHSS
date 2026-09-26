@@ -103,6 +103,8 @@ pages := koAHSSpages(space, [1], [1], 1, 5);;
 ```
 
 For general groups, establish the basis before choosing nonzero twist vectors.
+A supplied resolution can also be passed directly as the first argument to
+`koAHSS(R,s,omega,k[,n][,options])`; the same object and twist basis are retained.
 A group resolution models BG, not an arbitrary space with that fundamental
 group or `B^2 Z2`.
 
@@ -141,7 +143,25 @@ supply extension representatives. Requesting detailed AHSS output alone
 does not calculate extensions. `koAHSSDisplay(full)` selects E6 by default;
 `koAHSSDisplay(full.pages)` displays all retained pages.
 
-For higher layers, the engine first solves the full differential equation
+To solve the higher extension equations in a supplied resolution, select
+the opt-in transferred model:
+
+```gap
+R := ResolutionFiniteGroup(CyclicGroup(4),6);;
+full := koFull(R,[1],0,3,rec(extensionModel:="transfer"));;
+full.degreeResults[5].modelSelection;
+```
+
+The option also works with a group or a detailed E6 result. The default
+is `extensionModel:="bar"`. Transfer moves states and linear solves to R
+in degrees 3–5 and evaluates the unchanged formulas on bar simplices
+lazily. It checks the comparison's exact retraction identity. General
+native presentations require independent complete-bar certification;
+unresolved attempts fall back to the reference engine with a recorded
+reason. See [resolution extensions](doc/resolution-extensions.md) for
+eligibility, certificates and remaining performance limits.
+
+For higher layers, the default engine first solves the full differential equation
 for each chosen generator. An A-layer representative therefore retains
 its actual B, C and D defining cochains. It changes B or C choices when a
 later equation requires it, stores immutable full lifts in one common

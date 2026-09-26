@@ -6,6 +6,19 @@ BindGlobal("KOAHSS_ExtensionStateIsZero",state->ForAll(["A","B","C","D"],
 
 BindGlobal("KOAHSS_ExtensionDivideLeft",function(model,k,left,total)
     local right,product,name;
+    if IsBound(model.divideLeft) then
+        if not IsFunction(model.divideLeft) then
+            Error("koFull: divideLeft must be a function");
+        fi;
+        right:=model.divideLeft(k,left,total);
+        if model.xtimes(k,left,right)<>total then
+            Error("koFull: transferred stacking division failed its exact equation");
+        fi;
+        if not KOAHSS_ExtensionStateIsZero(model.d(k,right)) then
+            Error("koFull: transferred division produced a nonflat state");
+        fi;
+        MakeImmutable(right); return right;
+    fi;
     right:=StructuralCopy(model.zero(k)); right.A:=total.A-left.A;
     product:=model.xtimes(k,left,right); right.B:=List(total.B-product.B,x->x mod 2);
     product:=model.xtimes(k,left,right); right.C:=List(total.C-product.C,x->x mod 2);
@@ -135,7 +148,7 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
         if not IsBound(layer.status) then
             for i in [1..Length(layer.generators)] do
                 value:=lift(layer,i);
-                if value.status="obstructed" then
+                if value.status="obstructed" and not IsBound(model.act) then
                     Error("koFull: an E6 survivor has no full flat lift: ",name," ",i," ",value);
                 elif value.status<>"computed" then
                     layer.status:="unresolved"; layer.reason:=value.reason; break;
@@ -160,9 +173,14 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
         od;
         return product;
     end;
-    boundary:=function(name,primitive)
+    boundary:=function(name,primitive,canonical)
         local gauge,output;
         gauge:=StructuralCopy(model.zero(k-1)); gauge.(name):=primitive;
+        if IsBound(model.act) then
+            output:=model.act(k,gauge,canonical); flat(output);
+            return rec(gauge:=gauge,state:=output,canonical:=canonical,
+                certificateLevel:="transfer-R",equation:="state = act(gauge, canonical)");
+        fi;
         output:=model.d(k-1,gauge); flat(output);
         return rec(gauge:=gauge,state:=output);
     end;
@@ -203,8 +221,9 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
             fi;
             values:=solution.particular{[1..count]}; coefficients.(name):=values;
             primitive:=solution.particular{[count+1..Length(solution.particular)]};
-            gauge:=boundary(name,primitive); chosen:=flatProduct(name,values);
-            if KOAHSS_ExtensionStateIsZero(gauge.state) then left:=chosen;
+            chosen:=flatProduct(name,values); gauge:=boundary(name,primitive,chosen);
+            if IsBound(model.act) then left:=gauge.state;
+            elif KOAHSS_ExtensionStateIsZero(gauge.state) then left:=chosen;
             elif KOAHSS_ExtensionStateIsZero(chosen) then left:=gauge.state;
             else left:=model.xtimes(k,gauge.state,chosen); fi;
             if KOAHSS_ExtensionStateIsZero(left) then next:=current;

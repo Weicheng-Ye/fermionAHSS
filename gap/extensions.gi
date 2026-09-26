@@ -181,11 +181,27 @@ end);
 
 InstallGlobalFunction(koFull,function(arg)
     local ahss, context, degrees, results, invariants, degree, layers, oracle,
-        result, status, model, computeDegree, attempt, oldBreak;
-    if Length(arg)=4 then
+        result, status, model, computeDegree, runDegree, options, requested,
+        models,closeModels,getModel,selected,transferAttempt,selection;
+    options:=rec();
+    if Length(arg) in [4,5] then
+        if Length(arg)=5 then options:=arg[5]; fi;
+    elif Length(arg) in [1,2] and IsRecord(arg[1]) then
+        if Length(arg)=2 then options:=arg[2]; fi;
+    else
+        Error("usage: koFull(group or HAP resolution,s,omega,k[,options]) or koFull(detailedE6Result[,options])");
+    fi;
+    if not IsRecord(options) or ForAny(RecNames(options),name->name<>"extensionModel") then
+        Error("koFull: options must be a record containing only extensionModel");
+    fi;
+    requested:="bar";
+    if IsBound(options.extensionModel) then requested:=options.extensionModel; fi;
+    if not IsString(requested) or not requested in ["bar","transfer"] then
+        Error("koFull: extensionModel must be bar or transfer");
+    fi;
+    if Length(arg) in [4,5] then
         ahss:=koAHSS(arg[1],arg[2],arg[3],arg[4],rec(details:=true));
-    elif Length(arg)=1 and IsRecord(arg[1]) then ahss:=arg[1];
-    else Error("usage: koFull(group,s,omega,k) or koFull(detailedE6Result)"); fi;
+    else ahss:=arg[1]; fi;
     if not IsBound(ahss.kind) or ahss.kind<>"koAHSSResult"
         or not IsBound(ahss.computedThrough) or ahss.computedThrough<>6
         or not IsBound(ahss._context) or not IsBound(ahss._context.getCell)
@@ -194,18 +210,54 @@ InstallGlobalFunction(koFull,function(arg)
         Error("koFull: a detailed E6 result with retained cochain context is required");
     fi;
     context:=ahss._context; degrees:=[-1..ahss.maxDegree]; results:=[]; invariants:=[];
-    model:=fail;
-    computeDegree:=function()
+    model:=fail; models:=rec(bar:=rec(),transfer:=rec());
+    closeModels:=function()
+        local kind,key,stored;
+        for kind in ["bar","transfer"] do
+            for key in RecNames(models.(kind)) do
+                stored:=models.(kind).(key);
+                if IsBound(stored.close) then stored.close(); fi;
+            od;
+        od;
+    end;
+    getModel:=function(kind)
+        local key,factory;
+        key:=String(degree);
+        # The complete bar worker already supports all later degrees and
+        # retains expensive universal-formula caches across those degrees.
+        if kind="bar" then key:="shared"; fi;
+        if not IsBound(models.(kind).(key)) then
+            factory:="KOAHSS_ExtensionBarModel";
+            if kind="transfer" then factory:="KOAHSS_ExtensionTransferredModel"; fi;
+            if not IsBoundGlobal(factory) then
+                models.(kind).(key):=rec(status:="unresolved",
+                    reason:="the requested extension model is unavailable");
+            else
+                models.(kind).(key):=CallFuncList(ValueGlobal(factory),[context.backend,degree]);
+            fi;
+        fi;
+        return models.(kind).(key);
+    end;
+    computeDegree:=function(kind)
+        local candidate,certification;
         layers:=KOAHSS_ExtensionLayers(context,degree);
         if degree in [3..6] then
-            if model=fail then
-                model:=CallFuncList(ValueGlobal("KOAHSS_ExtensionBarModel"),
-                    [context.backend,degree]);
-            fi;
+            model:=getModel(kind);
+            if IsBound(model.lastFailure) then Unbind(model.lastFailure); fi;
             if model.status="computed" and model.supports(degree) then
                 oracle:=CallFuncList(ValueGlobal("KOAHSS_ExtensionHigherOracle"),
                     [context.backend,degree,layers,model]);
             else
+                if kind="transfer" then
+                    if IsBound(model.reason) then
+                        return rec(status:="unresolved",reason:=model.reason,pendingLayer:="model-setup");
+                    fi;
+                    return rec(status:="unresolved",reason:=
+                        "transfer extension resource budget exceeded in this degree",pendingLayer:="model-setup");
+                fi;
+                # Preserve the reference path: zero layers and free quotient
+                # layers need no torsion query, so setup refusal alone cannot
+                # turn a previously computed zero/split group into unknown.
                 oracle:=function(l,i,m,h)
                     if IsBound(model.reason) then return rec(status:="unresolved",reason:=model.reason); fi;
                     return rec(status:="unresolved",reason:="complete bar extension resource budget exceeded in this degree");
@@ -215,41 +267,90 @@ InstallGlobalFunction(koFull,function(arg)
             oracle:=CallFuncList(ValueGlobal("KOAHSS_StackingExtensionOracle"),
                 [context.backend,degree,layers]);
         fi;
-        result:=koAHSSExtensionFromLayers(layers,oracle);
-        if degree in [3..6] and result.status="computed"
+        candidate:=koAHSSExtensionFromLayers(layers,oracle);
+        if degree in [3..6] and candidate.status="computed"
             and model<>fail and model.status="computed" and model.supports(degree) then
-            result.algebraAudit:=CallFuncList(ValueGlobal("KOAHSS_ExtensionFiniteAudit"),
-                [model,degree,layers,result]);
-            if result.algebraAudit.status<>"computed" then
-                result:=rec(status:="unresolved",reason:=result.algebraAudit.reason,
-                    pendingLayer:="quotient-audit",candidatePresentation:=result);
+            candidate.algebraAudit:=CallFuncList(ValueGlobal("KOAHSS_ExtensionFiniteAudit"),
+                [model,degree,layers,candidate]);
+            if candidate.algebraAudit.status<>"computed" then
+                return rec(status:="unresolved",reason:=candidate.algebraAudit.reason,
+                    pendingLayer:="quotient-audit",candidatePresentation:=candidate);
             fi;
         fi;
-        return result;
+        if kind="transfer" and candidate.status="computed" then
+            candidate.certificateLevel:="transfer-R";
+            if not IsBound(model.classEquivalenceVerified) or model.classEquivalenceVerified<>true then
+                certification:=rec(status:="unresolved",
+                    reason:="the transferred presentation has no verified bar-equivalence certificate");
+                if IsBound(model.certifyPresentation) then
+                    certification:=model.certifyPresentation(degree,layers,candidate);
+                fi;
+                candidate.barCertification:=certification;
+                if certification.status<>"computed" then
+                    return rec(status:="unresolved",reason:=certification.reason,
+                        pendingLayer:="transfer-certification",candidatePresentation:=candidate);
+                fi;
+                candidate.certificateLevel:="complete-bar-certified-transfer";
+            fi;
+        fi;
+        return candidate;
+    end;
+    runDegree:=function(kind)
+        local attempt,oldBreak,answer;
+        model:=fail;
+        oldBreak:=BreakOnError; BreakOnError:=false;
+        attempt:=CALL_WITH_CATCH(computeDegree,[kind]);
+        BreakOnError:=oldBreak;
+        if attempt[1] then answer:=attempt[2];
+        else
+            if model<>fail and IsBound(model.lastFailure) and model.lastFailure.status="unresolved" then
+                if IsBound(model.close) then model.close(); fi;
+                answer:=rec(status:="unresolved",reason:=model.lastFailure.reason,pendingLayer:="resource-limit");
+            else
+                closeModels();
+                Error("koFull: exact extension calculation failed; the original error is reported above");
+            fi;
+        fi;
+        answer.degree:=degree; answer.layers:=layers;
+        if model<>fail and IsBound(model.modelId) then answer.modelId:=model.modelId; fi;
+        if kind="transfer" and model<>fail then
+            if IsBound(model.close) then model.close(); fi;
+            # Transfer models have degree-specific supports and are never
+            # reused in a later degree. Release their worker and RPC caches.
+            Unbind(models.transfer.(String(degree)));
+        fi;
+        return answer;
     end;
     for degree in degrees do
-        if model<>fail and IsBound(model.lastFailure) then Unbind(model.lastFailure); fi;
-        oldBreak:=BreakOnError; BreakOnError:=false;
-        attempt:=CALL_WITH_CATCH(computeDegree,[]);
-        BreakOnError:=oldBreak;
-        if attempt[1] then result:=attempt[2];
+        selected:="low";
+        if degree in [3..6] then selected:="bar"; fi;
+        selection:=rec(requested:=requested,selected:=selected,fallback:=false);
+        if requested="transfer" and degree in [3..5] then
+            transferAttempt:=runDegree("transfer");
+            if transferAttempt.status="computed" then
+                result:=transferAttempt; selection.selected:="transfer";
+            else
+                result:=runDegree("bar"); result.transferAttempt:=transferAttempt;
+                selection.fallback:=true; selection.reason:=transferAttempt.reason;
+            fi;
         else
-            if model<>fail and model.status="computed" then model.close(); fi;
-            if model<>fail and IsBound(model.lastFailure) and model.lastFailure.status="unresolved" then
-                result:=rec(status:="unresolved",reason:=model.lastFailure.reason,pendingLayer:="resource-limit");
-            else Error("koFull: exact extension calculation failed; the original error is reported above"); fi;
+            result:=runDegree(selected);
+            if requested="transfer" and degree=6 then
+                selection.fallback:=true;
+                selection.reason:="degree six uses the complete bar section";
+            fi;
         fi;
-        result.degree:=degree; result.layers:=layers;
+        result.modelSelection:=selection;
         Add(results,result);
         if result.status="computed" then Add(invariants,result.invariants);
         else Add(invariants,rec(status:=result.status,reason:=result.reason)); fi;
     od;
-    if model<>fail and model.status="computed" then model.close(); fi;
+    closeModels();
     status:="unresolved";
     if ForAll(results,r->r.status="computed") then status:="computed";
     elif ForAny(results,r->r.status="computed") then status:="partial"; fi;
     return rec(kind:="koFullResult",maxDegree:=ahss.maxDegree,degrees:=degrees,
         invariants:=invariants,degreeResults:=results,ahss:=ahss,
-        pages:=ahss.pages,
+        pages:=ahss.pages,extensionModel:=requested,
         status:=status,scope:="five-row-stacking-model",certified_ko:=false);
 end);

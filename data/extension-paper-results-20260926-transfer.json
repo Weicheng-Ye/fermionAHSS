@@ -1,0 +1,2045 @@
+{
+  "certified_ko": false,
+  "distinctCalculations": 4,
+  "gapVersion": "4.15.1",
+  "matches": 20,
+  "mismatches": 0,
+  "results": [
+    {
+      "actual": [
+        2,
+        2
+      ],
+      "caseId": "wang-gu-C2-unitary-split",
+      "expected": [
+        2,
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 1,
+      "relationMatrix": [
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 0,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        2,
+        2
+      ],
+      "caseId": "wang-gu-C2-unitary-split",
+      "expected": [
+        2,
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 2,
+      "relationMatrix": [
+        [
+          2,
+          0
+        ],
+        [
+          0,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 1,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        0,
+        8
+      ],
+      "caseId": "wang-gu-C2-unitary-split",
+      "expected": [
+        0,
+        8
+      ],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 8,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          [
+            2,
+            7,
+            4,
+            1,
+            6,
+            3,
+            8,
+            5
+          ],
+          [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            1,
+            2
+          ],
+          [
+            4,
+            1,
+            6,
+            3,
+            8,
+            5,
+            2,
+            7
+          ],
+          [
+            5,
+            6,
+            7,
+            8,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            6,
+            3,
+            8,
+            5,
+            2,
+            7,
+            4,
+            1
+          ],
+          [
+            7,
+            8,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          [
+            8,
+            5,
+            2,
+            7,
+            4,
+            1,
+            6,
+            3
+          ]
+        ]
+      },
+      "fixedFlatLifts": [
+        {
+          "generator": 1,
+          "layer": "D",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "C",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              0
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "B",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              1
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "A",
+          "state": {
+            "A": [
+              1
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          }
+        }
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 3,
+      "powerWitnesses": [
+        {
+          "canonicalLowerProduct": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          },
+          "certificateLevel": "transfer-R",
+          "equalityVerified": true,
+          "gauge": {
+            "A": [],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          },
+          "layer": "C",
+          "lowerCoordinates": [
+            1
+          ],
+          "order": 2,
+          "stackedState": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          }
+        },
+        {
+          "canonicalLowerProduct": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              1
+            ]
+          },
+          "certificateLevel": "transfer-R",
+          "equalityVerified": true,
+          "gauge": {
+            "A": [],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          },
+          "layer": "B",
+          "lowerCoordinates": [
+            1,
+            1
+          ],
+          "order": 2,
+          "stackedState": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              1
+            ]
+          }
+        }
+      ],
+      "relationMatrix": [
+        [
+          2,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          2,
+          0,
+          0
+        ],
+        [
+          -1,
+          -1,
+          2,
+          0
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 2,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-unitary-split",
+      "expected": [],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 1,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 4,
+      "powerWitnesses": [],
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        4
+      ],
+      "caseId": "wang-gu-C2-unitary-nonsplit",
+      "expected": [
+        4
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 1,
+      "relationMatrix": [
+        [
+          2,
+          0
+        ],
+        [
+          -1,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 0,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-unitary-nonsplit",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 2,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 1,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        0
+      ],
+      "caseId": "wang-gu-C2-unitary-nonsplit",
+      "expected": [
+        0
+      ],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 1,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [
+        {
+          "generator": 1,
+          "layer": "A",
+          "state": {
+            "A": [
+              2
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          }
+        }
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 3,
+      "powerWitnesses": [],
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 2,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-unitary-nonsplit",
+      "expected": [],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 1,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 4,
+      "powerWitnesses": [],
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        2
+      ],
+      "caseId": "wang-gu-C2-antiunitary-split",
+      "expected": [
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 1,
+      "relationMatrix": [
+        [
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 0,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        8
+      ],
+      "caseId": "wang-gu-C2-antiunitary-split",
+      "expected": [
+        8
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 2,
+      "relationMatrix": [
+        [
+          2,
+          0,
+          0
+        ],
+        [
+          -1,
+          2,
+          0
+        ],
+        [
+          0,
+          -1,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 1,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-antiunitary-split",
+      "expected": [],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 1,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 3,
+      "powerWitnesses": [],
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 2,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-antiunitary-split",
+      "expected": [],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 1,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 4,
+      "powerWitnesses": [],
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "wang-gu-C2-antiunitary-nonsplit",
+      "expected": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 1,
+      "relationMatrix": [],
+      "source": "wang_gu_2020",
+      "spatialDimension": 0,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        2
+      ],
+      "caseId": "wang-gu-C2-antiunitary-nonsplit",
+      "expected": [
+        2
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 2,
+      "relationMatrix": [
+        [
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 1,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        2
+      ],
+      "caseId": "wang-gu-C2-antiunitary-nonsplit",
+      "expected": [
+        2
+      ],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 2,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [
+        {
+          "generator": 1,
+          "layer": "B",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              1
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              -1
+            ]
+          }
+        }
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 3,
+      "powerWitnesses": [],
+      "relationMatrix": [
+        [
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 2,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        16
+      ],
+      "caseId": "wang-gu-C2-antiunitary-nonsplit",
+      "expected": [
+        16
+      ],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 16,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          [
+            2,
+            15,
+            4,
+            9,
+            6,
+            3,
+            8,
+            13,
+            10,
+            7,
+            12,
+            1,
+            14,
+            11,
+            16,
+            5
+          ],
+          [
+            3,
+            4,
+            13,
+            14,
+            7,
+            8,
+            1,
+            2,
+            11,
+            12,
+            5,
+            6,
+            15,
+            16,
+            9,
+            10
+          ],
+          [
+            4,
+            9,
+            14,
+            11,
+            8,
+            13,
+            2,
+            15,
+            12,
+            1,
+            6,
+            3,
+            16,
+            5,
+            10,
+            7
+          ],
+          [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            6,
+            3,
+            8,
+            13,
+            10,
+            7,
+            12,
+            1,
+            14,
+            11,
+            16,
+            5,
+            2,
+            15,
+            4,
+            9
+          ],
+          [
+            7,
+            8,
+            1,
+            2,
+            11,
+            12,
+            5,
+            6,
+            15,
+            16,
+            9,
+            10,
+            3,
+            4,
+            13,
+            14
+          ],
+          [
+            8,
+            13,
+            2,
+            15,
+            12,
+            1,
+            6,
+            3,
+            16,
+            5,
+            10,
+            7,
+            4,
+            9,
+            14,
+            11
+          ],
+          [
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          [
+            10,
+            7,
+            12,
+            1,
+            14,
+            11,
+            16,
+            5,
+            2,
+            15,
+            4,
+            9,
+            6,
+            3,
+            8,
+            13
+          ],
+          [
+            11,
+            12,
+            5,
+            6,
+            15,
+            16,
+            9,
+            10,
+            3,
+            4,
+            13,
+            14,
+            7,
+            8,
+            1,
+            2
+          ],
+          [
+            12,
+            1,
+            6,
+            3,
+            16,
+            5,
+            10,
+            7,
+            4,
+            9,
+            14,
+            11,
+            8,
+            13,
+            2,
+            15
+          ],
+          [
+            13,
+            14,
+            15,
+            16,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          [
+            14,
+            11,
+            16,
+            5,
+            2,
+            15,
+            4,
+            9,
+            6,
+            3,
+            8,
+            13,
+            10,
+            7,
+            12,
+            1
+          ],
+          [
+            15,
+            16,
+            9,
+            10,
+            3,
+            4,
+            13,
+            14,
+            7,
+            8,
+            1,
+            2,
+            11,
+            12,
+            5,
+            6
+          ],
+          [
+            16,
+            5,
+            10,
+            7,
+            4,
+            9,
+            14,
+            11,
+            8,
+            13,
+            2,
+            15,
+            12,
+            1,
+            6,
+            3
+          ]
+        ]
+      },
+      "fixedFlatLifts": [
+        {
+          "generator": 1,
+          "layer": "D",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "C",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              0
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "B",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              1
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "A",
+          "state": {
+            "A": [
+              1
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          }
+        }
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 4,
+      "powerWitnesses": [
+        {
+          "canonicalLowerProduct": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          },
+          "certificateLevel": "transfer-R",
+          "equalityVerified": true,
+          "gauge": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          },
+          "layer": "C",
+          "lowerCoordinates": [
+            1
+          ],
+          "order": 2,
+          "stackedState": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          }
+        },
+        {
+          "canonicalLowerProduct": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              7
+            ]
+          },
+          "certificateLevel": "transfer-R",
+          "equalityVerified": true,
+          "gauge": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          },
+          "layer": "B",
+          "lowerCoordinates": [
+            7,
+            1
+          ],
+          "order": 2,
+          "stackedState": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              7
+            ]
+          }
+        },
+        {
+          "canonicalLowerProduct": {
+            "A": [
+              0
+            ],
+            "B": [
+              1
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              -18
+            ]
+          },
+          "certificateLevel": "transfer-R",
+          "equalityVerified": true,
+          "gauge": {
+            "A": [
+              -1
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          },
+          "layer": "A",
+          "lowerCoordinates": [
+            -17,
+            1,
+            1
+          ],
+          "order": 2,
+          "stackedState": {
+            "A": [
+              2
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              -42
+            ]
+          }
+        }
+      ],
+      "relationMatrix": [
+        [
+          2,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          2,
+          0,
+          0
+        ],
+        [
+          -7,
+          -1,
+          2,
+          0
+        ],
+        [
+          17,
+          -1,
+          -1,
+          2
+        ]
+      ],
+      "source": "wang_gu_2020",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [
+        16
+      ],
+      "caseId": "crystalline-Cs-spinless",
+      "expected": [
+        16
+      ],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 16,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          [
+            2,
+            15,
+            4,
+            9,
+            6,
+            3,
+            8,
+            13,
+            10,
+            7,
+            12,
+            1,
+            14,
+            11,
+            16,
+            5
+          ],
+          [
+            3,
+            4,
+            13,
+            14,
+            7,
+            8,
+            1,
+            2,
+            11,
+            12,
+            5,
+            6,
+            15,
+            16,
+            9,
+            10
+          ],
+          [
+            4,
+            9,
+            14,
+            11,
+            8,
+            13,
+            2,
+            15,
+            12,
+            1,
+            6,
+            3,
+            16,
+            5,
+            10,
+            7
+          ],
+          [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            6,
+            3,
+            8,
+            13,
+            10,
+            7,
+            12,
+            1,
+            14,
+            11,
+            16,
+            5,
+            2,
+            15,
+            4,
+            9
+          ],
+          [
+            7,
+            8,
+            1,
+            2,
+            11,
+            12,
+            5,
+            6,
+            15,
+            16,
+            9,
+            10,
+            3,
+            4,
+            13,
+            14
+          ],
+          [
+            8,
+            13,
+            2,
+            15,
+            12,
+            1,
+            6,
+            3,
+            16,
+            5,
+            10,
+            7,
+            4,
+            9,
+            14,
+            11
+          ],
+          [
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          [
+            10,
+            7,
+            12,
+            1,
+            14,
+            11,
+            16,
+            5,
+            2,
+            15,
+            4,
+            9,
+            6,
+            3,
+            8,
+            13
+          ],
+          [
+            11,
+            12,
+            5,
+            6,
+            15,
+            16,
+            9,
+            10,
+            3,
+            4,
+            13,
+            14,
+            7,
+            8,
+            1,
+            2
+          ],
+          [
+            12,
+            1,
+            6,
+            3,
+            16,
+            5,
+            10,
+            7,
+            4,
+            9,
+            14,
+            11,
+            8,
+            13,
+            2,
+            15
+          ],
+          [
+            13,
+            14,
+            15,
+            16,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          [
+            14,
+            11,
+            16,
+            5,
+            2,
+            15,
+            4,
+            9,
+            6,
+            3,
+            8,
+            13,
+            10,
+            7,
+            12,
+            1
+          ],
+          [
+            15,
+            16,
+            9,
+            10,
+            3,
+            4,
+            13,
+            14,
+            7,
+            8,
+            1,
+            2,
+            11,
+            12,
+            5,
+            6
+          ],
+          [
+            16,
+            5,
+            10,
+            7,
+            4,
+            9,
+            14,
+            11,
+            8,
+            13,
+            2,
+            15,
+            12,
+            1,
+            6,
+            3
+          ]
+        ]
+      },
+      "fixedFlatLifts": [
+        {
+          "generator": 1,
+          "layer": "D",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "C",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              0
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "B",
+          "state": {
+            "A": [
+              0
+            ],
+            "B": [
+              1
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          }
+        },
+        {
+          "generator": 1,
+          "layer": "A",
+          "state": {
+            "A": [
+              1
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          }
+        }
+      ],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 4,
+      "powerWitnesses": [
+        {
+          "canonicalLowerProduct": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          },
+          "certificateLevel": "transfer-R",
+          "equalityVerified": true,
+          "gauge": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          },
+          "layer": "C",
+          "lowerCoordinates": [
+            1
+          ],
+          "order": 2,
+          "stackedState": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              1
+            ]
+          }
+        },
+        {
+          "canonicalLowerProduct": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              7
+            ]
+          },
+          "certificateLevel": "transfer-R",
+          "equalityVerified": true,
+          "gauge": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          },
+          "layer": "B",
+          "lowerCoordinates": [
+            7,
+            1
+          ],
+          "order": 2,
+          "stackedState": {
+            "A": [
+              0
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              7
+            ]
+          }
+        },
+        {
+          "canonicalLowerProduct": {
+            "A": [
+              0
+            ],
+            "B": [
+              1
+            ],
+            "C": [
+              1
+            ],
+            "D": [
+              -18
+            ]
+          },
+          "certificateLevel": "transfer-R",
+          "equalityVerified": true,
+          "gauge": {
+            "A": [
+              -1
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              0
+            ]
+          },
+          "layer": "A",
+          "lowerCoordinates": [
+            -17,
+            1,
+            1
+          ],
+          "order": 2,
+          "stackedState": {
+            "A": [
+              2
+            ],
+            "B": [
+              0
+            ],
+            "C": [
+              0
+            ],
+            "D": [
+              -42
+            ]
+          }
+        }
+      ],
+      "relationMatrix": [
+        [
+          2,
+          0,
+          0,
+          0
+        ],
+        [
+          -1,
+          2,
+          0,
+          0
+        ],
+        [
+          -7,
+          -1,
+          2,
+          0
+        ],
+        [
+          17,
+          -1,
+          -1,
+          2
+        ]
+      ],
+      "source": "zhang_ning_qi_gu_2024",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "crystalline-Cs-spin-half",
+      "expected": [],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 1,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": [
+          1
+        ]
+      },
+      "match": true,
+      "packageDegree": 4,
+      "powerWitnesses": [],
+      "relationMatrix": [],
+      "source": "zhang_ning_qi_gu_2024",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "crystalline-C2-spinless",
+      "expected": [],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 1,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": [
+          1
+        ],
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 4,
+      "powerWitnesses": [],
+      "relationMatrix": [],
+      "source": "zhang_ning_qi_gu_2024",
+      "spatialDimension": 3,
+      "status": "computed"
+    },
+    {
+      "actual": [],
+      "caseId": "crystalline-C2-spin-half",
+      "expected": [],
+      "finiteAudit": {
+        "associativityVerified": true,
+        "commutativityVerified": true,
+        "normalFormCount": 1,
+        "scope": "finite torsion normal forms; free quotients split in the abelian abutment category",
+        "table": [
+          [
+            1
+          ]
+        ]
+      },
+      "fixedFlatLifts": [],
+      "input": {
+        "cutoff": 4,
+        "group": "CyclicGroup(2)",
+        "omega": 0,
+        "s": 0
+      },
+      "match": true,
+      "packageDegree": 4,
+      "powerWitnesses": [],
+      "relationMatrix": [],
+      "source": "zhang_ning_qi_gu_2024",
+      "spatialDimension": 3,
+      "status": "computed"
+    }
+  ],
+  "schemaVersion": 1,
+  "scope": "five-row-stacking-model",
+  "unresolved": 0
+}

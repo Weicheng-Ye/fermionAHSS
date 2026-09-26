@@ -17,6 +17,15 @@ the four-layer extension separately in package degrees -1 through `k`.
 E6 result. Neither call changes the row window or the calibrated page
 differentials. See the [extension API](extensions.md).
 
+Both entry points accept `rec(extensionModel:="transfer")`; a supplied
+integral HAP resolution can also replace the group argument. This opt-in
+model uses native states and solves in degrees 3–5 with a checked strict
+retraction and normalized homotopy. It does not assume general gauge
+completeness. Except for a checked literal C2 bar basis isomorphism,
+native results need the reference engine's independent lift, relation
+and finite quotient checks; unresolved attempts fall back to that engine.
+See [resolution extensions](resolution-extensions.md) for the exact scope.
+
 The abstract assembler accepts arbitrary finitely generated abelian
 A/B/C/D layers with a relation-vector oracle. For each torsion quotient
 generator of order `m`, the oracle records the full coordinates of
@@ -26,7 +35,7 @@ basis transformations, and carries the filtration inclusions and
 quotients to subsequent stages. Equal and independent nonzero lower
 images remain distinguishable.
 
-For degrees 3–5, the production engine transports the marked E6
+For degrees 3–5, the default production engine transports the marked E6
 representatives to one complete normalized finite group-bar basis. It
 solves and retains immutable full `(A,B,C,D)` lifts for every generator,
 including free A generators. Binary B/C defining choices are changed when

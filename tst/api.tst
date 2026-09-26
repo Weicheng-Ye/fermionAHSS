@@ -10,6 +10,13 @@ gap> Assert(0, apiResult.certified_ko=false and apiResult.scope="five-row-associ
 gap> Assert(0, IsIdenticalObj(apiResult._context.backend.twists,apiResult.twists));
 gap> Assert(0, apiResult._context.kind="koAHSSContext");
 gap> Assert(0, IsIdenticalObj(apiResult._context.group,apiGroup));
+gap> apiResolution := ResolutionFiniteGroup(apiGroup,4);;
+gap> apiSupplied := koAHSS(apiResolution,0,0,1,rec(details:=true));;
+gap> Assert(0,apiSupplied.pages.tables=[apiExpected]);
+gap> Assert(0,IsIdenticalObj(apiSupplied._context.resolution,apiResolution));
+gap> Assert(0,IsIdenticalObj(apiSupplied._context.group,apiResolution!.group));
+gap> Assert(0,apiSupplied._context.suppliedResolution and not apiResult._context.suppliedResolution);
+gap> Assert(0,koAHSS(apiResolution,[1],[1],1,5)=koAHSSpages(koAHSSHAPSpace(apiResolution,koAHSSNaturalOperations()),[1],[1],1,5));
 gap> Assert(0, IsIdenticalObj(apiResult._context.getCell(6,2,-4),apiResult.pageData[1][1][3]));
 gap> apiCell := apiResult._context.getCell(6,2,-4);;
 gap> Assert(0, ForAll(GeneratorsOfGroup(apiCell.group), g -> apiCell.project(apiCell.lift(g))=g));
@@ -39,3 +46,5 @@ gap> koAHSS(apiGroup,0,0,1,rec(details:=true),5);
 Error, koAHSS: n counts pages beginning with E2 and must be in [1..5]
 gap> koAHSS(apiGroup,0,0,1,5,true);
 Error, koAHSS: the final options argument must be a record
+gap> koAHSS(ResolutionFiniteGroup(apiGroup,3),0,0,1,rec(details:=true));
+Error, koAHSS: supplied resolution needs length at least 4

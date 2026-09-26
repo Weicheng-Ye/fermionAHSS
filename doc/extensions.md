@@ -77,12 +77,22 @@ page number can select an earlier stored page from a full result.
 
 ```gap
 full := koFull(group, s, omega, k);;
+full := koFull(R, s, omega, k, rec(extensionModel:="transfer"));;
 full := koFull(ahss);;
+full := koFull(ahss, rec(extensionModel:="transfer"));;
 ```
 
 The first form creates one resolution and backend, computes E6 once and
 attempts every package degree `j` in `[-1..k]`. It uses the same group,
 twist and cutoff conventions as `koAHSS`. There is no page-count argument.
+An integral HAP resolution may replace the group argument; it is retained
+without reconstruction. The optional final record accepts only
+`extensionModel:="bar"` (the default) or `extensionModel:="transfer"`.
+The [native-resolution model](resolution-extensions.md) runs higher
+searches on R, with exact comparison checks, independent bar certification
+where needed, and explicit reference fallback. The complete-bar witness
+descriptions below apply to the reference model and its certificates;
+native gauge records use the action equation described in that document.
 
 The reuse form requires a detailed E6 result with its retained cochain
 context. It uses the same resolution and representative basis, preserving
@@ -96,6 +106,7 @@ page payload without the context cannot be used for extension work.
 | `maxDegree`, `degrees` | `k` and `[-1..k]` |
 | `invariants` | Parallel lists for completed groups; explicit status records otherwise |
 | `degreeResults` | Detailed extension calculation at each degree |
+| `extensionModel` | Requested model; each degree records the actual selection and any fallback |
 | `ahss`, `pages` | Shared detailed AHSS result and its tagged pages |
 | `status` | `"computed"` if all degrees complete, `"partial"` if only some complete, otherwise `"unresolved"` |
 | `scope`, `certified_ko` | `"five-row-stacking-model"` and `false` |
@@ -391,13 +402,16 @@ The complete-bar implementation has explicit resource bounds:
 | Degree-six finite-section search | 4096 candidates |
 | Finite quotient audit | 32 marked normal forms |
 
-These are implementation limits; they add no arguments to `koFull`.
+These are implementation limits, not additional tuning arguments to `koFull`.
 Repeated integer solves now reuse exact Smith preparations, bounded by
 eight entries and two million retained matrix cells including transforms.
-The nonlinear higher model still uses the complete bar. The
-[resolution-transfer review](transfer.md) documents the implemented
-preflight and the mathematical prerequisites remaining before a new
-production model can preserve its classification results.
+The default nonlinear higher model uses the complete bar. The opt-in
+[native-resolution model](resolution-extensions.md) moves its search
+coordinates and matrices to R, while retaining the fixed bar formulas
+and requiring reference certification for general native presentations.
+The [initial mathematical review](transfer.md) explains why a strict
+retraction and soundness of individual relations alone do not establish
+gauge completeness.
 These bounds do not make every operation inexpensive: the bar dimensions
 grow with the group order and degree, and one nonlinear evaluation can
 be costly. Reaching a resource bound or failing to find a gauge within
