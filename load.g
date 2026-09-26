@@ -29,6 +29,7 @@ CallFuncList(function()
     Read(Filename(directory, "gap/extensions.gi"));
     Read(Filename(directory, "gap/extension_lifts.gi"));
     Read(Filename(directory, "gap/extension_bar.gi"));
+    Read(Filename(directory, "gap/extension_transfer.gi"));
     Read(Filename(directory, "gap/extension_degree_six.gi"));
     Read(Filename(directory, "gap/extension_equivalence.gi"));
     Read(Filename(directory, "gap/extension_relations.gi"));

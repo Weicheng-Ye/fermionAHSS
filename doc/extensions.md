@@ -392,6 +392,12 @@ The complete-bar implementation has explicit resource bounds:
 | Finite quotient audit | 32 marked normal forms |
 
 These are implementation limits; they add no arguments to `koFull`.
+Repeated integer solves now reuse exact Smith preparations, bounded by
+eight entries and two million retained matrix cells including transforms.
+The nonlinear higher model still uses the complete bar. The
+[resolution-transfer review](transfer.md) documents the implemented
+preflight and the mathematical prerequisites remaining before a new
+production model can preserve its classification results.
 These bounds do not make every operation inexpensive: the bar dimensions
 grow with the group order and degree, and one nonlinear evaluation can
 be costly. Reaching a resource bound or failing to find a gauge within
