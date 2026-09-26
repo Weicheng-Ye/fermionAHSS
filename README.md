@@ -165,10 +165,11 @@ ordered product of the recorded lower generators.
 
 The native complete-state runtime covers degrees 3–5. Degree-six extensions
 remain explicitly unresolved because their native formula is not implemented.
-A higher-degree result is completed only after its bounded normal-form audit
-verifies all finite products and the resulting abelian multiplication table;
-free quotients split in the intended abelian abutment category. This finite
-audit runs on R. Historical C2 presentations recover `[0,8]` in unitary
+A higher-degree result is completed once every stacking relation has its
+exact native comparison. Stacking is assumed to be commutative and
+associative on gauge classes, so no finite multiplication table is audited
+(`abelianQuotientAssumed=true`); free quotients split in the intended abelian
+abutment category. Historical C2 presentations recover `[0,8]` in unitary
 degree 3 and `[16]` in degree 4 with `s=omega=[1]`; their verification
 outcomes are recorded in [paper comparisons](doc/extension-paper-comparisons.md).
 
@@ -286,7 +287,16 @@ Final T has zero rank correction and `mu_R=0`, and includes
 is fixed; no local residual solution or shortcut based on injectivity of
 `Dtilde` selects it.
 
-The Python worker bounds per-cochain and pure chain-operator memo tables
+The extension worker evaluates the unchanged formulas under an exact
+execution policy ([extension_acceleration.py](python/extension_acceleration.py)):
+faster interval-cut evaluation, canonical structural zeros, identity
+memoization of pure cochain builders, and universal source values kept across
+processes. The last are stored under `$XDG_CACHE_HOME/fermionAHSS` (default
+`~/.cache/fermionAHSS`) in a file keyed by the hashes of all formula sources;
+set `FERMIONAHSS_CACHE_DIR` to choose another directory, or to an empty
+string to disable the store. A stale or unreadable store is ignored.
+
+The page worker bounds per-cochain and pure chain-operator memo tables
 to 256 entries by default. Nonnegative environment variables
 `KOAHSS_COCHAIN_CACHE_ENTRIES` and `KOAHSS_CHAIN_CACHE_ENTRIES` override
 them; zero disables the corresponding memoization. These are entry limits,

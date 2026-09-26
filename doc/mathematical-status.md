@@ -48,11 +48,10 @@ reductions reuse the recorded B/C/D basis and all integral carries.
 Each measured relation must admit an exact native gauge comparison
 with its canonical lower product. The witness retains a complete native
 gauge tuple, verifies flatness of its action result, and checks the action
-equality component by component. A finite quotient audit then checks all products
-of the marked finite normal forms and the resulting abelian table before
-a higher-degree result is returned as computed. This audit is bounded by
-32 forms and uses native cochain coordinates. Free quotients split in the intended abelian abutment category;
-the finite audit does not enumerate all infinite cochain products.
+equality component by component. Commutativity and associativity of
+stacking on gauge classes are assumed, so the measured relations determine
+the group; no finite multiplication table of normal forms is audited. Free
+quotients split in the intended abelian abutment category.
 
 Gauge comparison now tries D-only, C/D, B/C/D and A/B/C/D support in that
 order. This includes higher-layer boundaries responsible for incoming E6
@@ -82,9 +81,8 @@ requires a finite group, one degree-zero generator and a comparison passing
 and exact global lower-degree flag checks are bounded by 8192 normalized
 simplices per predicate. Flat-lift searches default to 4096 differential
 evaluations. Gauge comparisons have additional finite search bounds
-documented in [extensions.md](extensions.md). A measured Smith
-presentation is retained as a candidate if the required native quotient
-audit cannot complete; it is not substituted for missing cochain evidence.
+documented in [extensions.md](extensions.md). Reaching a bound leaves the
+degree unresolved; it is not substituted for missing cochain evidence.
 
 The [paper comparison record](extension-paper-comparisons.md) distinguishes
 computed groups, unresolved cases and literature expectations. The initial

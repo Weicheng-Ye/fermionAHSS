@@ -15,12 +15,15 @@ import json
 import sys
 
 from extension_worker import api, BoundedCache
+import extension_acceleration as acceleration
+acceleration.install()
 import off_shell_beta as off
 import stacking_lower as lower
 import all_cochain_upper as upper
 from coherent_low_commutative import DegreeTwoCommutativeStacking
 
 p = api.p
+structural_zero = acceleration.is_zero
 FIELDS = "ABCD"
 
 
@@ -175,13 +178,15 @@ class TransferredModel:
         n = cochain.degree
         if n < 0:
             return []
+        if structural_zero(cochain):
+            return [0] * len(self.g[n])
         weight = 1 if signed else 0
         values = [sum(t[weight] * cochain(tuple(t[2])) for t in chain)
                   for chain in self.g[n]]
         return [integer(v) if signed else integer(v) % 2 for v in values]
 
     def homotopy(self, cochain, signed):
-        if cochain.degree <= 0:
+        if cochain.degree <= 0 or structural_zero(cochain):
             return p.zero(cochain.degree - 1)
         weight = 1 if signed else 0
         def value(vertices):
@@ -208,7 +213,11 @@ class TransferredModel:
         return tuple(result)
 
     def is_zero(self, cochain):
-        return all(cochain(sigma) == 0 for sigma in self.simplices(cochain.degree))
+        # The budget applies before any shortcut, exactly as before.
+        simplices = self.simplices(cochain.degree)
+        if structural_zero(cochain):
+            return True
+        return all(cochain(sigma) == 0 for sigma in simplices)
 
     def differential(self, cochain, signed):
         if cochain.degree < 0:
@@ -357,11 +366,18 @@ class TransferredModel:
         reconstructed = self.bar_product(boundary, embedded)
         for layer in range(upto + 1):
             signed = layer in (0, 3)
+            image, image_product = embedded, reconstructed
+            if layer == 3:
+                # The D terms read embedded layers A, B, C only. These equal
+                # the cached embedding of the same coordinates, so its
+                # formulas are shared with every other use of that state.
+                image = self.phi(k, dict(native, D=[0] * self.dimension(k + 1)))
+                image_product = self.bar_product(boundary, image)
             correction = self.nonlinear(gauge, layer)
             if layer:
                 correction = correction - self.homotopy(
-                    self.nonlinear(embedded, layer), signed)
-            correction = correction + reconstructed.cross(layer)
+                    self.nonlinear(image, layer), signed)
+            correction = correction + image_product.cross(layer)
             residual = state[layer] - correction
             if not signed:
                 residual = p.binary(residual)
@@ -397,6 +413,13 @@ class TransferredModel:
         right = self.zero(k)
         for layer, f in enumerate(FIELDS):
             product, _ = self.product(k, left, right, upto=layer)
+            if layer == 3 and not any(left["D"]):
+                # Before its D coordinate is set, right has the final A, B, C.
+                # This is the exact core of the verifying product left*right.
+                key = ("xtimes", k, 3, tuple(left[g] for g in "ABC"),
+                       tuple(tuple(right[g]) for g in "ABC"))
+                if key not in self._cores:
+                    self._cores[key] = tuple(tuple(product[g]) for g in FIELDS)
             right[f] = [a + b - c for a, b, c in zip(right[f], total[f], product[f])]
             if layer in (1, 2):
                 right[f] = [v % 2 for v in right[f]]
@@ -488,6 +511,7 @@ class TransferredModel:
 
 def serve():
     model = None
+    acceleration.persist()
     def transport(kind, degree, vertices):
         print(json.dumps(dict(operation="transport", kind=kind,
                               degree=degree, vertices=vertices)), flush=True)
@@ -508,6 +532,8 @@ def serve():
         except Exception as exc:
             answer = {"status": "unresolved" if isinstance(exc, TransferResourceLimit) else "error",
                       "exception": type(exc).__name__, "reason": str(exc)}
+        # GAP may stop the worker right after the answer; store values first.
+        acceleration.flush()
         print(json.dumps(answer, separators=(",", ":")), flush=True)
 
 

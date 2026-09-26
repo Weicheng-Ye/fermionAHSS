@@ -13,7 +13,7 @@ formulas and calibration data while updating transport and Python paths.
 | [tertiary_operations.md](tertiary_operations.md) | Implemented R0–R3 phases, current cubic correction, and all 19 prime-three terms |
 | [universal_helpers.md](universal_helpers.md) | Chi ANF decoding and degree table, zeta words, universal contractors, finite source tables, and every normalization selector |
 | [backends.md](backends.md) | HAP, cochain, and page interfaces; direct-operation audits and exact quotient conventions |
-| [extensions.md](extensions.md) | Detailed AHSS results, `koFull`, retained flat tuples, exact boundary comparisons, common-coordinate Smith presentations, and finite quotient audits |
+| [extensions.md](extensions.md) | Detailed AHSS results, `koFull`, retained flat tuples, exact boundary comparisons, common-coordinate Smith presentations, and the abelian-quotient assumption |
 | [transfer.md](transfer.md) | Initial resolution-transfer plan review, exact retraction preflight, completeness counterexample, and historical prerequisite measurements |
 | [resolution-extensions.md](resolution-extensions.md) | Native extension API, sparse normalized transport, gauge-completeness assumption and native completion checks |
 | [extension-paper-comparisons.md](extension-paper-comparisons.md) | Full-group literature fixtures, dimension and twist conventions, and recorded comparison outcomes |
@@ -83,8 +83,8 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [extension_lifts.gi](../gap/extension_lifts.gi) | Immutable full generator lifts, affine B/C defining choices, integral D solves, and exact flatness witnesses |
 | [extension_transfer.gi](../gap/extension_transfer.gi) | Native extension model, exact retraction preflight and sparse normalized transport |
 | [extension_transfer.py](../python/extension_transfer.py) | Lazy transferred curvature, products and gauge actions using the fixed formulas |
+| [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: fast interval cuts, structural zeros, identity-memoized builders, persistent universal values |
 | [extension_bar.gi](../gap/extension_bar.gi) | Legacy bounded complete finite-bar model, retained for reference tests |
 | [extension_relations.gi](../gap/extension_relations.gi) | Powers of fixed full lifts, common lower coordinates, and retained reduction carries |
 | [extension_equivalence.gi](../gap/extension_equivalence.gi) | Exact ordered native gauge comparison, without assumed cochain associativity |
-| [extension_audit.gi](../gap/extension_audit.gi) | Finite native normal-form multiplication and gauge witnesses, with abelian-table checks before completion |
 | [extension_degree_six.gi](../gap/extension_degree_six.gi) | Legacy basis data for the bounded complete-bar degree-six section |

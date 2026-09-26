@@ -36,12 +36,8 @@ CallFuncList(function()
             if result.status="computed" then
                 row.actual:=result.invariants; row.relationMatrix:=result.relationMatrix;
                 row.match:=row.actual=row.expected;
-                if IsBound(result.algebraAudit) then
-                    row.finiteAudit:=rec(normalFormCount:=Length(result.algebraAudit.table),
-                        table:=result.algebraAudit.table,
-                        associativityVerified:=result.algebraAudit.associativityVerified,
-                        commutativityVerified:=result.algebraAudit.commutativityVerified,
-                        scope:=result.algebraAudit.scope);
+                if IsBound(result.certificateLevel) then
+                    row.abelianQuotientAssumed:=result.abelianQuotientAssumed;
                     row.fixedFlatLifts:=[]; row.powerWitnesses:=[];
                     for name in ["D","C","B","A"] do
                         for j in [1..Length(result.layers.(name).fullLifts)] do

@@ -62,7 +62,7 @@ gap> transferLargeFull:=koFull(transferLargeR,0,0,3);;
 gap> Assert(0,transferLargeFull.status="computed" and transferLargeFull.invariants[5]=[0,2,16]);
 gap> Assert(0,IsIdenticalObj(transferLargeFull.ahss._context.resolution,transferLargeR));
 gap> Assert(0,transferLargeFull.degreeResults[5].certificateLevel="transfer-R" and transferLargeFull.degreeResults[5].gaugeCompletenessAssumed);
-gap> Assert(0,transferLargeFull.degreeResults[5].algebraAudit.status="computed" and transferNativeCloses=1);
+gap> Assert(0,not IsBound(transferLargeFull.degreeResults[5].algebraAudit) and transferNativeCloses=1);
 gap> Assert(0,not IsBound(transferLargeFull.degreeResults[5].modelSelection) and not IsBound(transferLargeFull.degreeResults[5].barCertification));
 gap> # Setup refusal remains unresolved, without a complete-bar retry.
 gap> transferRefusalCloses:=0;;

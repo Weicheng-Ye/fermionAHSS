@@ -31,3 +31,8 @@ gap> Assert(0,extFreeQuotient.invariants=[0,2]);
 gap> extError := function(f) local old,result; old:=BreakOnError; BreakOnError:=false; result:=CALL_WITH_CATCH(f,[]); BreakOnError:=old; return result[1]=false; end;;
 gap> Assert(0,extError(function() return koAHSSExtensionFromLayers(rec(D:=[2],C:=[2]),function(l,i,m,h) return rec(status:="computed",lowerPresentationId:="wrong",lowerCoordinates:=[1],witness:=true); end); end));
 Error, koAHSS: extension oracle returned a different lower basis
+gap> # Real higher-degree lifts; the quotient table is no longer audited.
+gap> extReal := koFull(CyclicGroup(2),0,0,3);;
+gap> Assert(0,extReal.invariants[5]=[0,8]);
+gap> Assert(0,extReal.degreeResults[5].abelianQuotientAssumed and not IsBound(extReal.degreeResults[5].algebraAudit));
+gap> Assert(0,ForAll(extReal.degreeResults[5].extensionVectors,v->v.layer="D" or v.result.witness.reduction.canonicalComparison.status="computed"));

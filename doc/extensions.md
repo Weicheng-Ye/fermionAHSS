@@ -135,10 +135,10 @@ only for a proved zero group and `[0]` for Z.
 
 In the higher-degree engine, `layers.<name>.fullLifts[i]` retains the
 immutable full representative and its defining-equation witnesses for
-each marked generator. Completed higher-degree results also retain
-`algebraAudit`. If that audit cannot complete, the degree remains
-unresolved; `candidatePresentation` preserves the measured presentation
-without presenting it as a completed group.
+each marked generator. Completed higher-degree results record
+`abelianQuotientAssumed=true`: the measured relations are combined under
+the assumption that stacking is commutative and associative on gauge
+classes, and no finite multiplication table is audited.
 
 ## Layers and measured relations
 
@@ -348,15 +348,11 @@ Accepted relations retain `canonicalComparison.winningStage`,
 `pendingRelation`, including attempted comparisons and residual cochains,
 instead of claiming that a particular missing gauge necessarily exists.
 
-Before returning a higher-degree result as computed, the finite quotient
-audit constructs every marked finite normal form, checks every ordered
-pair product against its Smith-coordinate target by literal equality or
-an exact native gauge comparison, and verifies the resulting table has an
-identity, inverses, commutativity and associativity. The audit handles at
-most 32 finite normal forms. Free quotient coordinates are excluded from
-this finite enumeration and split in the intended abelian abutment
-category; this is not a finite verification of every infinite cochain
-product.
+A higher-degree result is returned as computed once every relation has
+its exact comparison. Commutativity and associativity of stacking on gauge
+classes are assumed rather than audited: products of the marked finite
+normal forms are not enumerated. Free quotient coordinates split in the
+intended abelian abutment category.
 
 Degree-six extensions remain explicitly unresolved. Their native formula
 is not implemented, and the old complete-bar finite section is not selected
@@ -402,7 +398,6 @@ The native implementation has explicit resource bounds:
 | Flat-lift affine search | 4096 distinct differential evaluations by default |
 | Gauge-comparison affine search | 4096 equation evaluations and 64 leading choices shared across requested stages; integral kernel coefficients initially bounded by absolute value 1 |
 | Alternative lower-coordinate search | 32 marked finite normal forms; 4096 equation evaluations shared across stages and candidates |
-| Finite quotient audit | 32 marked normal forms |
 
 These are implementation limits, not additional tuning arguments to `koFull`.
 Repeated integer solves reuse exact Smith preparations, bounded by eight
@@ -415,8 +410,8 @@ specified above. See [resolution extensions](resolution-extensions.md).
 The native model assumes gauge completeness. The
 [initial mathematical review](transfer.md) explains why a strict retraction
 and soundness of individual relations alone did not establish that claim.
-The assumption is recorded in results; native finite quotient checks do
-not turn it into a proof.
+The assumption is recorded in results; the relation checks do not turn
+it into a proof.
 
 A nonlinear evaluation can still be costly. Reaching a resource bound or
 failing to find a gauge within the bounded search is not evidence that an

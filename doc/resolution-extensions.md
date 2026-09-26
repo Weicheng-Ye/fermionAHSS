@@ -48,15 +48,13 @@ The engine retains the following exact checks on R:
 - Flatness of every chosen full lift, with its defining equations.
 - Each measured stacking relation against the ordered lower product,
   with a native gauge satisfying `target = act(gauge,canonical)`.
-- Products of all marked finite normal forms and the identity, inverses,
-  commutativity and associativity of the resulting finite quotient table.
 
-The finite quotient audit operates on native coordinates. It does not
-construct the full bar resolution or prove the gauge-completeness
-assumption. Free quotient coordinates split in the intended abelian
-abutment category and are excluded from this finite enumeration.
+Stacking is also assumed to be commutative and associative on gauge classes,
+so the relations determine the group and no finite multiplication table is
+audited. Completed native degree results record `abelianQuotientAssumed=true`.
+Free quotient coordinates split in the intended abelian abutment category.
 
-If setup, search or audit reaches its bounds, the degree stays unresolved.
+If setup or search reaches its bounds, the degree stays unresolved.
 There is no retry with a complete-bar engine. Failed exact identities remain
 errors; they are not treated as split extensions.
 
@@ -66,7 +64,7 @@ errors; they are not treated as split extensions.
 | `degree.modelId` | Identifier of the native model when setup supplied one |
 | `degree.gaugeCompletenessAssumed` | `true` for a completed native higher calculation |
 | `degree.certificateLevel` | `"transfer-R"` for a completed native calculation |
-| `degree.algebraAudit` | Native finite normal-form multiplication and quotient checks |
+| `degree.abelianQuotientAssumed` | `true`; the group law on gauge classes is assumed commutative and associative |
 
 Native `canonicalComparison` records verify `target = act(gauge,canonical)`
 on R. They contain `certificateLevel="transfer-R"` and have no literal
@@ -148,8 +146,11 @@ it does not remove the native engine's separate search and transport bounds.
 
 The portable [resolution example](../examples/resolution_extensions.g)
 exercises C2, signed C4 and C8 extensions on supplied resolutions. Current
-checks are recorded in
-[the native-default verification record](verification/native-extension-default-20260926.md).
-Historical transfer and reference comparisons remain in
+checks, including the removal of the finite audit and the exact worker
+evaluation policy, are recorded in
+[the acceleration verification record](verification/extension-acceleration-20260926.md).
+The [native-default record](verification/native-extension-default-20260926.md)
+is retained as historical evidence. Historical transfer and reference
+comparisons remain in
 [the initial implementation verification record](verification/resolution-extensions-20260926.md).
 All results retain `certified_ko=false` and the existing five-row scope.

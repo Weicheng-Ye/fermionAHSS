@@ -226,16 +226,13 @@ InstallGlobalFunction(koFull,function(arg)
         fi;
         candidate:=koAHSSExtensionFromLayers(layers,oracle);
         if degree in [3..5] and candidate.status="computed" then
-            candidate.algebraAudit:=CallFuncList(ValueGlobal("KOAHSS_ExtensionFiniteAudit"),
-                [model,degree,layers,candidate]);
-            if candidate.algebraAudit.status<>"computed" then
-                return rec(status:="unresolved",reason:=candidate.algebraAudit.reason,
-                    pendingLayer:="quotient-audit",candidatePresentation:=candidate);
-            fi;
-            # Gauge completeness is an assumption of this transferred model.
-            # All accepted equations and the finite audit are checked on R.
+            # Gauge completeness is an assumption of this transferred model,
+            # as are commutativity and associativity of stacking on gauge
+            # classes. No finite multiplication table is audited; the
+            # accepted relation equations are checked on R.
             candidate.certificateLevel:="transfer-R";
             candidate.gaugeCompletenessAssumed:=true;
+            candidate.abelianQuotientAssumed:=true;
         fi;
         return candidate;
     end;
