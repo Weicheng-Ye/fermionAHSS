@@ -1,16 +1,10 @@
 # fermionAHSS
 
-An exact GAP package for the five rows `q = -4,-3,-2,-1,0` of the twisted connective real K-theory Atiyah–Hirzebruch spectral sequence (AHSS), through E6. It aims to calculate the classification of fermionic symmetry-protected topological (SPT) phases with various different fermionic symmetry groups up to (5+1)-dimension.
+An exact GAP package for the five rows `q = -4,-3,-2,-1,0` of the twisted connective real K-theory Atiyah–Hirzebruch spectral sequence (AHSS), through E6, including the solution of the extension problem. It aims to calculate the classification of fermionic symmetry-protected topological (SPT) phases with various different fermionic symmetry groups up to (5+1)-dimension.
 
-`koAHSS` returns the AHSS pages in these five rows. `koFull` also assembles
-the supported stacking extensions and explicitly marks unsupported degrees
-unresolved. The abstract extension assembler accepts arbitrary finitely
-generated abelian layers and exact relation vectors; the production cochain
-engine solves complete flat representatives and measures higher-layer
-relations on a bounded finite group-bar model. Other coefficient rows
-remain outside the scope. See the [formula reference](doc/README.md),
+`koAHSS` returns the AHSS pages in these five rows. `koFull` assembles the final page, E6, into one group by solving the extension problem. See the [formula reference](doc/README.md),
 [extension API and limits](doc/extensions.md), and
-[mathematical status](doc/mathematical-status.md).
+[mathematical status](doc/mathematical-status.md) for relevant mathematics.
 
 ## Installation and loading
 
@@ -23,7 +17,7 @@ Place this directory, or a symlink to it, in a GAP `pkg` directory:
 
 ```sh
 mkdir -p ~/.gap/pkg
-ln -s ~/Workspace/fermionAHSS ~/.gap/pkg/fermionAHSS
+ln -s . ~/.gap/pkg/fermionAHSS
 ```
 
 Then use a fresh GAP session:
@@ -45,21 +39,41 @@ For an uninstalled checkout, use:
 Read("/absolute/path/to/fermionAHSS/load.g");
 ```
 
-Loading again in the same session is harmless, but does not reload edited
-source. This package retains the `koAHSS...` API names and must not share
-a GAP session with the separate koAHSS package.
-
 ## Basic use
 
+The main function is as follows, which records ko-homology or the full classification of fermionic SPT phases up to dimension k,
+
 ```gap
-G := CyclicGroup(2);;
-table := koAHSS(G, 0, 0, 1);;       # one E6 table
-pages := koAHSS(G, 0, 0, 1, 5);;    # E2, E3, E4, E5, E6
+koFull(group, s, omega, k[, options])
+full.degrees;                       # [-1,0,...,k]
+full.invariants;                    # one result per dimension
+full.degreeResults[2+2];            # detailed dimension-two result
+koAHSSDisplay(full);                # display of the AHSS at E6=Einfty
 ```
 
-`koAHSS(group, s, omega, k[, n][, options])` constructs an integral HAP resolution for
-a finite group and installs the fixed calibrated operations. Its arguments
-are:
+- `s` and `omega`: binary cocycle vectors in degrees one and two of that
+  resolution. Scalar `0` denotes the zero cocycle. Coordinates depend on the
+  resolution basis; a named cohomology class is not a coordinate vector.
+- `k`: largest displayed physical dimension.
+- Optional `options`: ???
+
+The result at degree `j` is indexed by `j+2`. A completed entry is an
+abelian invariant list; an unresolved entry is a status record, never an
+assumed zero. Detailed completed results retain the group, measured
+relation vectors, one joint integer presentation, Smith transformations,
+the cyclic/free basis, and filtration maps. Relations with the same
+nonzero lower image are distinguished from relations with independent
+lower images.
+
+### AHSS and its display
+
+The function
+
+```gap
+koAHSS(group, s, omega, k[, n][, options])
+```
+
+calculates the layered information of the AHSS up to dimension k and page n.
 
 - `s` and `omega`: binary cocycle vectors in degrees one and two of that
   resolution. Scalar `0` denotes the zero cocycle. Coordinates depend on the
@@ -108,28 +122,9 @@ A supplied resolution can also be passed directly as the first argument to
 A group resolution models BG, not an arbitrary space with that fundamental
 group or `B^2 Z2`.
 
-## Stacking extensions
+### Stacking extensions
 
-The main extension entry point attempts every package degree from -1
-through the requested cutoff, sharing one AHSS calculation:
-
-```gap
-full := koFull(CyclicGroup(2), 0, 0, 2);;
-full.degrees;                       # [-1,0,1,2]
-full.invariants;                    # one result per degree
-full.degreeResults[2+2];            # detailed degree-two result
-koAHSSDisplay(full);                # the same E6 table display
-```
-
-The result at degree `j` is indexed by `j+2`. A completed entry is an
-abelian invariant list; an unresolved entry is a status record, never an
-assumed zero. Detailed completed results retain the group, measured
-relation vectors, one joint integer presentation, Smith transformations,
-the cyclic/free basis, and filtration maps. Relations with the same
-nonzero lower image are distinguished from relations with independent
-lower images.
-
-An existing detailed E6 calculation can be reused directly:
+An existing detailed E6 calculation can be reused directly for solving its extension problem:
 
 ```gap
 ahss := koAHSS(CyclicGroup(2), 0, 0, 2, 5, rec(details:=true));;
@@ -186,7 +181,7 @@ explicitly unresolved. The implementation retains `certified_ko=false`;
 see [extensions.md](doc/extensions.md) for the exact scope and limits.
 The papers' spatial dimension `d` corresponds to package degree `d+1`.
 
-## Displaying the AHSS
+### Displaying the AHSS
 
 Use the separate display function to draw the page with **q=0 at the top
 and q=-4 at the bottom**, and p increasing from left to right:
@@ -234,7 +229,7 @@ payload, a detailed AHSS result, or a `koFull` result. Their table text is
 unchanged, and no extension summary is appended. A full result selects E6
 by default; its `.pages` payload displays every stored page.
 
-## Advanced evaluation
+### Advanced evaluation
 
 `koAHSSpages(space,s,omega,k[,n])` accepts an explicit HAP space or other
 supported backend. `koAHSSPageData` has the same arguments and returns cell
