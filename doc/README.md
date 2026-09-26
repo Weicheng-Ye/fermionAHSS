@@ -1,6 +1,7 @@
 # Implemented formulas and calibration data
 
-These documents describe the fixed bar-resolution edition of fermionAHSS.
+These documents describe the fixed bar formulas and resolution-based
+implementation of fermionAHSS.
 They adapt the consolidated formula references and relevant backend/status
 documentation from the koAHSS research workspace. They preserve the
 formulas and calibration data while updating transport and Python paths.
@@ -14,7 +15,7 @@ formulas and calibration data while updating transport and Python paths.
 | [backends.md](backends.md) | HAP, cochain, and page interfaces; direct-operation audits and exact quotient conventions |
 | [extensions.md](extensions.md) | Detailed AHSS results, `koFull`, retained flat tuples, exact boundary comparisons, common-coordinate Smith presentations, and finite quotient audits |
 | [transfer.md](transfer.md) | Initial resolution-transfer plan review, exact retraction preflight, completeness counterexample, and historical prerequisite measurements |
-| [resolution-extensions.md](resolution-extensions.md) | Supplied-resolution API, native extension searches, sparse normalized transport, independent bar certification and fallback |
+| [resolution-extensions.md](resolution-extensions.md) | Native extension API, sparse normalized transport, gauge-completeness assumption and native completion checks |
 | [extension-paper-comparisons.md](extension-paper-comparisons.md) | Full-group literature fixtures, dimension and twist conventions, and recorded comparison outcomes |
 | [extension-gauge-verification.md](extension-gauge-verification.md) | Staged higher-layer gauges, the C2h regression witness, and bounded verification evidence |
 | [mathematical-status.md](mathematical-status.md) | Implemented range, mathematical assumptions, historical verification, and unresolved scope |
@@ -80,8 +81,10 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [extensions.gi](../gap/extensions.gi) | Marked abelian extension presentations, Smith transformations, and the `koFull` wrapper |
 | [stacking_extensions.gi](../gap/stacking_extensions.gi) | Production low-degree `xtimes` relation measurements and exact lower-layer reduction |
 | [extension_lifts.gi](../gap/extension_lifts.gi) | Immutable full generator lifts, affine B/C defining choices, integral D solves, and exact flatness witnesses |
-| [extension_bar.gi](../gap/extension_bar.gi) | Bounded complete finite-bar coordinates and transport to the bundled stacking worker |
+| [extension_transfer.gi](../gap/extension_transfer.gi) | Native extension model, exact retraction preflight and sparse normalized transport |
+| [extension_transfer.py](../python/extension_transfer.py) | Lazy transferred curvature, products and gauge actions using the fixed formulas |
+| [extension_bar.gi](../gap/extension_bar.gi) | Legacy bounded complete finite-bar model, retained for reference tests |
 | [extension_relations.gi](../gap/extension_relations.gi) | Powers of fixed full lifts, common lower coordinates, and retained reduction carries |
-| [extension_equivalence.gi](../gap/extension_equivalence.gi) | Exact ordered equality with a complete gauge boundary, without assumed cochain associativity |
-| [extension_audit.gi](../gap/extension_audit.gi) | Finite normal-form multiplication and boundary witnesses, with abelian-table checks before completion |
-| [extension_degree_six.gi](../gap/extension_degree_six.gi) | Exact integral and binary basis data for the bounded degree-six section |
+| [extension_equivalence.gi](../gap/extension_equivalence.gi) | Exact ordered native gauge comparison, without assumed cochain associativity |
+| [extension_audit.gi](../gap/extension_audit.gi) | Finite native normal-form multiplication and gauge witnesses, with abelian-table checks before completion |
+| [extension_degree_six.gi](../gap/extension_degree_six.gi) | Legacy basis data for the bounded complete-bar degree-six section |

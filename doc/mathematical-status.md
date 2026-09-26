@@ -1,7 +1,7 @@
 # Mathematical status and provenance
 
-fermionAHSS is the fixed group-bar edition of the koAHSS research
-implementation. Its page calculation covers rows `q=-4,-3,-2,-1,0`
+fermionAHSS uses the fixed group-bar formulas of the koAHSS research
+implementation, evaluated through resolution comparison maps. Its page calculation covers rows `q=-4,-3,-2,-1,0`
 through E6 and physical cutoff `p+q+3 <= k <= 6`. E6 is terminal within
 this strip; it is not automatically the full ko E-infinity page. Other ko
 rows remain outside the implementation. The extension assembler and
@@ -17,13 +17,14 @@ the four-layer extension separately in package degrees -1 through `k`.
 E6 result. Neither call changes the row window or the calibrated page
 differentials. See the [extension API](extensions.md).
 
-Both entry points accept `rec(extensionModel:="transfer")`; a supplied
-integral HAP resolution can also replace the group argument. This opt-in
-model uses native states and solves in degrees 3–5 with a checked strict
-retraction and normalized homotopy. It does not assume general gauge
-completeness. Except for a checked literal C2 bar basis isomorphism,
-native results need the reference engine's independent lift, relation
-and finite quotient checks; unresolved attempts fall back to that engine.
+A supplied integral HAP resolution can replace the group argument.
+Native states and solves on that resolution are the only higher extension
+mode in degrees 3–5; there is no model-selection option. The comparison
+must pass the strict retraction check, and the sparse homotopy is normalized.
+The calculation assumes gauge completeness: native gauge equivalence
+captures the bar equivalence relation. Results record
+`gaugeCompletenessAssumed=true`; this is an assumption, not a runtime proof.
+There is no complete-bar certification or automatic complete-bar fallback.
 See [resolution extensions](resolution-extensions.md) for the exact scope.
 
 The abstract assembler accepts arbitrary finitely generated abelian
@@ -35,8 +36,8 @@ basis transformations, and carries the filtration inclusions and
 quotients to subsequent stages. Equal and independent nonzero lower
 images remain distinguishable.
 
-For degrees 3–5, the default production engine transports the marked E6
-representatives to one complete normalized finite group-bar basis. It
+For degrees 3–5, the production engine retains the marked E6
+representatives in the supplied resolution basis. It
 solves and retains immutable full `(A,B,C,D)` lifts for every generator,
 including free A generators. Binary B/C defining choices are changed when
 needed to solve later equations, and D is solved integrally. The actual
@@ -44,13 +45,13 @@ nonlinear differential verifies flatness of each complete tuple. The
 selected `xtimes` then measures powers of those same tuples; lower
 reductions reuse the recorded B/C/D basis and all integral carries.
 
-Each measured relation must admit an exact ordered boundary comparison
-with its canonical lower product. The witness retains a complete gauge
-tuple, verifies its boundary is flat, and checks the product equality
-component by component. A finite quotient audit then checks all products
+Each measured relation must admit an exact native gauge comparison
+with its canonical lower product. The witness retains a complete native
+gauge tuple, verifies flatness of its action result, and checks the action
+equality component by component. A finite quotient audit then checks all products
 of the marked finite normal forms and the resulting abelian table before
 a higher-degree result is returned as computed. This audit is bounded by
-32 forms. Free quotients split in the intended abelian abutment category;
+32 forms and uses native cochain coordinates. Free quotients split in the intended abelian abutment category;
 the finite audit does not enumerate all infinite cochain products.
 
 Gauge comparison now tries D-only, C/D, B/C/D and A/B/C/D support in that
@@ -62,13 +63,10 @@ full stacked tuple. Native cohomology lifts prioritize the search but do
 not replace the complete cochain kernel. Unsuccessful bounded searches
 remain unresolved, with their diagnostics retained.
 
-The degree-six path additionally needs the fixed pointed finite section
-and exact basis conversions in
-[production_g6_section.py](../python/stacking_model/production_g6_section.py). Its availability
-does not establish an all-degree natural formula or a completed extension
-for every input. The flat-lift, exact relation and finite-audit conditions
-remain necessary, and verification records distinguish implemented
-methods from calculations actually checked.
+Degree-six extensions are explicitly unresolved because a native degree-six
+formula is not implemented. The complete-bar finite section remains a
+historical implementation and is not a runtime fallback. The E6 page
+calculation still supports its existing degree range.
 
 The low-degree adapter still handles order-two C-layer relations in
 degree 1 with arbitrary valid `omega`, and C/B-layer relations in degree 2
@@ -78,14 +76,15 @@ formulas are bundled with [source hashes](../python/stacking_model/provenance.js
 runtime loading does not require the separate stacking research workspace.
 
 Degrees -1 and 0 have only D. Unsupported queries, incomplete page data
-and exhausted resource bounds remain unresolved. The complete-bar model
-is bounded by 8192 cochain coordinates per required degree and 2,000,000
-matrix entries; flat-lift searches default to 4096 differential
-evaluations, and the degree-six section search is bounded by 4096
-candidates. Gauge comparisons have additional finite search bounds
+and exhausted resource bounds remain unresolved. Native transfer currently
+requires a finite group, one degree-zero generator and a comparison passing
+`fg=id` over the integral group ring. Sparse transport has term bounds,
+and exact global lower-degree flag checks are bounded by 8192 normalized
+simplices per predicate. Flat-lift searches default to 4096 differential
+evaluations. Gauge comparisons have additional finite search bounds
 documented in [extensions.md](extensions.md). A measured Smith
-presentation is retained as a candidate if the required quotient audit
-cannot complete; it is not substituted for missing cochain evidence.
+presentation is retained as a candidate if the required native quotient
+audit cannot complete; it is not substituted for missing cochain evidence.
 
 The [paper comparison record](extension-paper-comparisons.md) distinguishes
 computed groups, unresolved cases and literature expectations. The initial

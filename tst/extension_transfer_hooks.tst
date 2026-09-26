@@ -28,63 +28,58 @@ gap> Assert(0,transferHookActions>4 and transferHookDivisions>1);
 gap> transferHookRelation:=First(transferHookResult.extensionVectors,v->v.layer="C").result.witness.reduction;;
 gap> Assert(0,transferHookRelation.canonicalComparison.certificateLevel="transfer-R");
 gap> Assert(0,ForAll(transferHookRelation.reductionSteps,step->step.boundary.equation="state = act(gauge, canonical)"));
-gap> # Public options and supplied resolutions preserve the same backend basis.
+gap> # The ordinary public API preserves an explicitly supplied resolution.
 gap> transferHookResolution:=ResolutionFiniteGroup(CyclicGroup(2),5);;
-gap> transferHookFull:=koFull(transferHookResolution,0,0,2,rec(extensionModel:="transfer"));;
+gap> transferHookFull:=koFull(transferHookResolution,0,0,2);;
 gap> Assert(0,transferHookFull.invariants=[[0],[],[2,2],[2,2]]);
 gap> Assert(0,IsIdenticalObj(transferHookFull.ahss._context.resolution,transferHookResolution));
-gap> Assert(0,transferHookFull.extensionModel="transfer" and ForAll(transferHookFull.degreeResults,r->r.modelSelection.selected="low"));
-gap> koFull(CyclicGroup(2),0,0,1,rec(extensionModel:="unknown"));
-Error, koFull: extensionModel must be bar or transfer
-gap> koFull(transferHookFull.ahss,rec(extensionModel:=1));
-Error, koFull: extensionModel must be bar or transfer
-gap> koFull(transferHookFull.ahss,rec(other:=true));
-Error, koFull: options must be a record containing only extensionModel
-gap> # A setup refusal must select the reference model and retain its reason.
-gap> transferSavedFactory:=KOAHSS_ExtensionTransferredModel;;
-gap> MakeReadWriteGlobal("KOAHSS_ExtensionTransferredModel");
-gap> KOAHSS_ExtensionTransferredModel:=function(backend,k) return rec(status:="unresolved",reason:="controlled native setup refusal"); end;;
-gap> transferFallbackFull:=koFull(CyclicGroup(2),0,0,3,rec(extensionModel:="transfer"));;
-gap> KOAHSS_ExtensionTransferredModel:=transferSavedFactory;;
-gap> MakeReadOnlyGlobal("KOAHSS_ExtensionTransferredModel");
-gap> Assert(0,transferFallbackFull.status="computed");
-gap> Assert(0,transferFallbackFull.degreeResults[5].modelSelection.selected="bar" and transferFallbackFull.degreeResults[5].modelSelection.fallback);
-gap> Assert(0,transferFallbackFull.degreeResults[5].transferAttempt.reason="controlled native setup refusal");
-gap> # A native finite audit alone cannot silently certify gauge completeness.
-gap> transferBarWrapper:=function(backend,k)
-> local wrapped;
-> wrapped:=KOAHSS_ExtensionBarModel(backend,k);
-> if wrapped.status="computed" then
->     wrapped.act:=function(degree,gauge,canonical) return wrapped.xtimes(degree,wrapped.d(degree-1,gauge),canonical); end;
->     wrapped.classEquivalenceVerified:=false;
-> fi;
-> return wrapped;
-> end;;
-gap> MakeReadWriteGlobal("KOAHSS_ExtensionTransferredModel");
-gap> KOAHSS_ExtensionTransferredModel:=transferBarWrapper;;
-gap> transferUncertifiedFull:=koFull(transferFallbackFull.ahss,rec(extensionModel:="transfer"));;
-gap> KOAHSS_ExtensionTransferredModel:=transferSavedFactory;;
-gap> MakeReadOnlyGlobal("KOAHSS_ExtensionTransferredModel");
-gap> Assert(0,transferUncertifiedFull.invariants=transferFallbackFull.invariants);
-gap> Assert(0,transferUncertifiedFull.degreeResults[5].modelSelection.selected="bar");
-gap> Assert(0,transferUncertifiedFull.degreeResults[5].transferAttempt.pendingLayer="transfer-certification");
-gap> Assert(0,transferUncertifiedFull.degreeResults[5].transferAttempt.candidatePresentation.status="computed");
-gap> # The identity wrapper really uses the same complete-bar equations.
-gap> MakeReadWriteGlobal("KOAHSS_ExtensionTransferredModel");
-gap> KOAHSS_ExtensionTransferredModel:=function(backend,k) local wrapped; wrapped:=transferBarWrapper(backend,k); if wrapped.status="computed" then wrapped.classEquivalenceVerified:=true; fi; return wrapped; end;;
-gap> transferIdentityFull:=koFull(transferFallbackFull.ahss,rec(extensionModel:="transfer"));;
-gap> KOAHSS_ExtensionTransferredModel:=transferSavedFactory;;
-gap> MakeReadOnlyGlobal("KOAHSS_ExtensionTransferredModel");
-gap> Assert(0,transferIdentityFull.invariants=transferFallbackFull.invariants);
-gap> Assert(0,transferIdentityFull.degreeResults[5].modelSelection.selected="transfer" and not transferIdentityFull.degreeResults[5].modelSelection.fallback);
-gap> Assert(0,transferIdentityFull.degreeResults[5].certificateLevel="transfer-R");
-gap> # Preserve reference-model cache reuse and the zero/free-layer behavior.
-gap> transferSavedBarFactory:=KOAHSS_ExtensionBarModel;; transferBarSetupCount:=0;;
+gap> Assert(0,transferHookFull.gaugeCompletenessAssumed and not IsBound(transferHookFull.extensionModel));
+gap> koFull(CyclicGroup(2),0,0,1,rec(extensionModel:="transfer"));
+Error, usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)
+gap> koFull(transferHookFull.ahss,rec(extensionModel:="bar"));
+Error, usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)
+gap> koFull(transferHookFull.ahss,rec());
+Error, usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)
+gap> # C8 exceeds the complete-bar budget. Its native result requires no bar
+> # construction, certification hook, or exceptional C2 basis isomorphism.
+gap> transferSavedBarFactory:=KOAHSS_ExtensionBarModel;;
 gap> MakeReadWriteGlobal("KOAHSS_ExtensionBarModel");
-gap> KOAHSS_ExtensionBarModel:=function(backend,k) transferBarSetupCount:=transferBarSetupCount+1; return rec(status:="unresolved",reason:="controlled bar resource refusal"); end;;
-gap> transferBarZeroFree:=koFull(CyclicGroup(3),0,0,4);;
+gap> KOAHSS_ExtensionBarModel:=function(backend,k) Error("koFull attempted complete-bar construction"); end;;
+gap> transferSavedFactory:=KOAHSS_ExtensionTransferredModel;; transferNativeCloses:=0;;
+gap> MakeReadWriteGlobal("KOAHSS_ExtensionTransferredModel");
+gap> KOAHSS_ExtensionTransferredModel:=function(backend,k)
+> local native,close;
+> native:=transferSavedFactory(backend,k);
+> if native.status="computed" then
+>     Assert(0,not IsBound(native.certifyPresentation));
+>     close:=native.close;
+>     native.close:=function() transferNativeCloses:=transferNativeCloses+1; close(); end;
+> fi;
+> return native;
+> end;;
+gap> transferLargeR:=ResolutionFiniteGroup(CyclicGroup(8),6);;
+gap> transferLargeFull:=koFull(transferLargeR,0,0,3);;
+gap> Assert(0,transferLargeFull.status="computed" and transferLargeFull.invariants[5]=[0,2,16]);
+gap> Assert(0,IsIdenticalObj(transferLargeFull.ahss._context.resolution,transferLargeR));
+gap> Assert(0,transferLargeFull.degreeResults[5].certificateLevel="transfer-R" and transferLargeFull.degreeResults[5].gaugeCompletenessAssumed);
+gap> Assert(0,transferLargeFull.degreeResults[5].algebraAudit.status="computed" and transferNativeCloses=1);
+gap> Assert(0,not IsBound(transferLargeFull.degreeResults[5].modelSelection) and not IsBound(transferLargeFull.degreeResults[5].barCertification));
+gap> # Setup refusal remains unresolved, without a complete-bar retry.
+gap> transferRefusalCloses:=0;;
+gap> KOAHSS_ExtensionTransferredModel:=function(backend,k) return rec(status:="unresolved",reason:="controlled native setup refusal",close:=function() transferRefusalCloses:=transferRefusalCloses+1; end); end;;
+gap> transferRefusedFull:=koFull(transferLargeFull.ahss);;
+gap> Assert(0,transferRefusedFull.degreeResults[5].status="unresolved" and transferRefusedFull.degreeResults[5].pendingLayer="model-setup");
+gap> Assert(0,transferRefusedFull.degreeResults[5].reason="controlled native setup refusal" and transferRefusalCloses=1);
+gap> Assert(0,not IsBound(transferRefusedFull.degreeResults[5].transferAttempt));
+gap> # Degree six is unresolved even for zero layers, without a model request.
+gap> transferZeroGroup:=AbelianGroup(IsPcpGroup,[]);;
+gap> transferZeroCell:=rec(group:=transferZeroGroup,lift:=x->x);;
+gap> transferZeroAHSS:=rec(kind:="koAHSSResult",computedThrough:=6,maxDegree:=6,pages:=rec(pageNumbers:=[6]),_context:=rec(getCell:=function(page,p,q) return transferZeroCell; end,backend:=rec(cohomologyData:=function(p,q) return rec(represent:=x->[]); end)));;
+gap> transferSixFull:=koFull(transferZeroAHSS);;
+gap> Assert(0,transferRefusalCloses=4);
+gap> Assert(0,transferSixFull.degreeResults[8].status="unresolved" and transferSixFull.degreeResults[8].pendingLayer="model-setup");
+gap> Assert(0,transferSixFull.degreeResults[8].reason="native extension degree six is not implemented");
+gap> KOAHSS_ExtensionTransferredModel:=transferSavedFactory;;
+gap> MakeReadOnlyGlobal("KOAHSS_ExtensionTransferredModel");
 gap> KOAHSS_ExtensionBarModel:=transferSavedBarFactory;;
 gap> MakeReadOnlyGlobal("KOAHSS_ExtensionBarModel");
-gap> Assert(0,transferBarSetupCount=1);
-gap> Assert(0,transferBarZeroFree.degreeResults[5].status="computed" and transferBarZeroFree.invariants[5]=[0,3]);
-gap> Assert(0,transferBarZeroFree.degreeResults[6].status="computed" and transferBarZeroFree.invariants[6]=[]);

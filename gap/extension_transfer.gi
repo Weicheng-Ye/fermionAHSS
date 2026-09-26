@@ -303,18 +303,8 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
     model:=rec(status:="computed",modelId:="transferred-normalized-bar",maxDegree:=k,
         certificateLevel:="transfer-R",transportAudit:=transport.audit,
         transportNormalization:=transport.normalization,transportStats:=transport.stats,
-        classEquivalenceVerified:=false,sideConditionsByConstruction:=true,
+        gaugeCompletenessAssumed:=true,sideConditionsByConstruction:=true,
         s:=ShallowCopy(backend.twists.s),omega:=ShallowCopy(backend.twists.omega));
-    # BC2 has exactly one normalized simplex orbit in every degree. If g
-    # sends each sole native generator to that literal bar generator, the
-    # checked inverse f makes this an actual isomorphism, not a proper
-    # retract. Its complement and hence the normalized homotopy vanish.
-    if Length(elements)=2 and ForAll([0..k+2],n->
-       Length(transport.g[n+1])=1 and Length(transport.g[n+1][1])=1 and
-       transport.g[n+1][1][1]=[1,1,List([0..n],i->i mod 2)]) then
-        model.classEquivalenceVerified:=true;
-        model.classEquivalenceReason:="literal normalized C2 bar basis isomorphism through the required degrees";
-    fi;
     model.supports:=degree->degree=k and degree in [3..5];
     model.dimension:=function(n)
         if n<0 then return 0; fi;
@@ -432,12 +422,15 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
     model.transferCertificate:=function(degree,gauge,canonical,target)
         if model.act(degree,gauge,canonical)<>target then Error("transferred gauge equality failed"); fi;
         return rec(certificateLevel:="transfer-R",nativeEqualityVerified:=true,
+            gaugeCompletenessAssumed:=true,
             gauge:=StructuralCopy(gauge),canonical:=StructuralCopy(canonical),target:=StructuralCopy(target),
             comparisonAudit:=transport.audit,homotopyNormalization:=transport.normalization,
             searchComplete:=false);
     end;
     model.debugRequest:=request;
     model.transportData:=transport.terms;
+    # Explicit export for developer reference comparisons only. koFull never
+    # calls this helper or constructs a complete-bar model for certification.
     model.barState:=function(degree,state,barModel)
         local samples,ns,j,result;
         samples:=rec(); ns:=[degree-3,degree-2,degree-1,degree+1];
@@ -447,12 +440,6 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         od;
         result:=request(rec(operation:="phi_values",degree:=degree,state:=state,simplices:=samples));
         return result.state;
-    end;
-    model.certifyPresentation:=function(degree,layers,result)
-        if not IsBoundGlobal("KOAHSS_ExtensionTransferCertify") then
-            return rec(status:="unresolved",reason:="complete-bar transfer certificate is unavailable");
-        fi;
-        return CallFuncList(ValueGlobal("KOAHSS_ExtensionTransferCertify"),[backend,model,degree,layers,result]);
     end;
     return model;
 end);

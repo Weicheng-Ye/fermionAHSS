@@ -133,7 +133,7 @@ gap> transferR:=ResolutionFiniteGroup(CyclicGroup(2),7);;
 gap> transferBackend:=koAHSSHAPSpace(transferR,koAHSSNaturalOperations()).koAHSS(0,0,7);;
 gap> transferModel:=KOAHSS_ExtensionTransferredModel(transferBackend,3);;
 gap> transferBar:=KOAHSS_ExtensionBarModel(transferBackend,3);;
-gap> Assert(0,transferModel.classEquivalenceVerified and transferModel.dimension(5)=1);
+gap> Assert(0,transferModel.gaugeCompletenessAssumed and transferModel.dimension(5)=1);
 gap> transferState:=transferModel.zero(3);; transferState.C:=[1];;
 gap> Assert(0,transferModel.d(3,transferState)=transferModel.zero(4));
 gap> transferProduct:=transferModel.xtimes(3,transferState,transferState);;
@@ -158,7 +158,7 @@ gap> transferR:=ResolutionFiniteGroup(CyclicGroup(3),6);;
 gap> transferBackend:=koAHSSHAPSpace(transferR,koAHSSNaturalOperations()).koAHSS(0,0,6);;
 gap> transferModel:=KOAHSS_ExtensionTransferredModel(transferBackend,3);;
 gap> transferBar:=KOAHSS_ExtensionBarModel(transferBackend,3);;
-gap> Assert(0,not transferModel.classEquivalenceVerified);
+gap> Assert(0,transferModel.gaugeCompletenessAssumed);
 gap> transferState:=transferModel.zero(3);; transferState.C:=[1];;
 gap> Assert(0,KOAHSS_ExtensionStateIsZero(transferModel.d(3,transferState)));
 gap> transferExport:=transferModel.barState(3,transferState,transferBar);;
@@ -173,21 +173,19 @@ gap> Assert(0,transferModel.divideLeft(3,transferState,transferProduct)=transfer
 gap> transferModel.close();; transferBar.close();;
 gap> # The valid contractible-summand resolution is still accepted by the
 gap> # public API; only the strict native retraction is refused, with a
-gap> # recorded reference-model fallback in the original supplied basis.
-gap> transferExtraFull:=koFull(transferExtra,0,0,3,rec(extensionModel:="transfer"));;
+gap> # recorded unresolved result in the original supplied basis.
+gap> transferExtraFull:=koFull(transferExtra,0,0,3);;
 gap> Assert(0,IsIdenticalObj(transferExtraFull.ahss._context.resolution,transferExtra));
-gap> Assert(0,transferExtraFull.invariants=[[0],[],[2,2],[2,2],[0,8]]);
-gap> Assert(0,transferExtraFull.degreeResults[5].modelSelection.selected="bar");
-gap> Assert(0,transferExtraFull.degreeResults[5].modelSelection.fallback);
-gap> Assert(0,transferExtraFull.degreeResults[5].transferAttempt.reason=transferFailure.reason);
-gap> Assert(0,transferExtraFull.degreeResults[5].transferAttempt.pendingLayer="model-setup");
+gap> Assert(0,transferExtraFull.degreeResults[5].status="unresolved");
+gap> Assert(0,transferExtraFull.degreeResults[5].reason=transferFailure.reason);
+gap> Assert(0,transferExtraFull.degreeResults[5].pendingLayer="model-setup");
 gap> # A nonzero reflection gauge on a proper C4 retract checks both the
 gap> # binary C correction and the integral D correction on the whole bar.
 gap> transferR:=ResolutionFiniteGroup(CyclicGroup(4),6);;
 gap> transferBackend:=koAHSSHAPSpace(transferR,koAHSSNaturalOperations()).koAHSS(0,0,6);;
 gap> transferModel:=KOAHSS_ExtensionTransferredModel(transferBackend,3);;
 gap> transferBar:=KOAHSS_ExtensionBarModel(transferBackend,3);;
-gap> Assert(0,not transferModel.classEquivalenceVerified);
+gap> Assert(0,transferModel.gaugeCompletenessAssumed);
 gap> transferState:=transferModel.zero(3);; transferState.B:=[1];;
 gap> Assert(0,KOAHSS_ExtensionStateIsZero(transferModel.d(3,transferState)));
 gap> transferProduct:=transferModel.xtimes(3,transferState,transferState);;

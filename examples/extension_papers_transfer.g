@@ -1,6 +1,5 @@
-# The same literature fixtures using native-resolution searches and exact
-# completion checks. Run from the package root in a fresh GAP process.
-BindGlobal("FERMIONAHSS_EXTENSION_MODEL","transfer");
+# Historical entry-point alias: extension_papers.g now uses native-resolution
+# searches by default. Run from the package root in a fresh GAP process.
 CallFuncList(function()
     local file,slashes,prefix;
     file:=INPUT_FILENAME(); slashes:=Positions(file,'/'); prefix:="";

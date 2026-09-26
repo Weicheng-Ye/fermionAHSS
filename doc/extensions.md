@@ -12,7 +12,7 @@ result retains `certified_ko=false`; see [mathematical status](mathematical-stat
 ## Detailed AHSS results
 
 ```gap
-koAHSS(group, s, omega, k[, n][, options]);
+koAHSS(groupOrR, s, omega, k[, n][, options]);
 ```
 
 The four-argument call still returns one raw E6 table. With integer
@@ -77,22 +77,21 @@ page number can select an earlier stored page from a full result.
 
 ```gap
 full := koFull(group, s, omega, k);;
-full := koFull(R, s, omega, k, rec(extensionModel:="transfer"));;
+full := koFull(R, s, omega, k);;
 full := koFull(ahss);;
-full := koFull(ahss, rec(extensionModel:="transfer"));;
 ```
 
 The first form creates one resolution and backend, computes E6 once and
 attempts every package degree `j` in `[-1..k]`. It uses the same group,
 twist and cutoff conventions as `koAHSS`. There is no page-count argument.
 An integral HAP resolution may replace the group argument; it is retained
-without reconstruction. The optional final record accepts only
-`extensionModel:="bar"` (the default) or `extensionModel:="transfer"`.
-The [native-resolution model](resolution-extensions.md) runs higher
-searches on R, with exact comparison checks, independent bar certification
-where needed, and explicit reference fallback. The complete-bar witness
-descriptions below apply to the reference model and its certificates;
-native gauge records use the action equation described in that document.
+without reconstruction. There is no model-selection option. The
+[native-resolution model](resolution-extensions.md) runs higher searches
+on R, checks exact sparse comparison identities, and assumes gauge
+completeness. Runtime completion uses native flatness, gauge and finite
+quotient checks. It never constructs a complete-bar model for certification
+or retries an unresolved degree with one. Native gauge records use the
+action equation described below.
 
 The reuse form requires a detailed E6 result with its retained cochain
 context. It uses the same resolution and representative basis, preserving
@@ -106,13 +105,16 @@ page payload without the context cannot be used for extension work.
 | `maxDegree`, `degrees` | `k` and `[-1..k]` |
 | `invariants` | Parallel lists for completed groups; explicit status records otherwise |
 | `degreeResults` | Detailed extension calculation at each degree |
-| `extensionModel` | Requested model; each degree records the actual selection and any fallback |
+| `gaugeCompletenessAssumed` | `true`; native equivalence is assumed to capture bar gauge equivalence |
 | `ahss`, `pages` | Shared detailed AHSS result and its tagged pages |
 | `status` | `"computed"` if all degrees complete, `"partial"` if only some complete, otherwise `"unresolved"` |
 | `scope`, `certified_ko` | `"five-row-stacking-model"` and `false` |
 
 Degree `j` is at index `j+2`, including degree -1 at index 1. Every degree
-record also stores `degree:=j` and its associated-graded `layers`.
+record also stores `degree:=j` and its associated-graded `layers`. When a
+native model is available, its `modelId` is retained. Completed native
+calculations have `gaugeCompletenessAssumed=true` and
+`certificateLevel="transfer-R"`.
 
 ```gap
 full := koFull(CyclicGroup(2), 0, 0, 2);;
@@ -260,22 +262,25 @@ one common lower presentation before adjoining that layer's generators.
 It then computes the joint Smith form. Wrong presentation IDs, malformed
 vectors and inconsistent exact data are errors, not unresolved results.
 
-## Complete flat representatives and boundary comparisons
+## Complete flat representatives and gauge comparisons
 
-In degrees 3–5, the production engine uses the selected four-cochain
-`d` and `xtimes` on a complete normalized bar model of the finite group.
-The leading E6 cochains are transported into that fixed basis once.
+In degrees 3–5, the production engine uses the transferred four-cochain
+curvature and product in the retained resolution basis. The calibrated
+formulas are evaluated lazily through sparse bar transport. The leading
+E6 cochains keep their native coordinates.
 All independent generators of D, C, B and A receive a full flat lift,
 including free generators and generators over a zero lower group.
 
 For an A generator, it solves
 
 \[
- \delta_s A=0,\qquad \delta B+P(A)=0,\qquad
- \delta C+\tau'(A;B)=0,\qquad \delta_sD+J(A,B,C)=0.
+ \delta_s A=0,\qquad \delta B+P_R(A)=0,\qquad
+ \delta C+\tau_R(A;B)=0,\qquad \delta_sD+J_R(A,B,C)=0.
 \]
 
-The B and C equations are solved over F2 and the D equation over Z.
+Here the subscript R denotes the transferred nonlinear terms, including
+the homotopy corrections; it does not mean direct substitution into the
+bar formula. The B and C equations are solved over F2 and the D equation over Z.
 The solver searches the affine B and C solution families lazily: if a
 chosen B does not admit C, or a chosen C does not admit D, it changes
 that defining choice and retries the dependent equations. It evaluates
@@ -285,8 +290,8 @@ The solver stores the chosen primitives, their adjustments, the exact
 equation data and the final zero-curvature witness. No universal helper
 is replaced by a locally solved formula.
 
-Each `fullLifts[i].state` is an immutable tuple `(A,B,C,D)` in this complete
-bar basis. The exact same tuple is reused in all powers, lower reductions
+Each `fullLifts[i].state` is an immutable tuple `(A,B,C,D)` in the retained
+resolution basis. The exact same tuple is reused in all powers, lower reductions
 and basis comparisons. A generator's lower components are not reset to
 zero or reconstructed from their cohomology classes in a later query.
 
@@ -301,7 +306,7 @@ The engine therefore constructs the canonical lower product in its
 recorded generator order and solves the exact comparison
 
 \[
- \text{measured power}=d(g)\mathbin{\times}\text{canonical lower product}.
+ \text{measured power}=\operatorname{act}_R(g,\text{canonical lower product}).
 \]
 
 The gauge `g` includes all four components in the preceding degree. Its
@@ -315,12 +320,14 @@ support is searched in the order
 Earlier components are fixed to literal zero at each stage. The solver
 continues to larger support when a smaller stage fails or reaches its
 share of the search budget. Native cohomology representatives are tried
-first as candidate directions; the complete cochain kernel remains a
-fallback, including ordinary coboundary directions and their nonlinear
+first as candidate directions; the search also uses the complete native
+cochain kernel, including ordinary coboundary directions and their nonlinear
 carries. A bounded integer-kernel search is not reported as exhaustive.
 The leading primitive and subsequent B/C/D choices are solved consistently;
-the comparison retains `g`, `d(g)` and the product, verifies `d(d(g))=0`,
-and checks the displayed equality component by component. It does not
+the comparison retains `g` and its native action, verifies flatness of
+the action result, and checks the displayed equality component by component.
+The action reflects the full boundary of the embedded gauge, not the
+truncated native curvature of a possibly nonflat gauge. It does not
 assume strict associativity or commute factors at the cochain level.
 Failure to find this exact witness within the search bounds remains
 unresolved.
@@ -333,7 +340,7 @@ stacked tuple** with the canonical product of all recorded lower lifts,
 including their earlier carries, using the staged gauge search above.
 The E6 projection alone never certifies a stacking relation.
 
-For other failed ordinary reductions, the fallback tries at most 32
+For other failed ordinary reductions, the alternative search tries at most 32
 marked finite lower normal forms, stage by stage, using the same stored
 representatives. It does not guess coordinates for a free lower factor.
 Accepted relations retain `canonicalComparison.winningStage`,
@@ -344,21 +351,16 @@ instead of claiming that a particular missing gauge necessarily exists.
 Before returning a higher-degree result as computed, the finite quotient
 audit constructs every marked finite normal form, checks every ordered
 pair product against its Smith-coordinate target by literal equality or
-an exact boundary comparison, and verifies the resulting table has an
+an exact native gauge comparison, and verifies the resulting table has an
 identity, inverses, commutativity and associativity. The audit handles at
 most 32 finite normal forms. Free quotient coordinates are excluded from
 this finite enumeration and split in the intended abelian abutment
 category; this is not a finite verification of every infinite cochain
 product.
 
-The degree-six path additionally uses the fixed pointed finite section
-and exact basis conversions in
-[production_g6_section.py](../python/stacking_model/production_g6_section.py). Its section
-search and complete-state comparisons are separate from the calibrated
-E6 page computation. The existence of a degree-six formula or adapter
-does not by itself certify a completed extension calculation; the same
-flat-lift, relation, boundary-comparison and quotient-audit requirements
-apply. Verification records state which calculations were actually run.
+Degree-six extensions remain explicitly unresolved. Their native formula
+is not implemented, and the old complete-bar finite section is not selected
+as a fallback. This does not change the calibrated E6 page computation.
 
 The runtime bundles the selected stacking sources under
 [python/stacking_model](../python/stacking_model/) with
@@ -390,34 +392,36 @@ gauge reducer is not supplied by this low-degree adapter; a required
 query outside its domain remains unresolved. The abstract assembler's
 generality does not remove a production cochain requirement.
 
-The complete-bar implementation has explicit resource bounds:
+The native implementation has explicit resource bounds:
 
 | Work | Current bound |
 | --- | --- |
-| Complete bar cochains in a required degree | 8192 coordinates |
-| A required coboundary matrix | 2,000,000 entries |
+| Distinct g-support simplices per degree in preflight | 8192 |
+| Processed sparse transport expansion terms | 2,000,000 |
+| Global lower-degree flag test | 8192 normalized simplices per predicate |
 | Flat-lift affine search | 4096 distinct differential evaluations by default |
 | Gauge-comparison affine search | 4096 equation evaluations and 64 leading choices shared across requested stages; integral kernel coefficients initially bounded by absolute value 1 |
-| Fallback lower-coordinate search | 32 marked finite normal forms; 4096 equation evaluations shared across stages and candidates |
-| Degree-six finite-section search | 4096 candidates |
+| Alternative lower-coordinate search | 32 marked finite normal forms; 4096 equation evaluations shared across stages and candidates |
 | Finite quotient audit | 32 marked normal forms |
 
 These are implementation limits, not additional tuning arguments to `koFull`.
-Repeated integer solves now reuse exact Smith preparations, bounded by
-eight entries and two million retained matrix cells including transforms.
-The default nonlinear higher model uses the complete bar. The opt-in
-[native-resolution model](resolution-extensions.md) moves its search
-coordinates and matrices to R, while retaining the fixed bar formulas
-and requiring reference certification for general native presentations.
-The [initial mathematical review](transfer.md) explains why a strict
-retraction and soundness of individual relations alone do not establish
-gauge completeness.
-These bounds do not make every operation inexpensive: the bar dimensions
-grow with the group order and degree, and one nonlinear evaluation can
-be costly. Reaching a resource bound or failing to find a gauge within
-the bounded search is not evidence that an extension splits. Exact
-identity failures and inconsistent coordinate data are errors; unavailable
-witnesses leave the corresponding result unresolved.
+Repeated integer solves reuse exact Smith preparations, bounded by eight
+entries and two million retained matrix cells including transforms.
+States and matrices use R; the complete-bar dimension and matrix limits
+no longer gate native completion. The fixed formulas still use sparse bar
+transport, and global lower-degree predicates enumerate the simplices
+specified above. See [resolution extensions](resolution-extensions.md).
+
+The native model assumes gauge completeness. The
+[initial mathematical review](transfer.md) explains why a strict retraction
+and soundness of individual relations alone did not establish that claim.
+The assumption is recorded in results; native finite quotient checks do
+not turn it into a proof.
+
+A nonlinear evaluation can still be costly. Reaching a resource bound or
+failing to find a gauge within the bounded search is not evidence that an
+extension splits. Exact identity failures and inconsistent coordinate data
+are errors; unavailable witnesses leave the corresponding result unresolved.
 
 The [paper comparison record](extension-paper-comparisons.md) uses spatial
 dimension `d`, related to package degree by `j=d+1`. Paper dimension `d`

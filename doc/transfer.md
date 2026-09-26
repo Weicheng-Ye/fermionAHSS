@@ -6,9 +6,11 @@ The plan was supplied as `~/Downloads/plan.md`.
 
 **Status at the initial review:** the production transfer was not implemented.
 The subsequent [native-resolution implementation](resolution-extensions.md)
-adds an opt-in transfer with independent reference certification and fallback;
-it does not assume the completeness theorem discussed below. The review
-and prerequisite measurements in this document remain the initial findings.
+now uses native resolution coordinates by default and assumes gauge
+completeness. Its earlier opt-in mode with independent complete-bar
+certification and fallback has been removed. The review and prerequisite
+measurements below remain historical findings, not the current completion
+policy.
 
 At that review, `koFull` still used its complete-bar higher extension model.
 The initial revision implemented exact Smith-preparation reuse, a sparse
@@ -198,9 +200,10 @@ face/H closure or global flag tests. The limits are accounting bounds;
 the underlying transport builds a chain before its size can be checked.
 
 The initial prerequisite revision installed no new `koFull` option.
-The later opt-in API is documented in [resolution extensions](resolution-extensions.md).
-Degree six, low-degree adapters, calibrated formulas and numerical payloads
-retain their original behavior.
+The current native-only API is documented in [resolution extensions](resolution-extensions.md).
+At the initial revision, degree six, low-degree adapters, calibrated formulas
+and numerical payloads retained their original behavior; current native
+degree-six extensions are unresolved.
 
 ## Exact Smith-preparation reuse and verification
 

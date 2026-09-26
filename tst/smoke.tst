@@ -12,7 +12,6 @@ gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"dis
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"api.tst"),rec(compareFunction:="uptowhitespace")));
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"integer_equations.tst"),rec(compareFunction:="uptowhitespace")));
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_transfer.tst"),rec(compareFunction:="uptowhitespace")));
-gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_transfer_certify.tst"),rec(compareFunction:="uptowhitespace")));
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extensions.tst"),rec(compareFunction:="uptowhitespace")));
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"stacking_extensions.tst"),rec(compareFunction:="uptowhitespace")));
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_lifts.tst"),rec(compareFunction:="uptowhitespace")));

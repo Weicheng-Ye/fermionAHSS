@@ -5,8 +5,10 @@
 The high-level `koAHSS(group,s,omega,k[,n])` wrapper constructs resolutions
 for finite groups. Its first argument can also be an explicit integral
 HAP resolution: `koAHSS(R,s,omega,k[,n][,options])` preserves R and its
-twist basis. `koFull` accepts the same explicit-resolution first argument;
-see [native extension searches](resolution-extensions.md).
+twist basis. `koFull` accepts the same explicit-resolution first argument
+and always uses native higher-extension searches in degrees 3–5, assuming
+gauge completeness. It has no model-selection option or complete-bar
+certification fallback; see [native extension searches](resolution-extensions.md).
 For an explicitly constructed integral HAP resolution, use:
 
 ```gap
@@ -21,7 +23,10 @@ degree-zero generators are supported when each has augmentation one and
 the contraction is anchored at the first generator at the identity.
 An explicit resolution may model an infinite group if HAP supplies the
 required integral data; the finite-group convenience wrapper does not
-construct such a resolution.
+construct such a resolution. Native higher extensions currently require
+a finite group, one degree-zero generator and the checked strict
+retraction identity; the broader AHSS input domain does not remove those
+extension prerequisites.
 
 The factory installs matching primary, secondary, and final tertiary
 conventions. It always compares with the normalized homogeneous group-bar

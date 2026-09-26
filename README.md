@@ -44,7 +44,7 @@ Read("/absolute/path/to/fermionAHSS/load.g");
 The main function is as follows, which records ko-homology or the full classification of fermionic SPT phases up to dimension k,
 
 ```gap
-koFull(group, s, omega, k[, options])
+koFull(group, s, omega, k)
 full.degrees;                       # [-1,0,...,k]
 full.invariants;                    # one result per dimension
 full.degreeResults[2+2];            # detailed dimension-two result
@@ -55,7 +55,6 @@ koAHSSDisplay(full);                # display of the AHSS at E6=Einfty
   resolution. Scalar `0` denotes the zero cocycle. Coordinates depend on the
   resolution basis; a named cohomology class is not a coordinate vector.
 - `k`: largest displayed physical dimension.
-- Optional `options`: ???
 
 The result at degree `j` is indexed by `j+2`. A completed entry is an
 abelian invariant list; an unresolved entry is a status record, never an
@@ -138,41 +137,40 @@ supply extension representatives. Requesting detailed AHSS output alone
 does not calculate extensions. `koAHSSDisplay(full)` selects E6 by default;
 `koAHSSDisplay(full.pages)` displays all retained pages.
 
-To solve the higher extension equations in a supplied resolution, select
-the opt-in transferred model:
+Higher extension equations are solved in the supplied resolution:
 
 ```gap
 R := ResolutionFiniteGroup(CyclicGroup(4),6);;
-full := koFull(R,[1],0,3,rec(extensionModel:="transfer"));;
-full.degreeResults[5].modelSelection;
+full := koFull(R,[1],0,3);;
+full.degreeResults[5].modelId;
 ```
 
-The option also works with a group or a detailed E6 result. The default
-is `extensionModel:="bar"`. Transfer moves states and linear solves to R
-in degrees 3–5 and evaluates the unchanged formulas on bar simplices
-lazily. It checks the comparison's exact retraction identity. General
-native presentations require independent complete-bar certification;
-unresolved attempts fall back to the reference engine with a recorded
-reason. See [resolution extensions](doc/resolution-extensions.md) for
-eligibility, certificates and remaining performance limits.
+The same native-resolution engine is used with a group or a detailed E6
+result; no model-selection option is needed or accepted. States and linear
+solves use R in degrees 3–5, and the unchanged formulas are evaluated on
+bar simplices lazily. The comparison's exact retraction identity is checked.
+Gauge completeness is assumed: native gauge equivalence is taken to agree
+with bar gauge equivalence. Runtime completion uses native checks and does
+not construct a complete bar model for certification or fallback. See
+[resolution extensions](doc/resolution-extensions.md) for eligibility,
+retained checks and resource limits.
 
-For higher layers, the default engine first solves the full differential equation
+For higher layers, the engine first solves the full differential equation
 for each chosen generator. An A-layer representative therefore retains
 its actual B, C and D defining cochains. It changes B or C choices when a
-later equation requires it, stores immutable full lifts in one common
-bar basis, and uses those same lifts for every subsequent relation.
-Stacking powers are identified by explicit boundary comparisons with the
+later equation requires it, stores immutable full lifts in the resolution
+basis, and uses those same lifts for every subsequent relation.
+Stacking powers are identified by exact native gauge comparisons with the
 ordered product of the recorded lower generators.
 
-The complete-state runtime covers degrees 3–5. The degree-six path
-additionally requires the fixed finite section described in
-[the degree-six implementation](python/stacking_model/production_g6_section.py). A higher-degree result
-is completed only after its bounded normal-form audit verifies all finite
-products and the resulting abelian multiplication table; free quotients
-split in the intended abelian abutment category. The measured C2
-presentations recover `[0,8]` in unitary degree 3 and `[16]` in degree 4
-with `s=omega=[1]`. Verification outcomes, including the additional audit,
-are recorded in [paper comparisons](doc/extension-paper-comparisons.md).
+The native complete-state runtime covers degrees 3–5. Degree-six extensions
+remain explicitly unresolved because their native formula is not implemented.
+A higher-degree result is completed only after its bounded normal-form audit
+verifies all finite products and the resulting abelian multiplication table;
+free quotients split in the intended abelian abutment category. This finite
+audit runs on R. Historical C2 presentations recover `[0,8]` in unitary
+degree 3 and `[16]` in degree 4 with `s=omega=[1]`; their verification
+outcomes are recorded in [paper comparisons](doc/extension-paper-comparisons.md).
 
 The separate low-degree adapter retains its degree-one C-layer support
 for arbitrary valid `omega`, and degree-two C/B support when `omega=0`.
