@@ -7,6 +7,19 @@ CallFuncList(function()
     BindGlobal("KOAHSS_EXTENSION_WORKER",Concatenation(path{[1..slash]},"../python/extension_worker.py"));
 end,[]);
 
+# A pty ReadLine returns what has arrived so far, which is part of a line
+# when the worker has not yet written the rest; read on to the newline.
+BindGlobal("KOAHSS_ExtensionReadWorkerLine",function(stream)
+    local line,more;
+    line:=ReadLine(stream);
+    while line<>fail and Last(line)<>'\n' do
+        more:=ReadLine(stream);
+        if more=fail then return fail; fi;
+        Append(line,more);
+    od;
+    return line;
+end);
+
 BindGlobal("KOAHSS_ExtensionBarModel",function(backend,maxDegree)
     local transport,group,elements,unit,nonunit,model,simplices,coordinates,
         evaluate,ctx,stream,request,setup,executable,cache,cacheCount,matrices;
@@ -120,7 +133,7 @@ BindGlobal("KOAHSS_ExtensionBarModel",function(backend,maxDegree)
         if found<>fail then return found; fi;
         if stream=fail then
             stream:=InputOutputLocalProcess(DirectoryCurrent(),executable,["-u",KOAHSS_EXTENSION_WORKER]);
-            WriteLine(stream,GapToJsonString(setup)); line:=ReadLine(stream);
+            WriteLine(stream,GapToJsonString(setup)); line:=KOAHSS_ExtensionReadWorkerLine(stream);
             if line=fail then model.close(); Error("koFull: stacking worker failed to initialize"); fi;
             answer:=JsonStringToGap(line);
             if answer.status<>"computed" then
@@ -128,7 +141,7 @@ BindGlobal("KOAHSS_ExtensionBarModel",function(backend,maxDegree)
                 model.close(); Error("koFull: stacking worker setup failed: ",answer);
             fi;
         fi;
-        WriteLine(stream,encoded); line:=ReadLine(stream);
+        WriteLine(stream,encoded); line:=KOAHSS_ExtensionReadWorkerLine(stream);
         if line=fail then model.close(); Error("koFull: stacking worker stopped before returning an exact result"); fi;
         answer:=JsonStringToGap(line);
         if not IsBound(answer.status) or answer.status<>"computed" then

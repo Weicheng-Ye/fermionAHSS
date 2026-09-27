@@ -358,7 +358,7 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
     readAnswer:=function()
         local line,answer,response;
         while true do
-            line:=ReadLine(stream);
+            line:=KOAHSS_ExtensionReadWorkerLine(stream);
             if line=fail then
                 model.lastFailure:=rec(status:="unresolved",reason:="transferred stacking worker stopped before returning a result");
                 model.close(); Error("koFull: transferred stacking worker stopped");
