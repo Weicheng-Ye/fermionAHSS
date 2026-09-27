@@ -297,7 +297,11 @@ and universal source values kept across processes. The last are stored
 under `$XDG_CACHE_HOME/fermionAHSS` (default `~/.cache/fermionAHSS`) in a file
 keyed by the hashes of all formula sources; set `FERMIONAHSS_CACHE_DIR` to
 choose another directory, or to an empty string to disable the store. A
-stale or unreadable store is ignored.
+stale or unreadable store is ignored. The values that the C2 and Z4 examples
+need ship in [data/universal-values.json](data/universal-values.json) and are
+loaded before the store when their recorded hashes match the sources; set
+`FERMIONAHSS_BUNDLED_VALUES=0` to ignore them. After a change to the formula
+sources, `python3 python/generate_universal_values.py` recomputes that file.
 
 GAP starts one page worker ([worker.py](python/worker.py)) per session and
 sends it every T batch as one JSON line, so its universal values and set-up

@@ -36,12 +36,18 @@ BindGlobal("KOAHSS_NaturalBarTransport", function(R)
         fi;
         return position;
     end;
+    # Plain loops: these checks run on every evaluation of a lifted cochain.
     checkSimplex := function(simplex)
-        if not IsList(simplex) or IsEmpty(simplex)
-           or not ForAll(simplex,element -> IsMultiplicativeElementWithInverse(element)
-               and FamilyObj(element)=FamilyObj(identity)) then
+        local element;
+        if not IsList(simplex) or IsEmpty(simplex) then
             Error("koAHSS: bar simplex vertices must have the resolution group element type");
         fi;
+        for element in simplex do
+            if not (IsMultiplicativeElementWithInverse(element)
+                    and FamilyObj(element)=FamilyObj(identity)) then
+                Error("koAHSS: bar simplex vertices must have the resolution group element type");
+            fi;
+        od;
         # Vertices come from R.elts and their products. Do not ask GAP to test
         # membership in R.group: some infinite affine crystallographic groups
         # implement that query via an unavailable group Enumerator.
@@ -52,8 +58,13 @@ BindGlobal("KOAHSS_NaturalBarTransport", function(R)
         inverse:=simplex[1]^-1;
         return List(simplex,element -> inverse*element);
     end;
-    degenerate := simplex -> ForAny([2..Length(simplex)],
-        j -> simplex[j]=simplex[j-1]);
+    degenerate := function(simplex)
+        local j;
+        for j in [2..Length(simplex)] do
+            if simplex[j]=simplex[j-1] then return true; fi;
+        od;
+        return false;
+    end;
     # R terms are [positive basis index, group element, integer coefficient].
     reduceR := function(terms)
         local sorted, answer, term, previous;

@@ -85,14 +85,64 @@ class Cochain:
 
     def __add__(self, other):
         assert self.degree == other.degree
-        return Cochain(self.degree, lambda t: self(t) + other(t))
+        return LinearCochain(self.degree, _terms(self) + _terms(other))
 
     def __sub__(self, other):
         assert self.degree == other.degree
-        return Cochain(self.degree, lambda t: self(t) - other(t))
+        return LinearCochain(self.degree, _terms(self)
+                             + tuple((c, -k) for c, k in _terms(other)))
 
     def mod2(self):
         return Cochain(self.degree, lambda t: self(t) % 2)
+
+
+def _terms(c):
+    if type(c) is LinearCochain and c.modulus is None:
+        return c.terms
+    return ((c, 1),)
+
+
+def _linear_evaluator(terms, modulus):
+    # The same exact sum, term by term from left to right, as the nested
+    # closures of repeated additions evaluated it.
+    if all(k == 1 for _, k in terms):
+        cochains = tuple(c for c, _ in terms)
+
+        def evaluate(t):
+            total = 0
+            for c in cochains:
+                total += c(t)
+            return total if modulus is None else total % modulus
+        return evaluate
+
+    def evaluate(t):
+        total = 0
+        for c, k in terms:
+            if k == 1:
+                total += c(t)
+            elif k == -1:
+                total -= c(t)
+            else:
+                total += k*c(t)
+        return total if modulus is None else total % modulus
+    return evaluate
+
+
+class LinearCochain(Cochain):
+    """A sum of integer multiples of cochains, optionally reduced mod two.
+
+    Sums, differences and their binary reduction extend one term list, so a
+    long sum is one memoized cochain instead of one per operation.
+    """
+    def __init__(self, degree, terms, modulus=None):
+        Cochain.__init__(self, degree, _linear_evaluator(terms, modulus))
+        self.terms = terms
+        self.modulus = modulus
+
+    def mod2(self):
+        if self.modulus is None:
+            return LinearCochain(self.degree, self.terms, 2)
+        return Cochain.mod2(self)
 
 
 def zero(degree):

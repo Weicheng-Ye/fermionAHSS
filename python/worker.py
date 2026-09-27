@@ -134,19 +134,23 @@ def evaluate(request):
 
 
 def serve():
-    for line in sys.stdin:
-        if not line.strip():
-            continue
-        request=None
-        try:
-            request=json.loads(line)
-            result=evaluate(request)
-        except Exception as error:
-            result=dict(status='error',type=type(error).__name__,reason=str(error))
-        if isinstance(request,dict) and 'id' in request:
-            result['id']=request['id']
-        sys.stdout.write(json.dumps(result,separators=(',',':'))+'\n')
-        sys.stdout.flush()
+    try:
+        for line in sys.stdin:
+            if not line.strip():
+                continue
+            request=None
+            try:
+                request=json.loads(line)
+                result=evaluate(request)
+            except Exception as error:
+                result=dict(status='error',type=type(error).__name__,reason=str(error))
+            if isinstance(request,dict) and 'id' in request:
+                result['id']=request['id']
+            sys.stdout.write(json.dumps(result,separators=(',',':'))+'\n')
+            sys.stdout.flush()
+    except OSError:
+        # GAP closed the pty when it exited; nobody is left to answer.
+        pass
 
 
 if __name__=='__main__':
@@ -154,6 +158,9 @@ if __name__=='__main__':
     # cycles, so automatic collection only rescans them.
     gc.disable()
     if sys.argv[1:]==['--serve']:
+        # This process lives as long as GAP. Close the descriptors inherited
+        # from GAP, such as a profiler's output pipe, so that they can close.
+        os.closerange(3,os.sysconf('SC_OPEN_MAX'))
         serve()
         sys.exit(0)
     try:

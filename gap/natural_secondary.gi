@@ -1,5 +1,33 @@
 # Natural simplicial operations on the group bar model, projected to the
 # supplied resolution. Only the input nullhomotopy b is solved locally.
+
+# A memo of at most <limit> entries that forgets the oldest entry first. Keys
+# stay sorted, so lookups, insertions and removals use binary search; GAP's
+# RemoveDictionary scans list dictionaries linearly.
+BindGlobal("KOAHSS_BoundedMemo",function(limit)
+    local keys,values,order,next;
+    keys:=[]; values:=[]; order:=[]; next:=1;
+    return rec(
+        lookup:=function(key)
+            local p;
+            p:=PositionSorted(keys,key);
+            if p<=Length(keys) and keys[p]=key then return values[p]; fi;
+            return fail;
+        end,
+        add:=function(key,value)
+            local p;
+            if limit<=0 then return; fi;
+            if Length(order)<limit then Add(order,key);
+            else
+                p:=PositionSorted(keys,order[next]);
+                Remove(keys,p); Remove(values,p);
+                order[next]:=key; next:=next mod limit+1;
+            fi;
+            p:=PositionSorted(keys,key);
+            Add(keys,key,p); Add(values,value,p);
+        end);
+end);
+
 BindGlobal("KOAHSS_NaturalCochains",function(backend)
     local transport, ctx, make, s, omega, cacheLimit, checkSign, directLift;
     if IsBound(backend.naturalTransport) then transport:=backend.naturalTransport();
@@ -9,37 +37,29 @@ BindGlobal("KOAHSS_NaturalCochains",function(backend)
     cacheLimit:=256;
     if IsBound(transport.cacheEntries) then cacheLimit:=transport.cacheEntries; fi;
     make:=function(n,evaluate)
-        local cache,value,order,next,memoToken;
-        if IsBound(transport.cochainKey) then cache:=NewDictionary("",true);
-        else cache:=NewDictionary([],true); fi;
-        order:=[]; next:=1;
+        local memo,value,memoToken;
+        memo:=KOAHSS_BoundedMemo(cacheLimit);
         value:=function(simplex)
-            local answer,key;
+            local answer,key,j;
             if Length(simplex)<>n+1 then Error("natural cochain input degree mismatch"); fi;
             if IsBound(transport.isDegenerate) then
                 if transport.isDegenerate(simplex) then return 0; fi;
-            elif ForAny([1..n],j->simplex[j]=simplex[j+1]) then return 0; fi;
+            else
+                for j in [1..n] do
+                    if simplex[j]=simplex[j+1] then return 0; fi;
+                od;
+            fi;
             # LOCAL values are invariant under simultaneous group translation.
             # Bound memo tables: nonlinear expressions otherwise retain all faces.
             # General simplicial test models need not supply this method.
             if IsBound(transport.normalizeSimplex) then simplex:=transport.normalizeSimplex(simplex); fi;
             key:=simplex;
             if IsBound(transport.cochainKey) then key:=transport.cochainKey(simplex); fi;
-            answer:=LookupDictionary(cache,key);
+            answer:=memo.lookup(key);
             if answer=fail then
                 answer:=evaluate(simplex);
                 if not IsInt(answer) then Error("natural cochain must be integral"); fi;
-                if cacheLimit>0 then
-                    # Retain the other entries when one new value arrives.
-                    # A fixed FIFO ring keeps the same strict entry bound.
-                    key:=Immutable(key);
-                    if Length(order)<cacheLimit then Add(order,key);
-                    else
-                        RemoveDictionary(cache,order[next]); order[next]:=key;
-                        next:=next mod cacheLimit+1;
-                    fi;
-                    AddDictionary(cache,key,answer);
-                fi;
+                memo.add(Immutable(key),answer);
             fi;
             return answer;
         end;
@@ -226,26 +246,18 @@ BindGlobal("KOAHSS_NaturalCochains",function(backend)
             KOAHSS_NaturalZetaEvaluator(kind,a.degree,x.value,a.value));
     end;
     ctx.chi:=function(a)
-        local faces,cache,order,next;
+        local faces,memo;
         if ctx.isZero(a) then return ctx.zero(a.degree+3); fi;
         faces:=Combinations([1..a.degree+4],a.degree+1);
-        cache:=NewDictionary([],true); order:=[]; next:=1;
+        memo:=KOAHSS_BoundedMemo(cacheLimit);
         return make(a.degree+3,function(sigma)
             local values,value;
             values:=List(faces,face->a.value(sigma{face}) mod 2);
             if ForAll(values,x->x=0) then return 0; fi;
-            value:=LookupDictionary(cache,values);
+            value:=memo.lookup(values);
             if value=fail then
                 value:=koAHSSNaturalChiValue(a.degree,a.value,sigma,"tail");
-                if cacheLimit>0 then
-                    MakeImmutable(values);
-                    if Length(order)<cacheLimit then Add(order,values);
-                    else
-                        RemoveDictionary(cache,order[next]); order[next]:=values;
-                        next:=next mod cacheLimit+1;
-                    fi;
-                    AddDictionary(cache,values,value);
-                fi;
+                memo.add(MakeImmutable(values),value);
             fi;
             return value;
         end);

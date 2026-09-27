@@ -86,6 +86,7 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [extension_transfer.gi](../gap/extension_transfer.gi) | Native extension model, exact retraction preflight and sparse normalized transport |
 | [extension_transfer.py](../python/extension_transfer.py) | Lazy transferred curvature, products and gauge actions using the fixed formulas |
 | [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: structural zeros, identity-memoized builders, persistent universal values |
+| [generate_universal_values.py](../python/generate_universal_values.py) | Recomputes the bundled universal values in [universal-values.json](../data/universal-values.json) for the current formula sources |
 | [extension_bar.gi](../gap/extension_bar.gi) | Legacy bounded complete finite-bar model, retained for reference tests |
 | [extension_relations.gi](../gap/extension_relations.gi) | Powers of fixed full lifts, common lower coordinates, and retained reduction carries |
 | [extension_equivalence.gi](../gap/extension_equivalence.gi) | Exact ordered native gauge comparison, without assumed cochain associativity |

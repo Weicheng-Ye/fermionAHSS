@@ -15,6 +15,8 @@ evaluator.
    example the potential of one operand) is evaluated once.
 3. Persistent universal values: values of universal source functions are
    kept across processes, keyed by the hashes of every formula source.
+   Values shipped in data/universal-values.json for the same sources are
+   loaded first.
 
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
@@ -205,7 +207,14 @@ KEY_CLASSES = (('chain_models', 'Diag'), ('r1_pair_chain', 'Borel'),
 # Runtime and test modules do not determine universal values.
 _NOT_SOURCES = {'extension_transfer.py', 'extension_worker.py',
                 'extension_degree_six.py', 'extension_acceleration.py',
-                'worker.py', 'runtime_cache.py'}
+                'worker.py', 'runtime_cache.py', 'generate_universal_values.py'}
+# Values computed with the current sources and shipped with the package; see
+# generate_universal_values.py. A file with other provenance is ignored.
+BUNDLED = ROOT / 'data' / 'universal-values.json'
+
+
+def bundled_values_enabled():
+    return os.environ.get('FERMIONAHSS_BUNDLED_VALUES', '1').strip() != '0'
 
 
 def cache_directory():
@@ -316,10 +325,8 @@ class UniversalStore:
             return {}
         return data.get('tables', {})
 
-    def load(self):
-        if self.path is None:
-            return
-        for name, entries in self._read().items():
+    def _insert(self, tables):
+        for name, entries in tables.items():
             table = self.tables.get(name)
             if table is None:
                 continue
@@ -329,6 +336,19 @@ class UniversalStore:
                                             _decode(value, self.classes))
                 except (KeyError, TypeError, ValueError):
                     continue
+
+    def load(self):
+        if self.path is not None:
+            self._insert(self._read())
+
+    def load_bundled(self, path):
+        """Add shipped values; they are never written to the cache file."""
+        try:
+            data = json.loads(path.read_text())
+        except (OSError, ValueError):
+            return
+        if data.get('schema') == 1 and data.get('provenance') == self.provenance:
+            self._insert(data.get('tables', {}))
 
     def flush(self):
         """Merge new values into the cache file; failures only skip persistence."""
@@ -393,9 +413,9 @@ def persist():
     global _store
     if not _installed or _store is not None:
         return
-    directory = cache_directory()
-    _store = UniversalStore(directory, source_provenance() if directory else '',
-                            _tables)
+    _store = UniversalStore(cache_directory(), source_provenance(), _tables)
+    if bundled_values_enabled():
+        _store.load_bundled(BUNDLED)
     _store.load()
 
 
