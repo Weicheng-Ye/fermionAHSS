@@ -108,14 +108,61 @@ class ExtensionTransferTests(unittest.TestCase):
         result["state"]["A"][0] = 99
         self.assertEqual(native.calculate(request)["state"], data)
 
-    def test_global_zero_predicate_rejects_a_budget_before_sampling(self):
+    def test_zero_predicate_pairs_with_resolution_chains_only(self):
+        native, _, _ = c2_models()
+        with patch.object(native, "simplices", side_effect=AssertionError("bar enumeration")):
+            self.assertTrue(native.is_zero(native.lift(2, [0], True), False))
+            self.assertFalse(native.is_zero(native.lift(2, [3], True), False))
+            self.assertFalse(native.is_zero(native.lift(2, [1], False), True))
+            self.assertTrue(native.is_zero(native.lift(2, [2], True), True))
+
+    def test_bar_value_export_keeps_its_enumeration_budget(self):
         native, _, _ = c2_models()
         # A three-element multiplication table gives 2^n normalized simplices.
         native.mul = [[(a + b) % 3 for b in range(3)] for a in range(3)]
         native.size = 3
-        native.max_flags = 1
+        native.max_debug_simplices = 1
         with self.assertRaises(TransferResourceLimit):
             native.simplices(2)
+
+    def test_label_vertices_are_normalized_by_gap(self):
+        bar = FiniteBar([[0, 1], [1, 0]], [0], [0])
+        calls = []
+        def transport(kind, degree, vertices):
+            calls.append(tuple(vertices))
+            return dict(status="computed", terms=[[0, 1, 1]] if kind == "f" else [])
+        setup = dict(schema=1, vertexMode="labels", ranks=[1] * 8,
+            ordinary=[[[0 if n % 2 == 0 else 2]] for n in range(7)],
+            signed=[[[0 if n % 2 == 0 else 2]] for n in range(7)],
+            g=[[[[1, 1, list(bar.simplices(n)[0])]]] for n in range(8)], s=[0], omega=[0])
+        native = TransferredModel(setup, transport)
+        self.assertIsNone(native.normalize((5, 5, 2)))
+        self.assertEqual(native.normalize((7, 3)), (7, 3))
+        self.assertEqual(native.lift(1, [1], True)((7, 3)), 1)
+        self.assertEqual(calls, [(7, 3)])
+        with self.assertRaises(ValueError):
+            native.simplices(1)
+
+    def test_degree_two_products_and_actions_match_complete_bar(self):
+        for sign, omega in ((0, 0), (1, 0), (0, 1), (1, 1)):
+            native, bar, _ = c2_models(sign, omega)
+            for left, right in ((state([], [1], [0], [3]), state([], [1], [1], [-2])),
+                                (state([], [0], [1], [0]), state([], [1], [0], [5]))):
+                with self.subTest(sign=sign, omega=omega, left=left, right=right):
+                    expected = bar.export(bar.rule.xtimes(bar.state(2, left), bar.state(2, right)))
+                    self.assertEqual(native.product(2, left, right)[0], expected)
+                    # Native curvature is exact through its first nonzero
+                    # layer and zero-filled afterwards.
+                    complete = bar.export(bar.rule.d(bar.state(2, left)))
+                    first = next((i for i, f in enumerate("ABCD") if any(complete[f])), 3)
+                    expected = {f: complete[f] if i <= first else [0] * len(complete[f])
+                                for i, f in enumerate("ABCD")}
+                    self.assertEqual(native.kappa(2, left), expected)
+            gauge = state([], [], [1], [4])
+            canonical = state([], [1], [0], [0])
+            boundary = bar.rule.d(bar.state(1, gauge))
+            expected = bar.export(bar.rule.xtimes(boundary, bar.state(2, canonical)))
+            self.assertEqual(native.act(2, gauge, canonical)[0], expected)
 
     def test_invalid_state_coordinates_are_rejected(self):
         native, _, _ = c2_models()

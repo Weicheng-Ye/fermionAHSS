@@ -411,9 +411,11 @@ low-degree commutative stacking formula to closed B/C inputs at
 [stacking-low-phase.json](../data/stacking-low-phase.json). No expected
 classification table is consulted at runtime.
 
-Degrees -1 and 0 require only D. A general nonzero-`omega` degree-two
-gauge reducer is not supplied by this low-degree adapter; a required
-query outside its domain remains unresolved. The abstract assembler's
+Degrees -1 and 0 require only D. When the adapter leaves a degree-two
+relation unresolved, for example for nonzero `omega`, the degree is solved
+by the native engine with the degree-two formulas of
+[low_degree_stacking.md](low_degree_stacking.md); the adapter's reason is
+kept as `lowDegreeAttempt`. The abstract assembler's
 generality does not remove a production cochain requirement.
 
 The native implementation has explicit resource bounds:
@@ -422,7 +424,6 @@ The native implementation has explicit resource bounds:
 | --- | --- |
 | Distinct g-support simplices per degree in preflight | 8192 |
 | Processed sparse transport expansion terms | 2,000,000 |
-| Global lower-degree flag test | 8192 normalized simplices per predicate |
 | Flat-lift affine search | 4096 distinct differential evaluations by default |
 | Gauge-comparison affine search | 4096 equation evaluations and 64 leading choices shared across requested stages; integral kernel coefficients initially bounded by absolute value 1 |
 | Alternative lower-coordinate search | 32 marked finite normal forms; 4096 equation evaluations shared across stages and candidates |
@@ -432,9 +433,9 @@ or `koFull_batch`.
 Repeated integer solves reuse exact Smith preparations, bounded by eight
 entries and two million retained matrix cells including transforms.
 States and matrices use R; complete-bar dimension and matrix limits do
-not gate native completion. The fixed formulas still use sparse bar
-transport, and global lower-degree predicates enumerate the simplices
-specified above. See [resolution extensions](resolution-extensions.md).
+not gate native completion. The fixed formulas still use sparse
+transport to the comparison complex, and branch predicates are tested on
+the basis of R. See [resolution extensions](resolution-extensions.md).
 
 The native model assumes gauge completeness. The
 [transfer note](transfer.md) explains why a strict retraction and sound

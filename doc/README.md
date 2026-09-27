@@ -17,6 +17,7 @@ implementation of fermionAHSS.
 | [extension-paper-comparisons.md](extension-paper-comparisons.md) | Full-group literature fixtures, dimension and twist conventions, and the measured relations of the C2 cases |
 | [mathematical-status.md](mathematical-status.md) | Implemented range, mathematical assumptions, sources, and unresolved scope |
 | [dimension_indexed_differentials.md](dimension_indexed_differentials.md) | Explicit nonlinear differential through k=6 on the first-two-layer domain, the residual correction, and a literal square-zero proof |
+| [low_degree_stacking.md](low_degree_stacking.md) | Stacking products in package degrees one and two (gamma1, beta2, gamma2) and their use in `koFull` |
 | [all_cochain_differential.md](all_cochain_differential.md) | Piecewise extension to arbitrary cochains with first component δ_sA, complete degree table, exact square-zero proof, and the defining-system obstructions; not a natural local extension |
 
 The large chi word lists are encoded exactly by

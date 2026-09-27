@@ -29,9 +29,11 @@ required by the page calculation; through E6 the length requirement is
 `max(3,k+3)`. No resolution is reconstructed when R is supplied.
 
 Extension states, defining-cochain solves, gauge searches and integer
-matrices use R in package degrees 3–5 when its fixed comparison passes
-the retraction check. Nonlinear formulas still use bar simplices,
-evaluated lazily through sparse comparison chains. No complete-bar model
+matrices use R in package degrees 3–5, for finite and infinite groups and
+any number of degree-zero generators. Nonlinear formulas are evaluated on
+simplices of a comparison complex, lazily through sparse comparison
+chains: the normalized group bar when it retracts onto R, and otherwise
+the cell complex described below. No complete-bar model
 is constructed for extension certification or fallback. Degrees -1 through
 2 use the low-degree adapter. Degree-six extensions are explicitly
 unresolved because the native degree-six formula is not implemented.
@@ -78,12 +80,41 @@ examined.
 
 The sparse comparison first checks \(fg=1\) over the integral group
 ring on every basis generator through cochain degree k+2. This is
-stronger than checking only trivial and sign characters. The native
-path also requires one degree-zero generator and a finite group.
-A supplied HAP resolution may therefore be accepted by the AHSS API while
-its higher extension calculation remains unresolved. Infinite groups,
-multiple degree-zero generators and comparisons failing the strict
-retraction identity are outside the native extension domain.
+stronger than checking only trivial and sign characters. The group bar
+passes only for one degree-zero generator and a contraction with
+\(\partial h(e_j)=0\) on the generators; otherwise the model switches to
+the cell comparison and checks it the same way.
+
+### The cell comparison
+
+Let \(J\) index the degree-zero generators of R and let EX be the
+simplicial set of ordered tuples in \(X=G\times J\), with G acting on
+the first factor. Its normalized chains form a free resolution. Put
+\(g(e_i^0)=(1,i)\), \(g(e_j)=\mathrm{cone}_b\,g(\partial e_j)\) with
+\(b=(1,1)\), and \(f(\sigma)=K(f(\partial\sigma))\) on anchored simplices,
+extended G-equivariantly, where
+
+\[
+K=h+\partial\psi-\psi\partial,\qquad
+\psi_n(x)=\sum_j\pi_j(x)\,h(e^n_j).
+\]
+
+Here \(\pi=(\pi_j)\) are the coordinates against a right inverse over Z of
+the matrix of the boundaries \(\partial e^n_j\) at the identity. K is a
+contraction, \(K(\partial e_j)=e_j\) and \(\partial K(e_j)=0\), so
+\(fg(e_j)=K(fg(\partial e_j))=e_j\) inductively. When the boundaries of a
+degree do not split off over Z, each of its generators gets a private cone
+vertex \(x_j\) with its own contraction
+\(k_j=h+\partial\psi_j-\psi_j\partial\), \(\psi_j=\pi_j(\cdot)h(e_j)\) and
+\(\pi_j(\partial e_j)=1\). This needs \(\partial e_j\) to be primitive; a
+generator with zero or non-primitive boundary leaves the degree
+unresolved. Local cochain values use the sign of the twist along the
+contraction path from \(e_1\) to \(f(v)\) at the first vertex v.
+
+For a finite group on the group bar the worker keeps the multiplication
+table. Otherwise vertices are integer labels assigned by GAP, which also
+normalizes every simplex it is asked about; no group elements are
+enumerated.
 
 Given the checked retraction, the model constructs the normalized
 homotopy on chains:
@@ -116,14 +147,13 @@ Its GAP callbacks request sparse f or normalized-homotopy chains on demand.
 The top-degree formulas are projected only along g-support during native
 operations.
 
-To avoid ambiguous branch choices, the implementation evaluates global
-zero predicates exactly on all normalized simplices in the required lower
-degree. It does not infer them from a sample or from g-support. This
-conservative choice includes P1/P2 automatically but is more expensive
-than specialized flag tables would be. These lower-degree
-predicate checks are distinct from constructing a complete bar model with
-its cochain arrays and matrices. A predicate exceeding its budget returns
-unresolved before sampling.
+The formulas branch on whether a cochain vanishes (the legal, pure and
+complete flags). The zero test pairs the cochain with \(g(e_j)\) for every
+basis element of R in its degree, modulo two for binary cochains: a
+cochain is zero when it vanishes on the resolution. For a pulled-back
+cochain \(\Lambda w\) this is the same as vanishing on the whole comparison
+complex, because \(\Pi\Lambda=1\); for the other intermediate cochains it
+is the definition used here. No simplices are enumerated.
 
 Native curvature returns a correctly shaped four-layer tuple whose
 components are exact through the first nonzero obstruction. Later
@@ -134,16 +164,14 @@ layers needed at each step and checks its final equation and flatness.
 
 ## Limits and performance
 
-The preflight and sparse homotopy have explicit term budgets. The worker
-limits each complete lower-degree flag test to 8192 simplices and bounds
-its caches. These are implementation bounds, not mathematical claims of
-nonexistence. The preflight counts g-support; it does not claim to have
+The preflight and sparse homotopy have explicit term budgets, and the
+worker bounds its caches. These are implementation bounds, not
+mathematical claims of nonexistence. The preflight counts g-support; it does not claim to have
 built the entire face/homotopy closure in advance.
 
 Native solving reduces matrix sizes substantially: cyclic resolutions
 can have rank one in each degree even when the complete bar is too large.
-The calibrated per-simplex formulas and lower-degree predicate checks
-remain costly. No complete-bar size limit applies, but the native engine
+The calibrated per-simplex formulas remain costly. No complete-bar size limit applies, but the native engine
 has its own search and transport bounds.
 
 The portable [resolution example](../examples/resolution_extensions.g)

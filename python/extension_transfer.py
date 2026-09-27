@@ -2,8 +2,9 @@
 
 The comparison supplied by GAP must be an integral strong deformation
 retraction. Universal formulas are imported through the package worker;
-their calibration is unchanged. Global branch predicates
-are evaluated on the complete bar only in their required lower degrees.
+their calibration is unchanged. Branch predicates test whether a cochain
+vanishes on every basis element of the resolution in its degree, through
+the comparison chains g(e_j); no bar simplices are enumerated.
 
 This implements the conditional cochain transfer, not a proof of completeness
 of the transferred gauge relation or a ko classification.
@@ -21,7 +22,9 @@ acceleration.install()
 import off_shell_beta as off
 import stacking_lower as lower
 import all_cochain_upper as upper
-from coherent_low_commutative import DegreeTwoCommutativeStacking
+from coherent_low_commutative import (DegreeOneCommutativeStacking,
+                                     DegreeTwoCommutativeStacking)
+from a0_gamma import beta2
 
 p = api.p
 structural_zero = acceleration.is_zero
@@ -61,23 +64,32 @@ class TransferredModel:
     def __init__(self, setup, transport):
         if setup.get("schema", 1) != 1:
             raise ValueError("unsupported extension transfer schema")
-        self.mul = setup["multiplication"]
-        self.size = len(self.mul)
-        if not self.size or any(len(row) != self.size for row in self.mul):
-            raise ValueError("invalid group multiplication table")
-        if any(type(i) is not int or not 0 <= i < self.size
-               for row in self.mul for i in row):
-            raise ValueError("invalid group element index")
-        self.inverse = [next(h for h in range(self.size)
-                             if self.mul[g][h] == self.mul[h][g] == 0)
-                        for g in range(self.size)]
+        # Vertices are integer labels. With a multiplication table they are
+        # group elements and are normalized here; otherwise GAP normalizes
+        # every simplex it receives, and equal labels mean equal vertices.
+        self.vertex_mode = setup.get("vertexMode", "table")
+        if self.vertex_mode == "table":
+            self.mul = setup["multiplication"]
+            self.size = len(self.mul)
+            if not self.size or any(len(row) != self.size for row in self.mul):
+                raise ValueError("invalid group multiplication table")
+            if any(type(i) is not int or not 0 <= i < self.size
+                   for row in self.mul for i in row):
+                raise ValueError("invalid group element index")
+            self.inverse = [next(h for h in range(self.size)
+                                 if self.mul[g][h] == self.mul[h][g] == 0)
+                            for g in range(self.size)]
+        elif self.vertex_mode == "labels":
+            self.mul = self.size = self.inverse = None
+        else:
+            raise ValueError("unknown vertex mode")
         self.ranks = setup["ranks"]
         self.g = setup["g"]
         self.matrices = {False: setup["ordinary"], True: setup["signed"]}
         self.max_degree = len(self.ranks) - 1
-        self.max_flags = setup.get("maxFlagSimplices", 8192)
-        if type(self.max_flags) is not int or self.max_flags < 1:
-            raise ValueError("maxFlagSimplices must be positive")
+        self.max_debug_simplices = setup.get("maxDebugSimplices", 8192)
+        if type(self.max_debug_simplices) is not int or self.max_debug_simplices < 1:
+            raise ValueError("maxDebugSimplices must be positive")
         if any(type(n) is not int or n < 0 for n in self.ranks):
             raise ValueError("invalid resolution ranks")
         if len(self.g) != len(self.ranks):
@@ -101,6 +113,7 @@ class TransferredModel:
         self._kappas = BoundedCache(256)
         self._cores = BoundedCache(256)
         self.low2 = DegreeTwoCommutativeStacking()
+        self.low1 = DegreeOneCommutativeStacking(successor=self.low2)
         self.s_vector = self.check_vector(1, setup["s"], False)
         self.w_vector = self.check_vector(2, setup["omega"], False)
         if any(v % 2 for v in self.coboundary(1, self.s_vector, False)):
@@ -145,10 +158,13 @@ class TransferredModel:
     def normalize(self, vertices):
         if not vertices:
             return ()
-        if any(type(g) is not int or not 0 <= g < self.size for g in vertices):
-            raise ValueError("transport accepts only group vertex labels")
+        if any(type(g) is not int or g < 0 or (self.size is not None and g >= self.size)
+               for g in vertices):
+            raise ValueError("transport accepts only vertex labels")
         if any(a == b for a, b in zip(vertices, vertices[1:])):
             return None
+        if self.mul is None:
+            return tuple(vertices)
         first = self.inverse[vertices[0]]
         return tuple(self.mul[first][g] for g in vertices)
 
@@ -198,13 +214,16 @@ class TransferredModel:
 
     @lru_cache(None)
     def simplices(self, n):
+        """All normalized bar simplices; only for developer value exports."""
         if n < 0:
             return ()
+        if self.mul is None:
+            raise ValueError("bar simplices can be enumerated only with a finite group table")
         count = (self.size - 1) ** n
-        if count > self.max_flags:
+        if count > self.max_debug_simplices:
             raise TransferResourceLimit(
-                f"exact bar zero test in degree {n} needs {count} simplices "
-                f"(limit {self.max_flags})")
+                f"bar value export in degree {n} needs {count} simplices "
+                f"(limit {self.max_debug_simplices})")
         result = []
         for increments in itertools.product(range(1, self.size), repeat=n):
             vertices = [0]
@@ -213,12 +232,23 @@ class TransferredModel:
             result.append(tuple(vertices))
         return tuple(result)
 
-    def is_zero(self, cochain):
-        # The budget applies before any shortcut, exactly as before.
-        simplices = self.simplices(cochain.degree)
-        if structural_zero(cochain):
+    def is_zero(self, cochain, binary):
+        """The cochain vanishes on g(e_j) for every basis element e_j of R.
+
+        Binary cochains are paired modulo two, integral ones with the local
+        sign coefficients of the comparison chains.
+        """
+        n = cochain.degree
+        if n < 0 or structural_zero(cochain):
             return True
-        return all(cochain(sigma) == 0 for sigma in simplices)
+        if n >= len(self.g):
+            raise ValueError("zero test exceeds the supplied resolution degrees")
+        weight = 0 if binary else 1
+        for chain in self.g[n]:
+            value = sum(t[weight] * cochain(tuple(t[2])) for t in chain)
+            if (value % 2 if binary else value) != 0:
+                return False
+        return True
 
     def differential(self, cochain, signed):
         if cochain.degree < 0:
@@ -227,18 +257,18 @@ class TransferredModel:
 
     def legal_pair(self, state):
         if state.k == 2:
-            return self.is_zero(self.differential(state[1], False))
-        return all(self.is_zero(c) for c in
-                   off.curvature(state[0], state[1], self.s, self.omega))
+            return self.is_zero(self.differential(state[1], False), True)
+        a, b = off.curvature(state[0], state[1], self.s, self.omega)
+        return self.is_zero(a, False) and self.is_zero(b, True)
 
     def triple(self, state, full=True):
         legal = self.legal_pair(state)
         if not full:
             return upper.Triple(state[0], state[1], state[2], legal)
-        pure = (self.is_zero(state[0]) and self.is_zero(state[1])
-                and self.is_zero(self.differential(state[2], False)))
+        pure = (self.is_zero(state[0], False) and self.is_zero(state[1], True)
+                and self.is_zero(self.differential(state[2], False), True))
         complete = legal and self.is_zero(p.binary(self.differential(state[2], False)
-            + self.nonlinear(state, 2)))
+            + self.nonlinear(state, 2)), True)
         return upper.Triple(state[0], state[1], state[2], legal, pure, complete)
 
     def nonlinear(self, state, layer):
@@ -247,15 +277,17 @@ class TransferredModel:
             return state.layers[key]
         k = state.k
         degree = degrees(k + 1)[layer]
-        if layer == 0 or (k == 2 and layer == 1):
+        if layer == 0 or (k <= 2 and layer == 1) or (k == 1 and layer == 2):
             value = p.zero(degree)
+        elif k == 1:
+            value = api.cochain(self.low1.g(*map(api.local, (state[2], self.s, self.omega))))
         elif k == 2:
             if layer == 2:
                 value = p.QD(state[1], self.s, self.omega)
             else:
                 value = api.cochain(self.low2.g(
                     *map(api.local, (state[1], state[2], self.s, self.omega)),
-                    b_closed=self.is_zero(self.differential(state[1], False))))
+                    b_closed=self.is_zero(self.differential(state[1], False), True)))
         elif k in (3, 4, 5):
             if layer == 1:
                 value = off.primary(state[0], self.s, self.omega)
@@ -265,7 +297,7 @@ class TransferredModel:
             else:
                 value = upper.g(self.triple(state, full=False), self.s, self.omega)
         else:
-            raise ValueError("transferred nonlinear differential covers degrees 2 through 5")
+            raise ValueError("transferred nonlinear differential covers degrees 1 through 5")
         state.layers[key] = value
         return value
 
@@ -299,9 +331,26 @@ class TransferredModel:
         return LazyState(state.k + 1, build)
 
     def bar_product(self, left, right):
-        if left.k != right.k or left.k not in (3, 4, 5):
-            raise ValueError("transferred products cover equal degrees 3 through 5")
+        if left.k != right.k or left.k not in (1, 2, 3, 4, 5):
+            raise ValueError("transferred products cover equal degrees 1 through 5")
+        k = left.k
+        def low_cross(layer):
+            # The degree-one and degree-two products of the complete-bar
+            # reference: (C+C', D+D'+gamma1) and (B+B', C+C'+beta2, D+D'+gamma2).
+            if layer < 2 or (k == 1 and layer == 2):
+                return p.zero(degrees(k)[layer])
+            if layer == 2:
+                return api.cochain(beta2(*map(api.local, (left[1], right[1], self.s))))
+            if k == 1:
+                return api.cochain(self.low1.gamma(*map(api.local,
+                    (left[2], right[2], self.s, self.omega))))
+            return api.cochain(self.low2.gamma(*map(api.local,
+                (left[1], left[2], right[1], right[2], self.s, self.omega)),
+                b_closed=self.legal_pair(left), bp_closed=self.legal_pair(right),
+                sum_closed=self.legal_pair(result)))
         def cross(layer):
+            if k <= 2:
+                return low_cross(layer)
             if layer == 0:
                 return p.zero(degrees(left.k)[0])
             if layer == 1:
@@ -312,8 +361,8 @@ class TransferredModel:
                     off.LowerPair(left[0], left[1], self.legal_pair(left)),
                     off.LowerPair(right[0], right[1], self.legal_pair(right)),
                     legal, self.s, self.omega)
-            pure = (self.is_zero(result[0]) and self.is_zero(result[1])
-                    and self.is_zero(self.differential(result[2], False)))
+            pure = (self.is_zero(result[0], False) and self.is_zero(result[1], True)
+                    and self.is_zero(self.differential(result[2], False), True))
             return upper.gamma(self.triple(left), self.triple(right),
                                legal, pure, self.s, self.omega)
         def build(layer):
@@ -465,8 +514,8 @@ class TransferredModel:
 
     def calculate(self, request):
         operation, k = request["operation"], request["degree"]
-        if k not in (2, 3, 4, 5) or (k == 2 and operation not in ("d", "phi_values")):
-            raise ValueError("transferred states cover degrees 3 through 5; gauges include degree 2")
+        if k not in (1, 2, 3, 4, 5) or (k == 1 and operation not in ("d", "phi_values")):
+            raise ValueError("transferred states cover degrees 2 through 5; gauges include degree 1")
         key = json.dumps(request, sort_keys=True, separators=(",", ":"))
         if key in self._answers:
             return json.loads(self._answers[key])

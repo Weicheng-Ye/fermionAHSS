@@ -21,7 +21,8 @@ the [extension API](extensions.md).
 A supplied integral HAP resolution can replace the group argument.
 Native states and solves on that resolution are the only higher extension
 mode in degrees 3–5; there is no model-selection option. The comparison
-must pass the strict retraction check, and the sparse homotopy is normalized.
+(the group bar, or else the cell complex on the generators of R) must pass
+the strict retraction check, and the sparse homotopy is normalized.
 The calculation assumes gauge completeness: native gauge equivalence
 captures the bar equivalence relation. Results record
 `gaugeCompletenessAssumed=true`; this is an assumption, not a runtime proof.
@@ -79,10 +80,11 @@ bundled hashes are not verified at runtime.
 
 Degrees -1 and 0 have only D. Unsupported queries, incomplete page data
 and exhausted resource bounds remain unresolved. Native transfer
-requires a finite group, one degree-zero generator and a comparison passing
-`fg=id` over the integral group ring. Sparse transport has term bounds,
-and exact global lower-degree flag checks are bounded by 8192 normalized
-simplices per predicate. Flat-lift searches default to 4096 differential
+requires a comparison passing `fg=id` over the integral group ring; the
+cell comparison provides one for any resolution whose generators have
+primitive boundaries, including infinite groups and several degree-zero
+generators. Branch flags test vanishing on the basis of R. Sparse
+transport has term bounds. Flat-lift searches default to 4096 differential
 evaluations. Gauge comparisons have additional finite search bounds
 documented in [extensions.md](extensions.md). Reaching a bound leaves the
 degree unresolved; it is not substituted for missing cochain evidence.

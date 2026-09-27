@@ -25,10 +25,10 @@ degree-zero generators are supported when each has augmentation one and
 the contraction is anchored at the first generator at the identity.
 An explicit resolution may model an infinite group if HAP supplies the
 required integral data; the finite-group convenience wrapper does not
-construct such a resolution. Native higher extensions require
-a finite group, one degree-zero generator and the checked strict
-retraction identity; the broader AHSS input domain does not remove those
-extension prerequisites.
+construct such a resolution. Native higher extensions use the group bar when it retracts onto R and
+otherwise the cell comparison of [resolution extensions](resolution-extensions.md),
+for finite and infinite groups alike; they require generators with
+primitive boundaries and the checked strict retraction identity.
 
 The factory installs matching primary, secondary, and final tertiary
 conventions. It always compares with the normalized homogeneous group-bar

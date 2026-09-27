@@ -217,7 +217,10 @@ full.degreeResult.modelId;
 The same native-resolution engine is used with a group or a detailed E6
 result; no model-selection option is needed or accepted. States and linear
 solves use R in degrees 3–5, and the fixed formulas are evaluated on
-bar simplices lazily. The comparison's exact retraction identity is checked.
+simplices of a comparison complex lazily: the group bar when it retracts
+onto R, and otherwise a cell complex built from the generators of R, which
+also covers infinite groups and several degree-zero generators. The
+comparison's exact retraction identity is checked.
 Gauge completeness is assumed: native gauge equivalence is taken to agree
 with bar gauge equivalence. Runtime completion uses native checks and does
 not construct a complete bar model for certification or fallback. See

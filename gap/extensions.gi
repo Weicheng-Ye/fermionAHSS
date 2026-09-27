@@ -197,12 +197,11 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
     local layers, oracle, model, computeDegree, attempt, oldBreak, answer;
     layers:=fail; model:=fail;
     computeDegree:=function()
-        local candidate;
-        layers:=KOAHSS_ExtensionLayers(context,degree);
-        if degree=6 then
-            return rec(status:="unresolved",reason:="native extension degree six is not implemented",
-                pendingLayer:="model-setup");
-        elif degree in [3..5] then
+        local candidate, native, low;
+        # The native transferred model on R: degrees 3-5, and degree 2 when
+        # the low-degree adapter leaves a relation unresolved.
+        native:=function()
+            local nativeLayers, nativeCandidate;
             if not IsBoundGlobal("KOAHSS_ExtensionTransferredModel") then
                 return rec(status:="unresolved",reason:="the native extension model is unavailable",
                     pendingLayer:="model-setup");
@@ -210,27 +209,56 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
             model:=CallFuncList(ValueGlobal("KOAHSS_ExtensionTransferredModel"),
                 [context.backend,degree]);
             if model.status<>"computed" or not model.supports(degree) then
+                # With at most one nonzero layer there is no extension to
+                # solve: the group is that layer, and no relation is measured.
+                nativeLayers:=KOAHSS_ExtensionLayers(context,degree);
+                if ForAll(RecNames(nativeLayers),name->not IsBound(nativeLayers.(name).status)) and
+                   Number(RecNames(nativeLayers),name->not IsEmpty(nativeLayers.(name).orders))<=1 then
+                    nativeCandidate:=koAHSSExtensionFromLayers(nativeLayers,fail);
+                    nativeCandidate.singleLayer:=true;
+                    if IsBound(model.reason) then nativeCandidate.modelSetupReason:=model.reason; fi;
+                    layers:=nativeLayers;
+                    return nativeCandidate;
+                fi;
                 if IsBound(model.reason) then
                     return rec(status:="unresolved",reason:=model.reason,pendingLayer:="model-setup");
                 fi;
                 return rec(status:="unresolved",reason:=
                     "native extension resource budget exceeded in this degree",pendingLayer:="model-setup");
             fi;
+            nativeLayers:=KOAHSS_ExtensionLayers(context,degree);
             oracle:=CallFuncList(ValueGlobal("KOAHSS_ExtensionHigherOracle"),
-                [context.backend,degree,layers,model]);
-        else
-            oracle:=CallFuncList(ValueGlobal("KOAHSS_StackingExtensionOracle"),
-                [context.backend,degree,layers]);
+                [context.backend,degree,nativeLayers,model]);
+            nativeCandidate:=koAHSSExtensionFromLayers(nativeLayers,oracle);
+            layers:=nativeLayers;
+            if nativeCandidate.status="computed" then
+                # Gauge completeness is an assumption of this transferred model,
+                # as are commutativity and associativity of stacking on gauge
+                # classes. No finite multiplication table is audited; the
+                # accepted relation equations are checked on R.
+                nativeCandidate.certificateLevel:="transfer-R";
+                nativeCandidate.gaugeCompletenessAssumed:=true;
+                nativeCandidate.abelianQuotientAssumed:=true;
+            fi;
+            return nativeCandidate;
+        end;
+        layers:=KOAHSS_ExtensionLayers(context,degree);
+        if degree=6 then
+            return rec(status:="unresolved",reason:="native extension degree six is not implemented",
+                pendingLayer:="model-setup");
+        elif degree in [3..5] then
+            return native();
         fi;
+        oracle:=CallFuncList(ValueGlobal("KOAHSS_StackingExtensionOracle"),
+            [context.backend,degree,layers]);
         candidate:=koAHSSExtensionFromLayers(layers,oracle);
-        if degree in [3..5] and candidate.status="computed" then
-            # Gauge completeness is an assumption of this transferred model,
-            # as are commutativity and associativity of stacking on gauge
-            # classes. No finite multiplication table is audited; the
-            # accepted relation equations are checked on R.
-            candidate.certificateLevel:="transfer-R";
-            candidate.gaugeCompletenessAssumed:=true;
-            candidate.abelianQuotientAssumed:=true;
+        if degree=2 and (candidate.status<>"computed" or
+           ValueGlobal("KOAHSS_EXTENSION_TRANSPORT_OVERRIDE").nativeDegreeTwo) then
+            low:=candidate;
+            candidate:=native();
+            candidate.lowDegreeAttempt:=rec(status:=low.status);
+            if IsBound(low.reason) then candidate.lowDegreeAttempt.reason:=low.reason; fi;
+            if IsBound(low.invariants) then candidate.lowDegreeAttempt.invariants:=low.invariants; fi;
         fi;
         return candidate;
     end;

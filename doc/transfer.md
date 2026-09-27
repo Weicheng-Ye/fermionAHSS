@@ -3,8 +3,11 @@
 The [native extension model](resolution-extensions.md) evaluates the fixed
 bar formulas on a supplied resolution through a comparison with the
 normalized group bar resolution. This note records the identities it
-relies on and their limits. A resolution with one degree-zero generator
-need not give a strict retraction, so the comparison is checked. Flatness
+relies on and their limits. The group bar need not retract onto a
+resolution, even one with a single degree-zero generator, so the
+comparison is checked, and the cell comparison of
+[resolution extensions](resolution-extensions.md#the-cell-comparison)
+replaces it when the check fails. Flatness
 and reflection hold only under stated hypotheses, and the restricted
 product identity does not imply completeness of transferred gauges. Both
 limits have concrete counterexamples below; the native model therefore
@@ -45,8 +48,14 @@ resolution explicitly and verifies \(\Pi\Lambda(0,1)=(0,0)\).
 A check of \(\Pi\Lambda=1\) with just trivial and sign coefficients
 is weaker than a check over \(\mathbf ZG\). The preflight checks
 \(fg=1\) on every group-ring basis generator in the requested degrees.
-A failed check requires a different comparison or a transfer for general
-homotopy equivalences; normalizing H alone cannot repair it.
+A failed check requires a different comparison; normalizing H alone
+cannot repair it. The group bar also fails whenever R has several
+degree-zero generators, since \(f\) sends every vertex to the first one.
+The cell comparison changes g and f instead: it cones over a modified
+contraction K with \(K(\partial e_j)=e_j\), or over private vertices,
+so that \(fg=1\) holds by construction. In the example above \(u_1\)
+has zero boundary, so neither construction applies and the degree stays
+unresolved.
 
 If \(fg=1\) does hold, the usual side-condition construction is available
 algebraically. Set \(q=1-gf\), \(u=qhq\), and \(h'=u\partial u\).
@@ -183,7 +192,7 @@ contraction degree unavailable. Its optional limits record accepts
 and `maxTerms` (2,000,000 processed g/f expansion terms by default).
 Refusals return `status="unresolved"`, a reason, and available failure
 coordinates. Support counts cover g only: they do not include the
-face/H closure or global flag tests. The limits are accounting bounds;
+face/H closure. The limits are accounting bounds;
 the underlying transport builds a chain before its size can be checked.
 
 ## Reused Smith preparations
