@@ -1,8 +1,8 @@
 # An explicit all-cochain square-zero extension through k=6
 
-2026-09-25. This answers the revised requirement with first component
-\(\delta_s A\), arbitrary four input cochains, and a third-component
-correction independent of \(C\). It extends the calibrated formulas in
+This note constructs a differential on four arbitrary input cochains, with
+first component \(\delta_s A\) and a third-component correction independent
+of \(C\). It extends the calibrated formulas in
 [dimension_indexed_differentials.md](dimension_indexed_differentials.md).
 
 **Scope of the construction.** The formulas below are piecewise maps on
@@ -10,11 +10,10 @@ cochains. The branch is selected by whether the first two equations hold on
 all of \(X\), not separately on each simplex. They square to zero on every
 input and retain exactly the repository's obstruction equations on
 defining systems. This global branch need not commute with restriction or
-pullback. Thus this is an explicit algebraic extension with the requested
-obstructions, not a claim to have derived a natural local all-cochain
-formula. The revised degree-six branch additionally uses a fixed pointed
-section of the lower differential, as specified in
-[the degree-six repair](g6_repair.md). The algebraic construction works
+pullback. Thus this is an explicit algebraic extension with the required
+obstructions, not a natural local all-cochain formula. The degree-six
+branch additionally uses a fixed pointed section of the lower
+differential, specified in Section 3. The algebraic construction works
 for any such choice on X; the implementation computes the section on a
 finite free cochain model. A separate degree-seven endpoint
 convention is stated below; it is not a degree-seven ko operation.
@@ -239,21 +238,21 @@ The optional degree \(k=-1\) also has only \(D\), and uses
 \(\delta_sD\). In every row of the table, \(f_k\) depends only on
 \(A,B,s,\omega\), never on \(C\).
 
-Here \(\mathcal R_6\) is the section retraction onto full legal triples
-specified in [g6_repair.md](g6_repair.md). In the natural auxiliary lower
+Here \(\mathcal R_6\) is the section retraction onto full legal triples.
+In the natural auxiliary lower
 coordinates, put \(\phi(A,B,C)=(A,B,C+e(A,B))\), with \(e=0\) on
 \(L_6\) and \(e=q_{\mathrm{loc}}\) elsewhere. Let \(\sigma\) be the
 explicit pointed section of \(\widehat F\) onto its image, and let
 \(\backslash\) denote triangular left division for its natural product.
-The current choice is
+The choice is
 \[
 \mathcal R_6(u)=\sigma(\widehat F\phi u)\backslash\phi u.
 \]
 Here \(F_6\) is the first three components of (A13), and
 \(\widehat F\phi=F_6\). The auxiliary natural triangular product
 \(\widehat\mu\) and its explicit corrections \(\alpha,\widehat\beta\)
-are specified in the
-[section construction](../../fermionAHSS_stacking/G6_GENERAL_SECTION.md).
+are specified in the section construction `G6_GENERAL_SECTION.md` of the
+stacking research workspace (not bundled).
 For \(v\backslash w=z\), left division means
 \[
 \begin{aligned}
@@ -275,27 +274,26 @@ For each candidate solve
 \]
 enumerating the binary kernel of \(\delta\) in the B equation before
 trying the C equation. Choose the first solution, with zero chosen at
-zero output, to obtain \(\sigma_{\rm current}\), and set
-\(\sigma=\phi\sigma_{\rm current}\). The search is complete on
-\(\operatorname{im}F_6\) because the original lower differential is
+zero output, to obtain a section \(\sigma_0\) of \(F_6\), and set
+\(\sigma=\phi\sigma_0\). The search is complete on
+\(\operatorname{im}F_6\) because the lower differential \(F_6\) is
 four-periodic under integral cycle shifts; no periodicity of
 \(q_{\mathrm{loc}}\) is assumed. Only lower defining equations are solved.
 For general X the same construction uses a chosen pointed set section
 onto the image; the finite basis is required only for this search algorithm.
 
 The lower homomorphism and triangular cancellation imply
-\(\widehat F\mathcal R_6=0\). On this legal locus the natural and current
-coordinates agree. Hence its output
+\(\widehat F\mathcal R_6=0\). On this legal locus the natural coordinates
+and those of (A13) agree. Hence its output
 \((a_*,b_*,c_*)\) obeys
 \(\delta_s a_*=0\), \(\delta b_*=P_6(a_*)\), and
-\(\delta c_*=\tau'_3(a_*;b_*)\). Thus the new value is an integral
-cocycle. This replaces the earlier zero outside \(L_6\), without using
-or defining a degree-four-input operation \(T_4\). The retraction fixes
-every full legal triple; every value on \(L_6\) remains \(J_6\).
+\(\delta c_*=\tau'_3(a_*;b_*)\). Thus \(g_6\) outside \(L_6\) is an
+integral cocycle; it neither uses nor defines a degree-four-input
+operation \(T_4\). The retraction fixes every full legal triple; every
+value on \(L_6\) is \(J_6\).
 In particular \(T_3\) here is the entire fixed integral representative
 \(\delta_s\Omega_6\), including the coefficient-two prime-three term.
-The earlier projection-based repair is historical; this section
-retraction is the one used by the current stacking implementation.
+The degree-six stacking construction uses this section retraction.
 
 To make the endpoint assertion \(\mathfrak d_7\mathfrak d_6=0\)
 unambiguous, use (A13) at \(k=7\), with
@@ -321,23 +319,20 @@ is only an endpoint convention for the finite construction. No ko
 classification in degree seven, or \(\mathfrak d_8\mathfrak d_7=0\),
 is asserted.
 
-**Historical stacking audit and repair (2026-09-25).** The earlier choice
-\(g_6=0\) outside \(L_6\) prevents this particular square-zero extension
-from admitting a normalized unital triangular stacking product with
+**Why \(g_6\) is nonzero outside \(L_6\).** With \(g_6=0\) outside
+\(L_6\), this square-zero extension would admit no normalized unital
+triangular stacking product with
 \(\mathfrak d(x\times y)=\mathfrak d(x)\times\mathfrak d(y)\) on all
 cochains. On \(B((\mathbf Z/3)^2)\), the defining system
 \((4\beta_{\mathbf Z,3}(u_1u_2),0,0,0)\) has a nonzero \(T_3\) class;
 stacking it with an input outside \(L_6\) would force that class to be a
-coboundary. See the [explicit proof](../../fermionAHSS_stacking/ALL_COCHAIN_OBSTRUCTION.md).
-That cap has now been replaced by the displayed \(T_3\mathcal R_6\)
-formula. On the counterexample its off-shell class is the same nonzero
-prime-three obstruction, so the former contradiction no longer applies.
-The current section branch is square-zero and admits the explicit
-[degree-six stacking construction](../../fermionAHSS_stacking/G6_GENERAL_SECTION.md).
-Two legal cylinders prove its strict upper identity without assuming
-associativity of the lower cochain product. The older linear-projection
-repair is retained as a historical construction, not as the retraction
-used by this stacking law.
+coboundary (see `ALL_COCHAIN_OBSTRUCTION.md` in the stacking research
+workspace, not bundled). With the \(T_3\mathcal R_6\) formula, the
+off-shell class on this example is the same nonzero prime-three
+obstruction, so there is no contradiction. The section branch is
+square-zero and admits the explicit degree-six stacking construction of
+`G6_GENERAL_SECTION.md`. Two legal cylinders prove its strict upper
+identity without assuming associativity of the lower cochain product.
 
 ## 4. Explicit verification of the second iterate
 
@@ -399,14 +394,14 @@ D''=-\mathcal K_{k+1}(A',B',C')
 \tag{A20}
 \]
 
-**Fourth component, input outside \(L_6\).** The repaired value
+**Fourth component, input outside \(L_6\).** The value
 \(g_6=T_3(\mathcal R_6(A,B,C))\) is an integral cocycle, and
 \((A',B')=p_6(A,B)\ne(0,0)\). Formula (A15) therefore gives
 \(g_7(A',B',C')=0\), so
 \(D''=\delta_sg_6+g_7(A',B',C')=0\).
 For an input in degree five, its output first pair lies in \(L_6\),
-so the unchanged \(J_6\) branch proves \(\mathfrak d_6\mathfrak d_5=0\)
-exactly as before.
+so the \(J_6\) branch proves \(\mathfrak d_6\mathfrak d_5=0\)
+as above.
 Together with the elementary degree-zero case, this proves
 
 \[
@@ -419,7 +414,7 @@ This proof uses cochain identities, not componentwise additivity.
 It uses the same fixed helper identities as the repository; it does not
 constitute a new proof of those calibrated mathematical inputs.
 
-## 5. Agreement with the requested obstruction problem
+## 5. Agreement with the obstruction problem
 
 The first two zero-output equations in (A13) force \((A,B)\in L_k\).
 The third then forces \(\delta C=\tau_k(A,B)\). On precisely those
@@ -432,7 +427,7 @@ inputs the fourth equation is
 
 Thus all zero-output equations through degree six are exactly the
 repository's defining-system equations. The values chosen outside
-\(L_k\), including the revised degree-six branch, cannot create an extra
+\(L_k\), including the degree-six branch, cannot create an extra
 solution: the first or second component is already nonzero there.
 For a fixed legal \(A,B,C\), failure to solve (A22) is exactly the
 nonvanishing of the integral class \([\mathcal K_k(A,B,C)]\).
@@ -463,13 +458,13 @@ formulas on such data intact. The global piecewise extension and its
 endpoint convention are constructions here, not formulas attributed
 to Wang–Gu.
 
-The compatible stacking law is defined in the separate
-[degree-indexed stacking note](../../fermionAHSS_stacking/ALL_COCHAIN_STACKING.md).
-Its degree-six formula uses this same section retraction and two legal
-cylinders; it does not assume associativity of the lower product.
-The exact classification agreement established here is the successive
-obstruction/solvability test requested in the question, with the
-repository's page indeterminacies. It does not upgrade the repository's
+The compatible stacking law is defined in the degree-indexed stacking
+note `ALL_COCHAIN_STACKING.md` of the stacking research workspace (not
+bundled). Its degree-six formula uses this same section retraction and two
+legal cylinders; it does not assume associativity of the lower product.
+The classification agreement established here is the successive
+obstruction and solvability test, with the repository's page
+indeterminacies. It does not upgrade the repository's
 five-row associated graded to a complete ko classification.
 
 ### The Z4 four-factor obstruction
@@ -490,7 +485,8 @@ explicit lower solution is
 The lower obstruction is not the zero cochain: on
 \([e_1|e_1|e_2]\), both \(\delta C_0\) and \(\tau'_0(2;0)\)
 equal one. This is a full legal defining system, so neither the
-arbitrary-input prism branch nor the repaired g6 enters this example.
+arbitrary-input prism branch nor the degree-six section branch enters
+this example.
 
 Define the integral Pontryagin cochain
 \(P_\omega=w\smile w+w\smile_1\delta w\). The actual production
@@ -514,7 +510,7 @@ and satisfies
 \langle P_\omega,z\rangle=2,\qquad
 \boxed{\langle\Omega_3(C_0),z\rangle=-\tfrac14.}
 \]
-Its phase is \(-i\). The supplied double-pip PDF uses the opposite
+Its phase is \(-i\). The two-layer p+ip note uses the opposite
 quadratic-phase sign and gives \(+i\) for its canonical choice; both
 are nontrivial. Since G is finite, positive-degree rational cohomology
 vanishes and the connecting map
@@ -547,60 +543,42 @@ obstruction either. Consequently
 \boxed{T_0(2)=d_5(2)\ne0\quad\text{in the actual AHSS page quotient}.}
 \]
 Here k=3 is the physical degree, d5 is the page differential, and O4
-is the name for its degree-four phase obstruction in the supplied PDF.
-The mathematical conclusion of the separately archived double-pip note
-is therefore part of this note, rather than dependent on that archive.
+is the name of its degree-four phase obstruction in the p+ip note. The
+argument above is self-contained.
 
-## 6. Verification record
+## 6. Finite checks
 
 The identities (A16)–(A21) were checked algebraically in all branches,
 including the independent second interval in (A12), signed prism Stokes,
-the global branch test, and the degree-six endpoint. Two independent
-mathematical audits agreed with this calculation. The following ledger
-retains the necessary information from the dated exact-arithmetic checks:
+the global branch test, and the degree-six endpoint. Exact-arithmetic
+checks with the fixed R0–R3 assemblers gave:
 
-| Recorded checks | Completed results and scope |
+| Checks | Results and scope |
 | --- | --- |
-| Legal first two layers, low degrees; seed 813 | 100 inputs each in k=1,2; all integrality and literal second-iterate checks passed. |
-| Legal first two layers, arbitrary C; base seed 20260925 | 12 cases in k=3,4,5,6; 96 integral boundary-face evaluations and 12 exact zero second iterates. Six mixed cases had nonzero B, Tau and the residual cup correction. Signed A of degree zero included amplitudes 2,3,6. |
-| Arbitrary first two layers, original prism construction | Four full checks in k=2,3,4,5: 200 integral cylinder T evaluations, 31 nonzero; 30 integral g face values; all four second iterates zero. Next T values 1 and -2 exercised nontrivial cancellation. The independent interval coordinates were retained. |
-| Dense arbitrary A,B,C,D, or closed A with incorrect B; seed 925260 | Four full checks in k=2,3, two in each degree, with 144 integral cylinder T evaluations, 70 nonzero. Four further k=4,5 cases checked the lower three components and delta_s²D only; their full fourth components were uncomputed. All ten recorded inputs, including the historical k=6 pair below, had nonclosed D. |
-| Historical degree-six zero cap | One sparse and two dense k=6 checks used the former g6=0 outside L6 and its endpoint. The dense report therefore records six full passes in total, of which two concern that superseded branch. The sparse report's ten zero g face values do not test the current section repair. |
+| Legal first two layers, low degrees | 100 inputs each in k=1,2; all integrality and literal second-iterate checks passed. |
+| Legal first two layers, arbitrary C | 12 cases in k=3,4,5,6; 96 integral boundary-face evaluations and 12 exact zero second iterates. Six mixed cases had nonzero B, Tau and the residual cup correction. Signed A of degree zero included amplitudes 2,3,6. |
+| Arbitrary first two layers, prism construction | Four full checks in k=2,3,4,5: 200 integral cylinder T evaluations, 31 nonzero; 30 integral g face values; all four second iterates zero. Next T values 1 and -2 exercised nontrivial cancellation. The independent interval coordinates were retained. |
+| Dense arbitrary A,B,C,D, or closed A with incorrect B | Four full checks in k=2,3, two in each degree, with 144 integral cylinder T evaluations, 70 nonzero. Four further k=4,5 cases checked the lower three components and delta_s²D only; their fourth components were not computed. All these inputs had nonclosed D. |
 
-The high-degree samples used the actual production R0–R3 assemblers.
-Their sparse A inputs make the cubic and prime-three phases vanish, so
-these samples do not independently exercise those calibration terms.
-For k=3,4,5 the next production assembler was evaluated at (0,0,t);
-for k=6 only the stated pure-C endpoint was used, with no R4 or T4.
-Three recorded dense k=4 top-evaluation attempts timed out or were
-interrupted after a preceding timeout. They are neither successful full
-checks nor counterexamples. The four k=4,5 lower-only checks and the
-earlier sparse full checks remain separate evidence.
+The sparse A inputs of the high-degree samples make the cubic and
+prime-three phases vanish, so these samples do not independently exercise
+those calibration terms. For k=3,4,5 the next assembler was evaluated at
+(0,0,t); for k=6 only the stated pure-C endpoint was used, with no R4 or
+T4. The uncomputed fourth components of the dense k=4,5 cases are neither
+checks nor counterexamples.
 
-The current section repair has the symbolic proof in Section 4 and the
-separate finite-model verification in [g6_repair.md](g6_repair.md).
-Its production adapter passed a normalized BC2 check with nonzero omega
-and nonzero A outside L6: gamma6=0, g6(u times v)=1 and gamma7(Fu,Fv)=1,
-giving the exact upper identity 1=1. The completed 35.750-second check and
-the earlier incomplete 240-second attempt are distinguished in
-[the stacking verification record](../../fermionAHSS_stacking/VERIFICATION.md).
-The historical zero-cap reports must not be cited as tests of this repair.
+The degree-six section branch has the symbolic proof in Section 4. On a
+normalized BC2 model with nonzero omega and nonzero A outside L6, the
+stacking adapter gives gamma6=0, g6(u times v)=1 and gamma7(Fu,Fv)=1,
+so the upper identity 1=1 holds exactly.
 
 The double-pip example in Section 5 additionally has an exact 24-term
 cycle check, all 1024 H2 class shifts (512 residues 1/4 and 512 residues
 3/4), 128 sampled lower equations and 32 sampled integral top values.
 The analytic proof there covers every lower choice, including exact C
-shifts. This is a production-formula check, not a full GAP page run for
-the 256-element group.
-
-The original scripts, full inputs, rational outputs and completion
-statuses are preserved outside the repository in the
-[dated evidence archive](/Users/victor/Documents/miscellaneous/fermionAHSS/20260925-nonlinear-square-zero/README.md).
-The [archive index](/Users/victor/Documents/miscellaneous/fermionAHSS/README.md)
-gives current paths and reproduction instructions; the original records
-retain their historical path names and are unchanged. Finite checks do
-not replace the cochain proofs or establish naturality. No GAP runtime
-implementation or calibration payload was changed.
+shifts. This is a check of the fixed formulas, not a full GAP page run for
+the 256-element group. Finite checks do not replace the cochain proofs or
+establish naturality.
 
 ## 7. Rechecking completely arbitrary A, B, C and D
 
@@ -669,7 +647,7 @@ Then the fourth component cancels by the exact rational identity
 \tag{A26}
 \]
 
-For this to define the requested integer fourth component, one must also
+For this to define the required integer fourth component, one must also
 have
 
 \[
@@ -721,7 +699,7 @@ an input outside \(L_6\) has nonzero first-two-layer output, so
 =T_3(\mathcal R_6u).
 \]
 This is integral and closed because \(\mathcal R_6u\) is a full legal
-defining system. Thus (A25) reproduces the repaired, generally nonzero
+defining system. Thus (A25) reproduces the generally nonzero
 \(g_6\) branch as well. On \(\operatorname{im}F_6\),
 the already specified \(g_7\) agrees with the needed next correction.
 For the endpoint use of (A26), set \(\Phi_8(0)=0\); no other value of
@@ -732,9 +710,7 @@ This reformulation does not remove the global branch choice. It makes
 explicit why unrestricted \(A,B,C,D\) do not require further changes
 to the stated piecewise extension, and why integer lifts matter.
 
-Additional bounded checks with independently populated integer \(A,D\)
-and binary \(B,C\), including nonclosed \(D\) and closed \(A\) with
-an incorrect defining \(B\), are recorded in the
-[archived arbitrary-input records](/Users/victor/Documents/miscellaneous/fermionAHSS/20260925-nonlinear-square-zero/README.md#arbitrary-input-recheck).
-Section 6 retains the completion counts, uncomputed components and
-superseded degree-six scope. The proof above is independent of their sampling.
+The dense checks of Section 6 populate integer \(A,D\) and binary
+\(B,C\) independently, including nonclosed \(D\) and closed \(A\) with
+an incorrect defining \(B\). The proof above is independent of their
+sampling.

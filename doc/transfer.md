@@ -1,33 +1,19 @@
-# Resolution transfer: review and implemented prerequisites
+# Resolution transfer: retraction, reflection and gauge completeness
 
-Review date: 2026-09-26. The input was version 3 of the proposed
-four-cochain transfer plan, dated 2026-09-26 and based on commit `760baf1`.
-The plan was supplied as `~/Downloads/plan.md`.
-
-**Status at the initial review:** the production transfer was not implemented.
-The subsequent [native-resolution implementation](resolution-extensions.md)
-now uses native resolution coordinates by default and assumes gauge
-completeness. Its earlier opt-in mode with independent complete-bar
-certification and fallback has been removed. The review and prerequisite
-measurements below remain historical findings, not the current completion
-policy.
-
-At that review, `koFull` still used its complete-bar higher extension model.
-The initial revision implemented exact Smith-preparation reuse, a sparse
-comparison preflight, and bounded tests of several required model identities. These were
-prerequisites, not an implementation of `xtimes_R` or a claim of identical
-classifications on arbitrary resolutions.
-
-The plan correctly identifies the dense bar equations and evaluations as
-costs worth removing. Its proposed production certificate needs additional
-mathematics. Rank-one degree zero does not imply a strict retraction, and
-the stated restricted product identity does not imply completeness of
-transferred gauges. Both issues have concrete counterexamples below.
+The [native extension model](resolution-extensions.md) evaluates the fixed
+bar formulas on a supplied resolution through a comparison with the
+normalized group bar resolution. This note records the identities it
+relies on and their limits. A resolution with one degree-zero generator
+need not give a strict retraction, so the comparison is checked. Flatness
+and reflection hold only under stated hypotheses, and the restricted
+product identity does not imply completeness of transferred gauges. Both
+limits have concrete counterexamples below; the native model therefore
+assumes gauge completeness.
 
 ## The comparison is not an arbitrary-resolution retraction
 
 Write \(B_*\) for the normalized group-bar resolution and \(R_*\) for
-the supplied integral HAP resolution. The existing comparison has chain
+the supplied integral HAP resolution. The comparison has chain
 maps \(f:B_*\to R_*\), \(g:R_*\to B_*\), and a homotopy \(h\) with
 
 \[
@@ -72,9 +58,9 @@ Then \(\partial u+u\partial=q\), \(qu=uq=u\), \(fu=ug=0\), and
 
 For example, \(\partial u\partial=\partial q\) proves the first
 identity, while \(\partial u^2=u^2\partial\) gives
-\(u\partial u^2\partial u=0\). This is a construction to implement
-and budget, not a claim that the existing h already satisfies the side
-conditions. The preflight reports `sideConditionsVerified=false`.
+\(u\partial u^2\partial u=0\). The HAP homotopy h itself need not satisfy
+the side conditions; the native model uses \(h'\). The preflight checks
+only \(fg=1\) and reports `sideConditionsVerified=false`.
 
 ## Flatness and reflection are conditional, not completeness
 
@@ -98,12 +84,12 @@ If earlier layers are flat and \(\delta N_\ell=0\) there, then
 =\Lambda\kappa_R(w)_\ell.
 \]
 
-This proves the proposed layerwise flatness identity (T1) under its
+This proves the layerwise flatness identity (T1) under its
 hypotheses. In binary layers this equation is in \(\mathbf F_2\).
 In the D layer the full integral nonlinear term, including all carries,
 must be used.
 
-The plan's reflection (T2) similarly works conditionally: if a flat bar
+The reflection (T2) similarly holds conditionally: if a flat bar
 state z has already been matched in earlier layers, subtract their known
 contributions to form \(r_\ell\), and set
 \(w_\ell=\Pi r_\ell\), \(g_\ell=Hr_\ell\). Square-zero, zero
@@ -115,17 +101,17 @@ literal reflection equation \(z=d(g)\times\Phi(w)\) under those
 hypotheses. It does not transfer arbitrary nonflat gauges.
 
 In particular, `kappa_R(e)` on a gauge is not a replacement for
-`Psi(d(Phi(e)))`. The existing consumers would need a separate gauge
-action in all zero-unit, synthetic-equation, verification, and ordered
-reduction paths. During reduction it must be `act(e,chosen)` directly;
+`Psi(d(Phi(e)))`. The native model therefore uses a separate gauge
+action, which reflects the full bar boundary `d(Phi(e)) xtimes
+Phi(canonical)`. During reduction it is `act(e,chosen)` directly;
 `act(e,zero) xtimes chosen` is a different expression without a justified
 coherence identity.
 
-## A counterexample to the stated completeness assumptions
+## A counterexample to gauge completeness
 
-This algebraic complex tests the logical implication in the plan; it is
-**not a finite-group bar complex or the calibrated package formulas**.
-Use trivial sign and an integral cochain
+This algebraic complex tests whether gauge completeness follows from the
+identities above; it is **not a finite-group bar complex or the calibrated
+package formulas**. Use trivial sign and an integral cochain
 complex R with \(R^0=\mathbf Z\) and generators e, a, c in degrees
 2, 3, 4, respectively. Its only nonzero differential is \(\delta e=a\).
 Add a contractible complement K with h in degree 1, b in degree 2, and
@@ -140,14 +126,14 @@ differential term to be zero except the C output in physical degree 4:
 N_C(B)=ut\,c\pmod2\quad\text{for }B=ue+tb.
 \]
 
-These operations satisfy the plan's square-zero, normalization, Bianchi,
-and **layer-restricted** multiplicativity assumptions:
+These operations satisfy square-zero, normalization, Bianchi, and
+**layer-restricted** multiplicativity:
 
 - The image of an ordinary differential has no e coefficient. Thus the
   nonlinear term vanishes on differential images, and \(d^2=0\).
 - Flatness below C forces \(\delta B=ua=0\), hence \(u=0\). The
-  nonlinear term vanishes on the inputs where the plan demands
-  the C-layer product identity. The other layers are linear.
+  nonlinear term vanishes on the inputs where the C-layer product
+  identity is required. The other layers are linear.
 - \(\delta c=0\) gives the required Bianchi identity; zero is a strict
   unit and every nonlinear term vanishes at zero.
 
@@ -157,16 +143,17 @@ Here \(\Phi\) is just inclusion. The physical-degree-five states
 Every R-gauge has \(B=ue\), however, and its transferred action on zero
 has the form \((0,ua,0,0)\). Reflection is projection on these images.
 No sequence of those R-actions can produce the c component of x'.
-Thus T4 does not follow from the stated assumptions.
+Thus gauge completeness (T4) does not follow from these identities.
 
 Full multiplicativity on nonflat gauges would exclude this example:
 \(d(e+b)\ne d(e)+d(b)\) in its C layer. A proof using that stronger
 identity and appropriate gauge coherence might establish completeness
-for the actual formulas. That proof is still required. Alternatively,
-a completed presentation could be justified by a filtered isomorphism
-argument, but this needs an independently established bar quotient with
-the asserted E6 filtration and an isomorphism on every marked graded
-piece. A finite product audit does not establish those hypotheses.
+for the actual formulas; no such proof is available, so the native model
+assumes it. Alternatively, a completed presentation could be justified by
+a filtered isomorphism argument, but this needs an independently
+established bar quotient with the asserted E6 filtration and an
+isomorphism on every marked graded piece. A finite product audit does not
+establish those hypotheses.
 
 Generic homotopy transfer results cannot be substituted without checking
 their structures and coefficient assumptions. For context, transfer for
@@ -175,7 +162,7 @@ general homotopy equivalences requires additional homotopy data in
 No such general result is asserted here for the mixed integral/binary,
 globally branched stacking model.
 
-## Implemented preflight
+## Preflight
 
 The internal diagnostic can be run without any nonlinear stacking call:
 
@@ -195,19 +182,13 @@ contraction degree unavailable. Its optional limits record accepts
 `maxSupport` (8192 distinct normalized g simplices per degree by default)
 and `maxTerms` (2,000,000 processed g/f expansion terms by default).
 Refusals return `status="unresolved"`, a reason, and available failure
-coordinates. Support counts cover g only: they do not include the future
+coordinates. Support counts cover g only: they do not include the
 face/H closure or global flag tests. The limits are accounting bounds;
 the underlying transport builds a chain before its size can be checked.
 
-The initial prerequisite revision installed no new `koFull` option.
-The current native-only API is documented in [resolution extensions](resolution-extensions.md).
-At the initial revision, degree six, low-degree adapters, calibrated formulas
-and numerical payloads retained their original behavior; current native
-degree-six extensions are unresolved.
+## Reused Smith preparations
 
-## Exact Smith-preparation reuse and verification
-
-`koAHSSSolveIntegerSystem` now reuses Smith transformations for repeated
+`koAHSSSolveIntegerSystem` reuses Smith transformations for repeated
 matrices and different right-hand sides. Immutable value snapshots prevent
 caller mutation from changing a cache key or a transformation. It retains
 at most eight preparations and two million matrix cells, counting the
@@ -215,18 +196,6 @@ input, normal form, and square row/column transforms. This cell bound is
 not a byte limit for arbitrarily large integers. Oversized preparations
 are used for the current solve without being retained.
 
-The solution formula and basis convention are unchanged. Every successful
-nonempty solve still checks \(xM=b\) and every homogeneous generator
-against M exactly. This optimization therefore preserves the bar
+Every successful nonempty solve checks \(xM=b\) and every homogeneous
+generator against M exactly, so reusing a preparation preserves the
 extension witnesses as well as their abstract presentations.
-
-For the signed C4 bar coboundary with shape 243 by 729, one run measured
-3558 ms of GAP CPU time for the first solve and 4 ms for a different
-right-hand side using the cached preparation. Matrix construction took
-2375 ms. The rank was 182 and the homogeneous rank 61. This measures
-integer solving only; it is not a full `koFull` speedup measurement.
-
-The dated [verification record](verification/extension-transfer-20260926.md)
-lists the executed checks and the remaining acceptance work. In particular,
-no transferred Z4T classification or arbitrary-resolution equality is
-claimed. All package outputs retain `certified_ko=false`.

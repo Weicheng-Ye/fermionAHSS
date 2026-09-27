@@ -1,11 +1,11 @@
 # Fixed universal helpers used by the implemented operations
 
 This reference records the formulas and finite coefficient data used by the
-current production evaluators. Read [conventions.md](conventions.md) for the
+production evaluators. Read [conventions.md](conventions.md) for the
 coefficient systems and [secondary_operations.md](secondary_operations.md)
 and [tertiary_operations.md](tertiary_operations.md) for the assembled
-differentials. All statements about the current implementation refer to the
-`chi7_tail`, epsilon `(1,0,0)`, eta `(1,0,1)` convention.
+differentials. All statements refer to the `chi7_tail`, epsilon `(1,0,0)`,
+eta `(1,0,1)` convention.
 
 Binary expressions are reduced modulo two before their indicated binary
 lift. Rational expressions are evaluated in **Q**, using the displayed
@@ -109,7 +109,7 @@ conceptual ordering of the faces. Products are square-free because
 file and this decoding rule specify every coefficient; the large word
 lists are not additional runtime inputs.
 
-| Input n | Output degree | Faces | Bits per face | Original words | Nonzero ANF monomials |
+| Input n | Output degree | Faces | Bits per face | Word summands | Nonzero ANF monomials |
 | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0 | 3 | 4 | 7 | 0 | 0 |
 | 1 | 4 | 10 | 7 | 0 | 0 |
@@ -120,12 +120,11 @@ lists are not additional runtime inputs.
 | 6 | 9 | 120 | 7 | 160,350 | 149,704 |
 | 7 | 10 | 165 | 8 | 1,248,069 | 516,329 |
 
-The current family comes from
+The family comes from
 tail_words.json (source-workspace provenance: `note/extra/chi_suspension_degree7/tail_words.json`; not bundled),
-with its fixed suspension comparison. The optional `head` and `tail6`
-branches still visible in `koAHSSNaturalChiValue` are separate diagnostic
-families. They are not the default or interchangeable with this table.
-For binary cocycles the boundary identity is
+with its fixed suspension comparison. It is the only chi family of
+`koAHSSNaturalChiValue`; other normalizations are not interchangeable
+with this table. For binary cocycles the boundary identity is
 
 \[
 d\chi_n(a)=Sq^2Sq^2a+e_a\cup_{n-2}e_a,
@@ -435,9 +434,9 @@ The **complete** degree-six `e_f` prescription is
 | `u_(2,2) tensor []` | `-A_src/2` | `-3/8` |
 | `u_(0,2) tensor [x_1]` | `-B_src/2` | `-1/8` |
 
-Every unlisted coefficient is zero. The current suspension normalization
+Every unlisted coefficient is zero. The suspension normalization
 uses `V2fin=V2-L2` where `L2=P(omega) cup_s A/4`. The R2 assembler separately
-contains the adopted `-A^3/4` term. Do not put that cubic term into `V2fin`
+contains the `-A^3/4` term. Do not put that cubic term into `V2fin`
 when forming the R3 calibration source.
 
 ## 7. V3: full crossed transfer and fixed dyadic source
@@ -601,7 +600,7 @@ The packaged selector data are
 | Final-T rank correction coefficient | `0` | rank-six `BPSO(6)=BPU(4)` comparison |
 | Final-T twist ambiguity `mu_R` | `0` | Euler value `Xi(D)=V2(D)=13/4`, with full `Dtilde` and `Psi` indeterminacy |
 | R3 `xi` | `3/4` | cubic period |
-| R3 `(c4,cN,cO,cM,epsilon_c)` | `(1,0,1,1,1)` | current `R2sharp` family |
+| R3 `(c4,cN,cO,cM,epsilon_c)` | `(1,0,1,1,1)` | `R2sharp` family |
 | Final-T prime-three coefficient | `2` | only input degree three in this range |
 
 For clarity, the R3 suspension row is evaluated on the degree-six small
@@ -628,11 +627,8 @@ above are fixed in the packaged calibration data.
 
 ## 9. Provenance and scope
 
-This is a summary of the actual packaged formulas and finite data, checked
-against their source on 2026-09-23. The unbundled source proofs and
-historical executable checks are described in
-[mathematical-status.md](mathematical-status.md).
-Some copied module header comments still describe verification prototypes;
-their functions are now the kernels imported by the production worker.
-The production domain of the tertiary assembler remains inputs `0,1,2,3`.
-No all-degree R extension or abutment-extension computation is asserted.
+This is a summary of the packaged formulas and finite data. The
+unbundled source proofs are listed in
+[mathematical-status.md](mathematical-status.md). The tertiary assembler
+accepts inputs in degrees `0,1,2,3`. No all-degree R extension is
+asserted.

@@ -10,7 +10,7 @@ fi;
 
 # HAP's standard cyclic C2 resolution has one basis element in each degree.
 # s=[1] is its sign character; omega=[1] is its degree-two binary generator.
-twistedC2Pages := koAHSS(CyclicGroup(2), [1], [1], 1, 5);;
+twistedC2Pages := koAHSS_batch(CyclicGroup(2), [1], [1], 1, 5);;
 Assert(0, Length(twistedC2Pages) = 5);
 Print("C2, s=[1], omega=[1], E2--E6: ", "\n");
 koAHSSDisplay(twistedC2Pages);

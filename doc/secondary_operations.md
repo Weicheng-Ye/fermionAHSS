@@ -248,9 +248,9 @@ psi := koAHSSNaturalSecondary(backend, n, a, rec(inputType := "mod2"));;
 # An optional b in the options record supplies a checked resolution cochain.
 ```
 
-Both secondary evaluators have the current finite helper family for
+Both secondary evaluators have the finite helper family for
 \(0\le n\le7\). Larger degrees report it unavailable. The allowed
 physical cutoff \(k\le6\) needs at most `Tau_3` and `Psi_4`, including
 the degree-four secondary map in the denominator of `T_3`.
-`koAHSSNaturalOperations()` now also installs final `T`; its formulas are
+`koAHSSNaturalOperations()` also installs final `T`; its formulas are
 in [tertiary_operations.md](tertiary_operations.md).

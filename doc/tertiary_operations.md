@@ -1,8 +1,7 @@
 # The production tertiary operation: \(d_5\) in input degrees 0–3
 
-This is a transcription of the formulas evaluated by the current GAP
-`T` callback and its bundled Python kernel, as of 2026-09-23. The
-cochain notation and signs are fixed in [conventions.md](conventions.md);
+This is a transcription of the formulas evaluated by the GAP `T`
+callback and its bundled Python kernel. The cochain notation and signs are fixed in [conventions.md](conventions.md);
 the lower differential `Tau` is described in
 [secondary_operations.md](secondary_operations.md). The universal source
 operators below are specified in [universal_helpers.md](universal_helpers.md).
@@ -10,8 +9,7 @@ operators below are specified in [universal_helpers.md](universal_helpers.md).
 The production entry points are
 [`koAHSSNaturalTertiary`](../gap/natural_tertiary.gi) and
 [`koAHSSNaturalTCallback`](../gap/natural_tertiary.gi).
-Degrees outside \(0\leq n\leq3\) are rejected. The old local-R chooser
-is not part of this formula.
+Degrees outside \(0\leq n\leq3\) are rejected.
 
 The differential names are `Tau` for \(d_3\) from row 0 to row −2,
 `Psi` for \(d_4\) from row −1 to row −4, and `T` for \(d_5\)
@@ -277,7 +275,7 @@ s_I=s+d\gamma,\quad A_I=(-1)^\gamma A,
 \quad b_I=\pi^*b,\quad\omega_I=\pi^*\omega,
 \]
 
-with \(s_I\) reduced modulo two. Evaluate the **current lower formula**
+with \(s_I\) reduced modulo two. Evaluate the **calibrated lower formula**
 \(\tau_I=\tau_0^{s_I,\omega}(A_I,b_I)\), and put
 
 \[
@@ -368,7 +366,7 @@ Each \(\mathsf h\) in (R2) is a separate half-lift, exactly as in
 [`phase_eval.phase2`](../python/phase_eval.py). Combining
 these brackets changes the real phase by an integral cochain in general.
 The potential \((\zeta_3/2)\widetilde{s^2\omega a}\) term is zero.
-The quarter-cubic term is **present**, and this is the current
+The quarter-cubic term is **present**: this is the
 \(R_2=R_2^{\rm sharp}\) family.
 
 The local-system cup product \(P_\omega\cup_s A\) transports the signed
@@ -380,9 +378,8 @@ their transports. On a six-simplex, its value is
 (-1)^{s_{02}+s_{04}}A_{012}A_{234}A_{456}.
 \]
 
-The historical source
-\(V_{2,\mathrm{fin}}=V_2-L_2\), before the cubic change, is the
-one used in the degree-three selector calibration. The current source in
+The degree-three selector calibration uses the source
+\(V_{2,\mathrm{fin}}=V_2-L_2\), without the cubic term. The source in
 the assembled R2 is
 \(V_{2,\mathrm{cur}}=V_2-L_2+A^{\cup3}/4\). They must not be
 interchanged in that calibration.
@@ -406,7 +403,7 @@ M_3=\mathsf h(s^2\omega a).
 
 The universal degree-seven source primitive \(V_3\) is evaluated from
 the fixed finite source table; it depends on \(A,s,\omega\), not \(b,c\).
-The selectors from the current R2 suspension comparison are
+The selectors from the R2 suspension comparison are
 
 \[
 (c_4,c_N,c_O,c_M,\epsilon_c)=(1,0,1,1,1),\qquad\xi=3/4.
@@ -540,9 +537,6 @@ integral cochain. A failed identity is an error, not a request for a
 different local R.
 
 The universal choice and normalization are mathematical inputs to this
-implementation. The saved
-verification record (source-workspace provenance: `notes/extra/tertiary_T_degree3/gap_verification_20260923/README.md`; not bundled)
-distinguishes direct degree-three coverage from page integration cases.
-This document changes no formulas or certificates. The five-row AHSS
-output remains an associated-graded calculation with `certified_ko:false`;
-it does not resolve all ko rows or abutment extensions.
+implementation. The five-row AHSS output is an associated-graded
+calculation with `certified_ko:false`; it does not cover the other ko
+rows, and its extensions are solved separately by `koFull`.

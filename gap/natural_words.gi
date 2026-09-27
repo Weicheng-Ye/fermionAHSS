@@ -1,6 +1,6 @@
 # Interval-cut operations on an explicitly supplied simplicial cochain model.
 # This module does not turn an arbitrary HAP diagonal into a surjection action.
-# Its head-suspension chi family is an Adem primitive, not a ko normalization.
+# Its chi values are the calibrated chi7_tail ANF in input degrees 0-7.
 CallFuncList(function()
     local name, slashes, directory;
     name := INPUT_FILENAME();
@@ -191,28 +191,21 @@ InstallGlobalFunction(koAHSSNaturalWordValue, function(arg)
         arg{Difference([1..Length(arg)],[4])})(arg[4]);
 end);
 
-BindGlobal("KOAHSS_NATURAL_CHI_ANF_COMPILED",rec(head:=[],tail:=[]));
+BindGlobal("KOAHSS_NATURAL_CHI_ANF_COMPILED",[]);
 
 # Compile the finite ANF once into a prefix tree. At its last level a bit-list
 # dot product replaces a loop over fourth factors. No cochain identities or
 # cocycle assumptions are used in this optimization: a(face)^2=a(face) in F2.
-BindGlobal("KOAHSS_NaturalChiANFValue",function(n,a,simplex,family)
+BindGlobal("KOAHSS_NaturalChiANFValue",function(n,a,simplex)
     local allData,data,compiled,terms,code,term,radix,build,tree,evaluate,
-          values,value,face,answer,globalName,filename,cacheRows;
-    if family="head" then
-        globalName:="KOAHSS_NATURAL_CHI_HEAD4_ANF";
-        filename:="chi-head-degree4-anf.g";
-    else
-        globalName:="KOAHSS_NATURAL_CHI_CALIBRATED_ANF";
-        filename:="chi-calibrated-degree7-anf.g";
+          values,value,face,answer,cacheRows;
+    if not IsBoundGlobal("KOAHSS_NATURAL_CHI_CALIBRATED_ANF") then
+        Read(Filename(KOAHSS_NATURAL_WORD_DATA_DIRECTORY,"chi-calibrated-degree7-anf.g"));
     fi;
-    if not IsBoundGlobal(globalName) then
-        Read(Filename(KOAHSS_NATURAL_WORD_DATA_DIRECTORY,filename));
-    fi;
-    allData:=ValueGlobal(globalName);
+    allData:=ValueGlobal("KOAHSS_NATURAL_CHI_CALIBRATED_ANF");
     data:=allData.degrees[n+1];
     if IsEmpty(data.monomials) then return 0; fi;
-    cacheRows:=KOAHSS_NATURAL_CHI_ANF_COMPILED.(family);
+    cacheRows:=KOAHSS_NATURAL_CHI_ANF_COMPILED;
     if not IsBound(cacheRows[n+1]) then
         radix:=2^data.bitsPerFace; terms:=[];
         for code in data.monomials do
@@ -280,43 +273,19 @@ BindGlobal("KOAHSS_NaturalChiANFValue",function(n,a,simplex,family)
 end);
 
 InstallGlobalFunction(koAHSSNaturalChiValue, function(arg)
-    local result, word, words,n,a,simplex,convention,maximum;
+    local n,a,simplex;
     if not Length(arg) in [3,4] then Error("koAHSSNaturalChiValue(n,a,simplex[,convention])"); fi;
-    n:=arg[1]; a:=arg[2]; simplex:=arg[3]; convention:="tail";
-    if Length(arg)=4 then convention:=arg[4]; fi;
-    if not convention in ["head","tail","tail6","tail7"] then
-        Error("chi convention must be head, tail, tail6, or tail7");
+    n:=arg[1]; a:=arg[2]; simplex:=arg[3];
+    if Length(arg)=4 and not arg[4] in ["tail","tail7"] then
+        Error("koAHSS: the chi convention is the calibrated chi7_tail (tail)");
     fi;
-    maximum:=6;
-    if convention in ["tail","tail7"] then maximum:=7; fi;
-    if not IsInt(n) or n < 0 or n > maximum then
+    if not IsInt(n) or n < 0 or n > 7 then
         Error("koAHSS: chi input degree is outside the selected finite family");
     fi;
     if not IsFunction(a) or not IsList(simplex) or Length(simplex) <> n+4 then
         Error("koAHSS: chi needs a cochain function and an (n+3)-simplex");
     fi;
-    if convention in ["tail","tail7"] then
-        return KOAHSS_NaturalChiANFValue(n,a,simplex,"tail");
-    fi;
-    if convention="head" and n<=4 then
-        return KOAHSS_NaturalChiANFValue(n,a,simplex,"head");
-    fi;
-    if not IsBoundGlobal("KOAHSS_NATURAL_CHI_HEAD_WORDS") then
-        Read(Filename(KOAHSS_NATURAL_WORD_DATA_DIRECTORY, "chi-head-degree6.g"));
-    fi;
-    words := ValueGlobal("KOAHSS_NATURAL_CHI_HEAD_WORDS");
-    if convention="tail6" and n<6 then
-        if not IsBoundGlobal("KOAHSS_NATURAL_CHI_TAIL_WORDS") then
-            Read(Filename(KOAHSS_NATURAL_WORD_DATA_DIRECTORY,"chi-tail-degree6.g"));
-        fi;
-        words:=ValueGlobal("KOAHSS_NATURAL_CHI_TAIL_WORDS");
-    fi;
-    result := 0;
-    for word in words[n+1] do
-        result := (result + koAHSSNaturalWordValue(word, [n,n,n,n],
-            [a,a,a,a], simplex)) mod 2;
-    od;
-    return result;
+    return KOAHSS_NaturalChiANFValue(n,a,simplex);
 end);
 
 # The Cartan word of zeta_kind in input degree n>0, as a word evaluator.

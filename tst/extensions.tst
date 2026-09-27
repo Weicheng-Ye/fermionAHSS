@@ -31,8 +31,27 @@ gap> Assert(0,extFreeQuotient.invariants=[0,2]);
 gap> extError := function(f) local old,result; old:=BreakOnError; BreakOnError:=false; result:=CALL_WITH_CATCH(f,[]); BreakOnError:=old; return result[1]=false; end;;
 gap> Assert(0,extError(function() return koAHSSExtensionFromLayers(rec(D:=[2],C:=[2]),function(l,i,m,h) return rec(status:="computed",lowerPresentationId:="wrong",lowerCoordinates:=[1],witness:=true); end); end));
 Error, koAHSS: extension oracle returned a different lower basis
-gap> # Real higher-degree lifts; the quotient table is no longer audited.
-gap> extReal := koFull(CyclicGroup(2),0,0,3);;
+gap> # Real higher-degree lifts; the quotient table is not audited.
+gap> extReal := koFull_batch(CyclicGroup(2),0,0,3);;
 gap> Assert(0,extReal.invariants[5]=[0,8]);
 gap> Assert(0,extReal.degreeResults[5].abelianQuotientAssumed and not IsBound(extReal.degreeResults[5].algebraAudit));
 gap> Assert(0,ForAll(extReal.degreeResults[5].extensionVectors,v->v.layer="D" or v.result.witness.reduction.canonicalComparison.status="computed"));
+gap> # koFull solves the extension problem of degree k only.
+gap> extDegree := koFull(CyclicGroup(2),0,0,3);;
+gap> Assert(0,extDegree.kind="koFullDegreeResult" and extDegree.k=3 and extDegree.invariants=extReal.invariants[5]);
+gap> Assert(0,extDegree.degreeResult.relationMatrix=extReal.degreeResults[5].relationMatrix);
+gap> Print(koAHSSFormat(extDegree));
+Line p+q=0 (degree 3)
++----+---+-----+
+| q  | p | E6  |
++----+---+-----+
+| 0  | 0 |  Z  |
+| -1 | 1 | Z/2 |
+| -2 | 2 | Z/2 |
+| -3 | 3 |  0  |
+| -4 | 4 | Z/2 |
++----+---+-----+
+0 = zero group.
+Degree 3: Z + Z/8
+gap> koFull(CyclicGroup(2),0,0);
+Error, usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)

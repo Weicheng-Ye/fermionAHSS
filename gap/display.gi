@@ -1,5 +1,69 @@
 # Human-readable view of raw and tagged koAHSS invariant tables.  Storage
 # remains q=-4,...,0; only the display reverses rows to q=0,...,-4.
+
+# One invariant cell: 0, Z, Z/n and their sums and powers; ? if unresolved.
+BindGlobal("KOAHSS_CellText", function(cell)
+    local factors, pair, term;
+    if IsRecord(cell) then return "?"; fi;
+    if IsEmpty(cell) then return "0"; fi;
+    factors := [];
+    # Collected sorts a copy and preserves the caller's invariants.
+    for pair in Collected(cell) do
+        if pair[1]=0 then term := "Z";
+        else term := Concatenation("Z/",String(pair[1])); fi;
+        if pair[2]>1 then
+            if pair[1]<>0 then term := Concatenation("(",term,")"); fi;
+            term := Concatenation(term,"^",String(pair[2]));
+        fi;
+        Add(factors,term);
+    od;
+    return JoinStringsWithSeparator(factors," + ");
+end);
+
+# The line p+q=k-3 of each page of a koAHSS result, rows q=0,...,-4 with p>=0.
+BindGlobal("KOAHSS_FormatLine", function(line, selected)
+    local pages, lines, index, header, rows, q, widths, centered, format,
+        output;
+    pages := line.pageNumbers; lines := line.lines;
+    if selected<>fail then
+        index := Position(pages,selected);
+        if index=fail then
+            Error("koAHSSFormat: the requested page is absent from result");
+        fi;
+        pages := [selected]; lines := [lines[index]];
+    fi;
+    header := Concatenation(["q","p"],
+        List(pages, r -> Concatenation("E",String(r))));
+    rows := [];
+    for q in [0,-1..-4] do
+        if line.k-3-q>=0 then
+            Add(rows,Concatenation([String(q),String(line.k-3-q)],
+                List(lines, l -> KOAHSS_CellText(l[q+5]))));
+        fi;
+    od;
+    widths := List([1..Length(header)], j -> Maximum(Concatenation(
+        [Length(header[j])], List(rows, r -> Length(r[j])))));
+    centered := function(text,width)
+        local left;
+        left := QuoInt(width-Length(text),2);
+        return Concatenation(ListWithIdenticalEntries(left,' '),text,
+            ListWithIdenticalEntries(width-Length(text)-left,' '));
+    end;
+    format := r -> Concatenation("|",Concatenation(List([1..Length(r)],
+        j -> Concatenation(" ",centered(r[j],widths[j])," |"))));
+    output := [Concatenation("Line p+q=",String(line.k-3)," (degree ",
+        String(line.k),")"), Concatenation("+",Concatenation(List(widths,
+        w -> Concatenation(ListWithIdenticalEntries(w+2,'-'),"+"))))];
+    Append(output,[format(header),output[2]]);
+    Append(output,List(rows,format));
+    Add(output,output[2]);
+    Add(output,"0 = zero group.");
+    if ForAny(rows, r -> "?" in r) then
+        Add(output,"? = unresolved; inspect the original entry for details.");
+    fi;
+    return Concatenation(JoinStringsWithSeparator(output,"\n"),"\n");
+end);
+
 InstallGlobalFunction(koAHSSFormat, function(arg)
     local result, selected, isCell, isTable, cellText, centered, formatTable,
         tables, pageNumbers, width, index;
@@ -13,6 +77,17 @@ InstallGlobalFunction(koAHSSFormat, function(arg)
         if not IsInt(selected) or not selected in [2..6] then
             Error("koAHSSFormat: page r must be an integer in [2..6]");
         fi;
+    fi;
+    if IsRecord(result) and IsBound(result.kind) and result.kind="koAHSSLine" then
+        return KOAHSS_FormatLine(result,selected);
+    fi;
+    if IsRecord(result) and IsBound(result.kind) and result.kind="koFullDegreeResult" then
+        if result.status="computed" then
+            return Concatenation(KOAHSS_FormatLine(result.line,fail),"Degree ",
+                String(result.k),": ",KOAHSS_CellText(result.invariants),"\n");
+        fi;
+        return Concatenation(KOAHSS_FormatLine(result.line,fail),"Degree ",
+            String(result.k),": unresolved (",result.reason,")\n");
     fi;
     isCell := function(cell)
         if IsRecord(cell) then
@@ -96,23 +171,7 @@ InstallGlobalFunction(koAHSSFormat, function(arg)
     else
         Error("koAHSSFormat: expected a raw five-row table, E2-first list, tagged pages, or detailed result with valid invariant cells");
     fi;
-    cellText := function(cell)
-        local factors, pair, term;
-        if IsRecord(cell) then return "?"; fi;
-        if IsEmpty(cell) then return "0"; fi;
-        factors := [];
-        # Collected sorts a copy and preserves the caller's invariants.
-        for pair in Collected(cell) do
-            if pair[1]=0 then term := "Z";
-            else term := Concatenation("Z/",String(pair[1])); fi;
-            if pair[2]>1 then
-                if pair[1]<>0 then term := Concatenation("(",term,")"); fi;
-                term := Concatenation(term,"^",String(pair[2]));
-            fi;
-            Add(factors,term);
-        od;
-        return JoinStringsWithSeparator(factors," + ");
-    end;
+    cellText := KOAHSS_CellText;
     centered := function(text,width)
         local left;
         left := QuoInt(width-Length(text),2);

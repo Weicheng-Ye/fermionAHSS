@@ -82,7 +82,7 @@ gap> # signed k4 A-doubling relation, including its integral boundary carry.
 gap> # These are complete tuples; no expected abelian-group invariant is used.
 gap> gaugeActualFour := function()
 > local ahss,model,target,canonical,proof;
-> ahss:=koAHSS(CyclicGroup(2),[1],[1],4,rec(details:=true));
+> ahss:=koAHSS_batch(CyclicGroup(2),[1],[1],4,rec(details:=true));
 > model:=KOAHSS_ExtensionBarModel(ahss._context.backend,4);
 > target:=rec(A:=[2],B:=[0],C:=[0],D:=[-42]);
 > canonical:=rec(A:=[0],B:=[1],C:=[1],D:=[-18]);
@@ -98,7 +98,7 @@ gap> Assert(0,gaugeActualFourProof.product=rec(A:=[2],B:=[0],C:=[0],D:=[-42]));
 gap> # With no A gauge in k3, the same API compares marked C/D tuples.
 gap> gaugeActualThree := function()
 > local ahss,model,tuple,proof;
-> ahss:=koAHSS(CyclicGroup(2),0,0,3,rec(details:=true));
+> ahss:=koAHSS_batch(CyclicGroup(2),0,0,3,rec(details:=true));
 > model:=KOAHSS_ExtensionBarModel(ahss._context.backend,3);
 > tuple:=rec(A:=[0],B:=[0],C:=[1],D:=[1]);
 > proof:=KOAHSS_ExtensionGaugeCompare(model,3,tuple,tuple);

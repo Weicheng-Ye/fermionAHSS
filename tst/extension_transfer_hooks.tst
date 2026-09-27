@@ -30,16 +30,16 @@ gap> Assert(0,transferHookRelation.canonicalComparison.certificateLevel="transfe
 gap> Assert(0,ForAll(transferHookRelation.reductionSteps,step->step.boundary.equation="state = act(gauge, canonical)"));
 gap> # The ordinary public API preserves an explicitly supplied resolution.
 gap> transferHookResolution:=ResolutionFiniteGroup(CyclicGroup(2),5);;
-gap> transferHookFull:=koFull(transferHookResolution,0,0,2);;
+gap> transferHookFull:=koFull_batch(transferHookResolution,0,0,2);;
 gap> Assert(0,transferHookFull.invariants=[[0],[],[2,2],[2,2]]);
 gap> Assert(0,IsIdenticalObj(transferHookFull.ahss._context.resolution,transferHookResolution));
 gap> Assert(0,transferHookFull.gaugeCompletenessAssumed and not IsBound(transferHookFull.extensionModel));
-gap> koFull(CyclicGroup(2),0,0,1,rec(extensionModel:="transfer"));
-Error, usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)
-gap> koFull(transferHookFull.ahss,rec(extensionModel:="bar"));
-Error, usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)
-gap> koFull(transferHookFull.ahss,rec());
-Error, usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)
+gap> koFull_batch(CyclicGroup(2),0,0,1,rec(extensionModel:="transfer"));
+Error, usage: koFull_batch(group or HAP resolution,s,omega,k) or koFull_batch(detailedE6Result)
+gap> koFull_batch(transferHookFull.ahss,rec(extensionModel:="bar"));
+Error, usage: koFull_batch(group or HAP resolution,s,omega,k) or koFull_batch(detailedE6Result)
+gap> koFull_batch(transferHookFull.ahss,rec());
+Error, usage: koFull_batch(group or HAP resolution,s,omega,k) or koFull_batch(detailedE6Result)
 gap> # C8 exceeds the complete-bar budget. Its native result requires no bar
 > # construction, certification hook, or exceptional C2 basis isomorphism.
 gap> transferSavedBarFactory:=KOAHSS_ExtensionBarModel;;
@@ -58,7 +58,7 @@ gap> KOAHSS_ExtensionTransferredModel:=function(backend,k)
 > return native;
 > end;;
 gap> transferLargeR:=ResolutionFiniteGroup(CyclicGroup(8),6);;
-gap> transferLargeFull:=koFull(transferLargeR,0,0,3);;
+gap> transferLargeFull:=koFull_batch(transferLargeR,0,0,3);;
 gap> Assert(0,transferLargeFull.status="computed" and transferLargeFull.invariants[5]=[0,2,16]);
 gap> Assert(0,IsIdenticalObj(transferLargeFull.ahss._context.resolution,transferLargeR));
 gap> Assert(0,transferLargeFull.degreeResults[5].certificateLevel="transfer-R" and transferLargeFull.degreeResults[5].gaugeCompletenessAssumed);
@@ -67,7 +67,7 @@ gap> Assert(0,not IsBound(transferLargeFull.degreeResults[5].modelSelection) and
 gap> # Setup refusal remains unresolved, without a complete-bar retry.
 gap> transferRefusalCloses:=0;;
 gap> KOAHSS_ExtensionTransferredModel:=function(backend,k) return rec(status:="unresolved",reason:="controlled native setup refusal",close:=function() transferRefusalCloses:=transferRefusalCloses+1; end); end;;
-gap> transferRefusedFull:=koFull(transferLargeFull.ahss);;
+gap> transferRefusedFull:=koFull_batch(transferLargeFull.ahss);;
 gap> Assert(0,transferRefusedFull.degreeResults[5].status="unresolved" and transferRefusedFull.degreeResults[5].pendingLayer="model-setup");
 gap> Assert(0,transferRefusedFull.degreeResults[5].reason="controlled native setup refusal" and transferRefusalCloses=1);
 gap> Assert(0,not IsBound(transferRefusedFull.degreeResults[5].transferAttempt));
@@ -75,7 +75,7 @@ gap> # Degree six is unresolved even for zero layers, without a model request.
 gap> transferZeroGroup:=AbelianGroup(IsPcpGroup,[]);;
 gap> transferZeroCell:=rec(group:=transferZeroGroup,lift:=x->x);;
 gap> transferZeroAHSS:=rec(kind:="koAHSSResult",computedThrough:=6,maxDegree:=6,pages:=rec(pageNumbers:=[6]),_context:=rec(getCell:=function(page,p,q) return transferZeroCell; end,backend:=rec(cohomologyData:=function(p,q) return rec(represent:=x->[]); end)));;
-gap> transferSixFull:=koFull(transferZeroAHSS);;
+gap> transferSixFull:=koFull_batch(transferZeroAHSS);;
 gap> Assert(0,transferRefusalCloses=4);
 gap> Assert(0,transferSixFull.degreeResults[8].status="unresolved" and transferSixFull.degreeResults[8].pendingLayer="model-setup");
 gap> Assert(0,transferSixFull.degreeResults[8].reason="native extension degree six is not implemented");

@@ -1,11 +1,11 @@
 # The nonlinear differential through dimension six
 
-For the later requirement with first component \(\delta_sA\) and arbitrary
-input cochains, see [all_cochain_differential.md](all_cochain_differential.md).
-This note remains the explicit defining-system part of that construction.
+For the extension to arbitrary input cochains, with first component
+\(\delta_sA\), see [all_cochain_differential.md](all_cochain_differential.md).
+This note is the explicit defining-system part of that construction.
 
-Revised 2026-09-25 on the requested domain: the first two layer equations
-hold, while the last two cochains are arbitrary. The formulas below give
+On the domain of this note the first two layer equations hold, while the
+last two cochains are arbitrary. The formulas below give
 an integer-valued fourth component and a literal identity
 \(\mathfrak d_{k+1}\mathfrak d_k=0\). No definition of addition or stacking
 is needed for this composition calculation.
@@ -62,7 +62,7 @@ All products, integral signs and sign transports are those of
 Let \(\tau_k\in Z^k(X;\mathbf F_2)\) and the rational
 \(\Omega_k\in C^{k+1}(X;\mathbf Q_s)\) be specified in the table below.
 The table uses the input variables in dimension \(k\), and
-\(\tau'_n(A;B)\), \(\widehat R_n(A,B)\) retain their current calibrated
+\(\tau'_n(A;B)\), \(\widehat R_n(A,B)\) retain their calibrated
 meaning. Their definitions are given in Sections 4–5.
 
 | k | Input degrees (A,B,C,D) | \(\tau_k\) | \(\Omega_k\) |
@@ -110,7 +110,7 @@ The optional package degree \(k=-1\) uses the same expression with
 When \(t_k=0\), the two corrections in (4) vanish literally. Thus
 \(J_2=\psi'_0(B_2;C_2)\), and
 \(J_k=T_{k-3}(A_k;B_k,C_k)\) for \(3\le k\le6\), with the same integral
-representatives as the current formulas. The choice of plus sign in
+representatives as the implemented formulas. The choice of plus sign in
 \(\delta_sD_k+J_k\) makes a zero of the fourth component satisfy
 \(\delta_sD_k=-J_k\).
 
@@ -458,86 +458,43 @@ cochains is available in every degree as
 
 At \(k=0\), the second iterate vanishes directly by \(\delta_s^2=0\).
 
-## 7. Explicit verification and source record
+## 7. Finite checks and sources
 
 The symbolic proof (19)–(27) establishes the identity in general.
-Exact-arithmetic diagnostics additionally checked the representative
-conventions, correction indices, integrality, and signs:
+Exact-arithmetic checks with the fixed phase assemblers additionally
+confirmed the representative conventions, correction indices, integrality
+and signs:
 
 - 100 generic-twist simplex inputs each for \(k=1,2\): all integrality
   and second-iterate checks passed.
 - 12 cases for \(k=3,4,5,6\): 96 integer boundary-face evaluations and
   12 literal second iterates passed. Six cases had nonzero \(B\),
-  \(\tau\), and the new cup correction, with nonclosed \(C\).
+  \(\tau\), and the residual cup correction, with nonclosed \(C\).
 - The degree-zero tertiary cases include signed odd \(A=\pm3\), even
   \(A=\pm2\), and even \(A=\pm6\) with a nonzero quarter-input carry.
-- The full fixed production phase assemblers were used. For \(k=3,4,5\),
-  the second application also evaluated the next production assembler at
-  \((0,0,t_k)\); for \(k=6\), it used the explicit rule (24).
+- For \(k=3,4,5\), the second application evaluated the next phase
+  assembler at \((0,0,t_k)\); for \(k=6\), it used the explicit rule (24).
 
-The higher-degree samples deliberately use sparse signed \(A\). Their
-cubic and prime-three terms can vanish, so these are checks of the new
-square-zero formula, not an independent audit of every calibration term.
-No calibration data or runtime operation was changed.
+The higher-degree samples use sparse signed \(A\). Their cubic and
+prime-three terms can vanish, so these are checks of the square-zero
+formula, not an independent audit of every calibration term. Finite
+checks neither establish naturality nor replace the algebraic proofs.
+Checks of the [all-cochain extension](all_cochain_differential.md), whose
+first output is \(\delta_sA\), do not enlarge the domain (2) of the
+defining-system formula (4).
 
-Reproducible scripts, full inputs, rational values, and results are under
-the [local verification archive](/Users/victor/Documents/miscellaneous/fermionAHSS/20260925-nonlinear-square-zero/README.md).
-The archive has been moved outside the repository; the results and their
-scope are retained here. This consolidation did not rerun calculations.
-
-### 7.1. Separate evidence for arbitrary lower inputs
-
-The same archive also contains checks of the later
-[all-cochain extension](all_cochain_differential.md), whose first output
-is \(\delta_sA\). Those checks do **not** enlarge the domain (2) of
-the defining-system formula (4):
-
-- The first all-cochain report has five signed, nonzero-\(\omega\)
-  inputs in \(k=2,3,4,5,6\). The \(k=2\) input has nonclosed \(B\);
-  the others have nonclosed \(A\). In \(k=2\) through \(5\), all 200
-  cylinder T values and 30 output \(g\) face values were integral,
-  and all four second iterates were exactly zero. There were 31 nonzero
-  cylinder values. Two next-T values were 1 and \(-2\), so the checks
-  include cancellation of nonzero summands.
-- The dense-input audit independently populated integer \(A,D\) and
-  binary \(B,C\), including mixed signs and parity in \(A\), nonclosed
-  \(D\), and a family with signed-closed \(A\) but invalid \(B\).
-  Six full compositions passed, two each in \(k=2,3,6\), with 144
-  integral cylinder values, of which 70 were nonzero. Four further
-  \(k=4,5\) cases checked only the lower three components and
-  \(\delta_s^2D\); their top components remain **uncomputed**, not
-  passing full checks. Three recorded top-evaluation attempts timed
-  out or were interrupted after a preceding timeout.
-- The arbitrary-input \(k=6\) entries in these two reports used the
-  **historical zero branch outside the defining domain** (including
-  ten zero output face values in the first report). They are not tests
-  of the repaired \(g_6=T_3(\mathcal R_6u)\) branch. The current repair
-  and its separate verification are recorded in
-  [all_cochain_differential.md](all_cochain_differential.md). The
-  defining-domain \(k=6\) tests above still apply to the unchanged
-  \(J_6\), including its pure-C successor rule (24).
-
-The archived scripts were code-reviewed; the low-degree report and the
-\((\mathbf Z/4)^4\) report below were independently reproduced, and
-the all-cochain \(k=2\) case was rerun after its H2 expression was
-aligned with (A10) of the all-cochain note. Finite checks neither
-establish naturality nor replace the algebraic square-zero proofs. The
-sparse high-degree samples do not independently test the cubic or
-prime-three calibration terms.
-
-The current representatives are those in
+The representatives are those in
 [secondary_operations.md](secondary_operations.md),
 [tertiary_operations.md](tertiary_operations.md), and
 [universal_helpers.md](universal_helpers.md). The source comparison also
-read [Wang–Gu, arXiv:1811.00536v3](https://arxiv.org/html/1811.00536v3)
-and the supplied companion PDFs:
-[generic parity](../../fermionAHSS_math/O5_generic_symmetry_multilayers.pdf),
-[degree-four/five progress](../../fermionAHSS_math/O4_O5_progress_report.pdf),
-[untwisted O6](../../fermionAHSS_math/O6_detailed_note.pdf), and
-[two-layer p+ip](../../fermionAHSS_math/double_pip_O3_O4_obstruction_note.pdf).
-The new step here is (4), which extends the last two components to arbitrary
-\(C,D\) on the specified lower-stage domain and verifies their literal
-square-zero composition.
+used [Wang–Gu, arXiv:1811.00536v3](https://arxiv.org/html/1811.00536v3)
+and the unbundled companion notes `O5_generic_symmetry_multilayers.pdf`
+(generic parity), `O4_O5_progress_report.pdf` (degrees four and five),
+`O6_detailed_note.pdf` (untwisted O6) and
+`double_pip_O3_O4_obstruction_note.pdf` (two-layer p+ip). Formula (4)
+extends the last two components to arbitrary \(C,D\) on the specified
+lower-stage domain, and Section 6 proves their literal square-zero
+composition.
 
 ## 8. Nonzero obstruction for A=2 on B(Z/4)^4
 
@@ -587,7 +544,7 @@ E_2(C)=C\smile C+C\smile_1\delta C+\omega\smile C,\\
 \]
 
 The third-layer residual is zero here, so (4) contributes no residual
-correction. In particular this example is independent of the later
+correction. In particular this example is independent of the
 all-cochain extension away from the defining domain.
 
 The oriented bar cycle
@@ -610,7 +567,7 @@ the cup-one correction contributes zero. Hence
 \tag{32}
 \]
 
-The supplied two-layer p+ip PDF uses a positive quadratic-phase
+The two-layer p+ip note uses a positive quadratic-phase
 convention and gives \(+i\) for its canonical choice. Both conclusions
 are nonzero; no equality of their complete cochain representatives is
 asserted. Since \(G\) is finite, its positive-degree rational cohomology
@@ -655,15 +612,15 @@ whereas its second term always pairs to \(-1/4\). Consequently
 This includes arbitrary exact shifts of \(C\), so the Dtilde
 indeterminacy cannot kill the class either. In the actual page quotient,
 \(\boxed{T_0(2)=d_5(2)\ne0}\): the physical dimension is \(k=3\),
-the page differential is \(d_5\), and the PDF calls the same obstruction
+the page differential is \(d_5\), and the p+ip note calls the same obstruction
 \(O_4\) by the degree of its phase.
 
-The archived production-formula check verified all 24 detecting
+An exact check with the fixed phase formulas verified all 24 detecting
 simplices, the zero integer bar boundary, and the exact periods in
 (32). It also checked 128 sampled lower equations and 32 integral top
 values. All 1024 shifts by the ten basis classes \(x_ix_j\) and \(y_i\)
 of \(H^2(G;\mathbf F_2)\) were evaluated: 512 had phase residue
-\(1/4\), and 512 had residue \(3/4\); none was zero. These recorded
-checks support (28)–(35); the argument above covers all cochain choices.
+\(1/4\), and 512 had residue \(3/4\); none was zero. These checks
+support (28)–(35); the argument above covers all cochain choices.
 They are not a full GAP AHSS table calculation for this 256-element
-group. No runtime source or calibration data were changed.
+group.

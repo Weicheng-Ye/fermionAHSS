@@ -2,32 +2,28 @@
 
 These documents describe the fixed bar formulas and resolution-based
 implementation of fermionAHSS.
-They adapt the consolidated formula references and relevant backend/status
-documentation from the koAHSS research workspace. They preserve the
-formulas and calibration data while updating transport and Python paths.
 
 | Document | Contents |
 | --- | --- |
 | [conventions.md](conventions.md) | Signed coefficients, interval-cut words, integral signs, binary lifts, primary maps, bar comparison, and defining-cochain corrections |
 | [secondary_operations.md](secondary_operations.md) | Complete Tau and Psi formulas, exact common lift, domains, and indeterminacy |
-| [tertiary_operations.md](tertiary_operations.md) | Implemented R0–R3 phases, current cubic correction, and all 19 prime-three terms |
+| [tertiary_operations.md](tertiary_operations.md) | Implemented R0–R3 phases, the cubic term of R2, and all 19 prime-three terms |
 | [universal_helpers.md](universal_helpers.md) | Chi ANF decoding and degree table, zeta words, universal contractors, finite source tables, and every normalization selector |
 | [universal_value_growth.md](universal_value_growth.md) | Growth and periodicity of the two stored universal source values: exact decomposition of the pair source, closed form of the degree-one contraction, affine growth of `V_1` on residue classes, and the finite data that determine them |
 | [backends.md](backends.md) | HAP, cochain, and page interfaces; direct-operation audits and exact quotient conventions |
-| [extensions.md](extensions.md) | Detailed AHSS results, `koFull`, retained flat tuples, exact boundary comparisons, common-coordinate Smith presentations, and the abelian-quotient assumption |
-| [transfer.md](transfer.md) | Initial resolution-transfer plan review, exact retraction preflight, completeness counterexample, and historical prerequisite measurements |
+| [extensions.md](extensions.md) | Detailed AHSS results, `koFull` and `koFull_batch`, retained flat tuples, exact gauge comparisons, common-coordinate Smith presentations, and the abelian-quotient assumption |
+| [transfer.md](transfer.md) | Resolution transfer: the retraction check, the normalized homotopy, conditional flatness and reflection, a counterexample to gauge completeness, and the preflight |
 | [resolution-extensions.md](resolution-extensions.md) | Native extension API, sparse normalized transport, gauge-completeness assumption and native completion checks |
-| [extension-paper-comparisons.md](extension-paper-comparisons.md) | Full-group literature fixtures, dimension and twist conventions, and recorded comparison outcomes |
-| [extension-gauge-verification.md](extension-gauge-verification.md) | Staged higher-layer gauges, the C2h regression witness, and bounded verification evidence |
-| [mathematical-status.md](mathematical-status.md) | Implemented range, mathematical assumptions, historical verification, and unresolved scope |
+| [extension-paper-comparisons.md](extension-paper-comparisons.md) | Full-group literature fixtures, dimension and twist conventions, and the measured relations of the C2 cases |
+| [mathematical-status.md](mathematical-status.md) | Implemented range, mathematical assumptions, sources, and unresolved scope |
 | [dimension_indexed_differentials.md](dimension_indexed_differentials.md) | Explicit nonlinear differential through k=6 on the first-two-layer domain, the residual correction, and a literal square-zero proof |
-| [all_cochain_differential.md](all_cochain_differential.md) | Piecewise extension to arbitrary cochains with first component δ_sA, complete degree table, exact square-zero proof, and unchanged defining-system obstructions; not a natural local extension |
+| [all_cochain_differential.md](all_cochain_differential.md) | Piecewise extension to arbitrary cochains with first component δ_sA, complete degree table, exact square-zero proof, and the defining-system obstructions; not a natural local extension |
 
 The large chi word lists are encoded exactly by
 [data/chi-calibrated-degree7-anf.g](../data/chi-calibrated-degree7-anf.g)
 and the decoding rule in the helper reference. This is the complete
-runtime coefficient data; the original millions of word summands are
-not needed separately.
+runtime coefficient data; the millions of word summands are not needed
+separately.
 
 ## Names and fixed coefficients
 
@@ -52,7 +48,7 @@ are in [tertiary_operations.md](tertiary_operations.md).
 | Chi family | `chi7_tail` |
 | Secondary epsilon, eta | `(1,0,0)`, `(1,0,1)` |
 | Tertiary low-selector vector \(\boldsymbol{\zeta}=(\zeta_1,\zeta_2,\zeta_3)\) | `(0,1,0)` |
-| Current R2 | `R2sharp = R2old - A^cup3/4` |
+| R2 | `R2sharp`, including the term `-A^cup3/4` |
 | Final T rank correction and mu_R | `0`, `0` |
 | R3 selectors c4,cN,cO,cM,epsilon_c | `(1,0,1,1,1)` |
 | R3 xi | `3/4` |
@@ -80,14 +76,15 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [phase_eval.py](../python/phase_eval.py) | Shared lower phase, source splitting, chi, polarization and hD, integrality checks |
 | [mod3_power.py](../python/mod3_power.py) | Prime-three formula and signed transport |
 | [pages.gi](../gap/pages.gi) | Exact homology, surviving representatives, and page quotients |
-| [extensions.gi](../gap/extensions.gi) | Marked abelian extension presentations, Smith transformations, and the `koFull` wrapper |
+| [group_api.gi](../gap/group_api.gi) | `koAHSS` and `koAHSS_batch` for finite groups and supplied resolutions |
+| [extensions.gi](../gap/extensions.gi) | Marked abelian extension presentations, Smith transformations, `koFull` and `koFull_batch` |
 | [stacking_extensions.gi](../gap/stacking_extensions.gi) | Production low-degree `xtimes` relation measurements and exact lower-layer reduction |
 | [extension_lifts.gi](../gap/extension_lifts.gi) | Immutable full generator lifts, affine B/C defining choices, integral D solves, and exact flatness witnesses |
 | [extension_transfer.gi](../gap/extension_transfer.gi) | Native extension model, exact retraction preflight and sparse normalized transport |
 | [extension_transfer.py](../python/extension_transfer.py) | Lazy transferred curvature, products and gauge actions using the fixed formulas |
 | [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: structural zeros, identity-memoized builders, persistent universal values |
 | [generate_universal_values.py](../python/generate_universal_values.py) | Recomputes the bundled universal values in [universal-values.json](../data/universal-values.json) for the current formula sources |
-| [extension_bar.gi](../gap/extension_bar.gi) | Legacy bounded complete finite-bar model, retained for reference tests |
+| [extension_bar.gi](../gap/extension_bar.gi) | Bounded complete finite-bar model, used only as a reference by the tests |
 | [extension_relations.gi](../gap/extension_relations.gi) | Powers of fixed full lifts, common lower coordinates, and retained reduction carries |
 | [extension_equivalence.gi](../gap/extension_equivalence.gi) | Exact ordered native gauge comparison, without assumed cochain associativity |
-| [extension_degree_six.gi](../gap/extension_degree_six.gi) | Legacy basis data for the bounded complete-bar degree-six section |
+| [extension_degree_six.gi](../gap/extension_degree_six.gi) | Basis data for the degree-six section of the complete-bar reference model |

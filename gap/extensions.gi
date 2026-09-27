@@ -179,16 +179,8 @@ BindGlobal("KOAHSS_ExtensionLayers",function(context,degree)
     return result;
 end);
 
-InstallGlobalFunction(koFull,function(arg)
-    local ahss, context, degrees, results, invariants, degree, layers, oracle,
-        result, status, model, computeDegree, runDegree;
-    if Length(arg)=4 then
-        ahss:=koAHSS(arg[1],arg[2],arg[3],arg[4],rec(details:=true));
-    elif Length(arg)=1 and IsRecord(arg[1]) then
-        ahss:=arg[1];
-    else
-        Error("usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)");
-    fi;
+# A detailed koAHSS_batch result computed through E6, with its cochain context.
+BindGlobal("KOAHSS_DetailedE6Context",function(ahss)
     if not IsBound(ahss.kind) or ahss.kind<>"koAHSSResult"
         or not IsBound(ahss.computedThrough) or ahss.computedThrough<>6
         or not IsBound(ahss._context) or not IsBound(ahss._context.getCell)
@@ -196,8 +188,14 @@ InstallGlobalFunction(koFull,function(arg)
         or not IsBound(ahss.pages) or not 6 in ahss.pages.pageNumbers then
         Error("koFull: a detailed E6 result with retained cochain context is required");
     fi;
-    context:=ahss._context; degrees:=[-1..ahss.maxDegree]; results:=[]; invariants:=[];
-    model:=fail;
+    return ahss._context;
+end);
+
+# The extension problem of one degree: its E6 layers A (degree-3,0),
+# B (degree-2,-1), C (degree-1,-2) and D (degree+1,-4).
+BindGlobal("KOAHSS_FullDegree",function(context,degree)
+    local layers, oracle, model, computeDegree, attempt, oldBreak, answer;
+    layers:=fail; model:=fail;
     computeDegree:=function()
         local candidate;
         layers:=KOAHSS_ExtensionLayers(context,degree);
@@ -236,27 +234,35 @@ InstallGlobalFunction(koFull,function(arg)
         fi;
         return candidate;
     end;
-    runDegree:=function()
-        local attempt,oldBreak,answer;
-        model:=fail;
-        oldBreak:=BreakOnError; BreakOnError:=false;
-        attempt:=CALL_WITH_CATCH(computeDegree,[]);
-        BreakOnError:=oldBreak;
-        if model<>fail and IsBound(model.close) then model.close(); fi;
-        if attempt[1] then answer:=attempt[2];
-        elif model<>fail and IsBound(model.lastFailure) and model.lastFailure.status="unresolved" then
-            answer:=rec(status:="unresolved",reason:=model.lastFailure.reason,pendingLayer:="resource-limit");
-        else
-            Error("koFull: exact extension calculation failed; the original error is reported above");
-        fi;
-        answer.degree:=degree; answer.layers:=layers;
-        if model<>fail and IsBound(model.modelId) then answer.modelId:=model.modelId; fi;
-        # Each native worker supports one degree. Release it and its RPC caches.
-        model:=fail;
-        return answer;
-    end;
+    oldBreak:=BreakOnError; BreakOnError:=false;
+    attempt:=CALL_WITH_CATCH(computeDegree,[]);
+    BreakOnError:=oldBreak;
+    if model<>fail and IsBound(model.close) then model.close(); fi;
+    if attempt[1] then answer:=attempt[2];
+    elif model<>fail and IsBound(model.lastFailure) and model.lastFailure.status="unresolved" then
+        answer:=rec(status:="unresolved",reason:=model.lastFailure.reason,pendingLayer:="resource-limit");
+    else
+        Error("koFull: exact extension calculation failed; the original error is reported above");
+    fi;
+    answer.degree:=degree; answer.layers:=layers;
+    if model<>fail and IsBound(model.modelId) then answer.modelId:=model.modelId; fi;
+    return answer;
+end);
+
+InstallGlobalFunction(koFull_batch,function(arg)
+    local ahss, context, degrees, results, invariants, degree, result, status;
+    if Length(arg)=4 then
+        ahss:=koAHSS_batch(arg[1],arg[2],arg[3],arg[4],rec(details:=true));
+    elif Length(arg)=1 and IsRecord(arg[1]) then
+        ahss:=arg[1];
+    else
+        Error("usage: koFull_batch(group or HAP resolution,s,omega,k) or koFull_batch(detailedE6Result)");
+    fi;
+    context:=KOAHSS_DetailedE6Context(ahss);
+    degrees:=[-1..ahss.maxDegree]; results:=[]; invariants:=[];
     for degree in degrees do
-        result:=runDegree();
+        # Each native worker supports one degree and is released afterwards.
+        result:=KOAHSS_FullDegree(context,degree);
         Add(results,result);
         if result.status="computed" then Add(invariants,result.invariants);
         else Add(invariants,rec(status:=result.status,reason:=result.reason)); fi;
@@ -268,4 +274,26 @@ InstallGlobalFunction(koFull,function(arg)
         invariants:=invariants,degreeResults:=results,ahss:=ahss,
         pages:=ahss.pages,gaugeCompletenessAssumed:=true,
         status:=status,scope:="five-row-stacking-model",certified_ko:=false);
+end);
+
+# Degree k only: the pages through E6, then the extension problem of degree k.
+InstallGlobalFunction(koFull,function(arg)
+    local ahss, context, k, answer, result;
+    if Length(arg)=4 then
+        ahss:=koAHSS_batch(arg[1],arg[2],arg[3],arg[4],rec(details:=true));
+    elif Length(arg)=1 and IsRecord(arg[1]) then
+        ahss:=arg[1];
+    else
+        Error("usage: koFull(group or HAP resolution,s,omega,k) or koFull(detailedE6Result)");
+    fi;
+    context:=KOAHSS_DetailedE6Context(ahss);
+    k:=ahss.maxDegree;
+    answer:=KOAHSS_FullDegree(context,k);
+    result:=rec(kind:="koFullDegreeResult",k:=k,status:=answer.status,
+        line:=rec(kind:="koAHSSLine",k:=k,pageNumbers:=[6],lines:=[KOAHSS_PageLine(
+            ahss.pages.tables[Position(ahss.pages.pageNumbers,6)],k)]),
+        degreeResult:=answer,scope:="five-row-stacking-model",certified_ko:=false);
+    if answer.status="computed" then result.invariants:=answer.invariants;
+    else result.reason:=answer.reason; fi;
+    return result;
 end);

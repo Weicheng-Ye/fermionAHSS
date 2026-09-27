@@ -1,12 +1,12 @@
 # Finite groups or supplied integral HAP resolutions use fixed bar transport.
 # Nonzero twist vectors are coordinates in this resolution, not abstract
 # cohomology-class labels; use the explicit-resolution API to control a basis.
-InstallGlobalFunction(koAHSS, function(arg)
+InstallGlobalFunction(koAHSS_batch, function(arg)
     local group, k, count, depth, resolution, space, pageArgs, options,
         hasCount, context, tables, result, completed, modelId, calibrationId,
         suppliedResolution,available;
     if not Length(arg) in [4..6] then
-        Error("usage: koAHSS(group or HAP resolution, s, omega, k[, n][, options])");
+        Error("usage: koAHSS_batch(group or HAP resolution, s, omega, k[, n][, options])");
     fi;
     suppliedResolution:=IsBoundGlobal("IsHapResolution") and
         CallFuncList(ValueGlobal("IsHapResolution"),[arg[1]]);
@@ -85,5 +85,40 @@ InstallGlobalFunction(koAHSS, function(arg)
         calibrationId := calibrationId, _context := context,
         scope := "five-row-associated-graded", certified_ko := false);
     if completed then result.status := "computed"; fi;
+    return result;
+end);
+
+# The entries of one page on the line p+q=k-3, for q=-4,...,0; fail marks p<0.
+BindGlobal("KOAHSS_PageLine",function(table,k)
+    return List([-4..0],function(q)
+        if k-q-3<0 then return fail; fi;
+        return table[q+5][k-q-2];
+    end);
+end);
+
+# The line p+q=k-3 of the pages of koAHSS_batch, which contributes to degree
+# k. The lower lines are still computed, since the differentials into and out
+# of this line depend on them.
+InstallGlobalFunction(koAHSS, function(arg)
+    local batch, k, tables, pageNumbers, result;
+    if not Length(arg) in [4..6] then
+        Error("usage: koAHSS(group or HAP resolution, s, omega, k[, n][, options])");
+    fi;
+    batch := CallFuncList(koAHSS_batch, arg);
+    k := arg[4];
+    if IsRecord(batch) then
+        tables := batch.pages.tables; pageNumbers := batch.pages.pageNumbers;
+    elif Length(arg)>=5 and IsInt(arg[5]) then
+        tables := batch; pageNumbers := [2..Length(batch)+1];
+    else
+        tables := [batch]; pageNumbers := [6];
+    fi;
+    result := rec(kind := "koAHSSLine", k := k, pageNumbers := pageNumbers,
+        lines := List(tables, table -> KOAHSS_PageLine(table,k)));
+    if IsRecord(batch) then
+        result.status := batch.status;
+        result.cells := List(batch.pageData, data -> KOAHSS_PageLine(data,k));
+        result.scope := batch.scope; result.certified_ko := batch.certified_ko;
+    fi;
     return result;
 end);

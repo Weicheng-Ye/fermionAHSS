@@ -1,7 +1,8 @@
 # Extension API and implemented scope
 
-`koAHSS` computes the five-row associated graded through E6. `koFull`
-attempts to assemble its stacking extensions in every requested degree.
+`koAHSS` and `koAHSS_batch` compute the five-row associated graded
+through E6. `koFull` attempts to assemble its stacking extension in one
+degree, and `koFull_batch` in every degree up to a cutoff.
 The abstract abelian-group assembler accepts general finite or free
 layers. Its higher-degree relation oracle solves full flat cochain tuples,
 measures their actual stacking powers, and verifies their reduction in a
@@ -12,23 +13,27 @@ result retains `certified_ko=false`; see [mathematical status](mathematical-stat
 ## Detailed AHSS results
 
 ```gap
+koAHSS_batch(groupOrR, s, omega, k[, n][, options]);
 koAHSS(groupOrR, s, omega, k[, n][, options]);
 ```
 
-The four-argument call still returns one raw E6 table. With integer
-`n` in `[1..5]`, it still returns the raw E2-first list of `n` tables.
-The physical cutoff remains `-1 <= k <= 6`, and `n` counts pages.
+The four-argument call of `koAHSS_batch` returns one raw E6 table. With
+integer `n` in `[1..5]`, it returns the raw E2-first list of `n` tables.
+The physical cutoff is `-1 <= k <= 6`, and `n` counts pages. `koAHSS`
+takes the same arguments and returns the entries of those pages on the
+line `p+q=k-3` as a record of kind `"koAHSSLine"`; see the
+[README](../README.md#ahss-pages).
 
 Add `rec(details:=true)` as the fifth argument, or as the sixth argument
 after `n`, to retain representatives and the exact computation context.
-`rec(details:=false)` and an empty options record retain the corresponding
+`rec(details:=false)` and an empty options record return the corresponding
 raw output. Unknown option names and nonboolean `details` are errors.
 
 ```gap
-ahss := koAHSS(CyclicGroup(2), 0, 0, 2, rec(details:=true));;
+ahss := koAHSS_batch(CyclicGroup(2), 0, 0, 2, rec(details:=true));;
 ahss.kind;                        # "koAHSSResult"
 ahss.pages.pageNumbers;           # [6]
-ahss.pages.tables[1];             # the legacy E6 invariant table
+ahss.pages.tables[1];             # the raw E6 invariant table
 ```
 
 | Field | Meaning |
@@ -58,7 +63,7 @@ rec(kind:="koAHSSPages", pageNumbers:=[6], tables:=[ahss.pages.tables[1]])
 Labels are distinct integers in `[2..6]`, stored in the intended display
 order. All tables have the same display window. `koAHSSDisplay` and
 `koAHSSFormat` accept raw tables/lists, tagged pages, detailed AHSS
-results, and full results. Their existing table text is unchanged.
+results, `koAHSS` lines, and the results of `koFull` and `koFull_batch`.
 
 ```gap
 koAHSSDisplay(ahss);
@@ -67,11 +72,12 @@ koAHSSDisplay(ahss.pages, 6);
 
 For tagged input, an optional page number selects its actual label and
 an absent page is an error. For a raw single table, the optional number
-still labels that table; a raw list still begins at E2. Display never
-calculates extensions or appends an extension summary.
-`koAHSSDisplay(full)` and `koAHSSFormat(full)` select E6 by default;
-passing `full.pages` instead displays all retained pages. An explicit
-page number can select an earlier stored page from a full result.
+labels that table; a raw list begins at E2. Display never calculates
+extensions. For a `koFull_batch` result, `koAHSSDisplay(full)` and
+`koAHSSFormat(full)` select E6 by default and append no extension
+summary; passing `full.pages` instead displays all retained pages, and an
+explicit page number can select an earlier stored page. A `koFull` result
+is displayed as its E6 line followed by the group of its degree.
 
 ## The main calculation
 
@@ -79,25 +85,45 @@ page number can select an earlier stored page from a full result.
 full := koFull(group, s, omega, k);;
 full := koFull(R, s, omega, k);;
 full := koFull(ahss);;
+batch := koFull_batch(group, s, omega, k);;
+batch := koFull_batch(R, s, omega, k);;
+batch := koFull_batch(ahss);;
 ```
 
-The first form creates one resolution and backend, computes E6 once and
-attempts every package degree `j` in `[-1..k]`. It uses the same group,
-twist and cutoff conventions as `koAHSS`. There is no page-count argument.
-An integral HAP resolution may replace the group argument; it is retained
-without reconstruction. There is no model-selection option. The
+The forms with a group create one resolution and backend and compute E6
+once. `koFull` then attempts the extension in package degree `k`, and
+`koFull_batch` in every package degree `j` in `[-1..k]`. They use the same
+group, twist and cutoff conventions as `koAHSS`. There is no page-count
+argument. An integral HAP resolution may replace the group argument; it is
+retained without reconstruction. There is no model-selection option. The
 [native-resolution model](resolution-extensions.md) runs higher searches
 on R, checks exact sparse comparison identities, and assumes gauge
-completeness. Runtime completion uses native flatness, gauge and finite
-quotient checks. It never constructs a complete-bar model for certification
-or retries an unresolved degree with one. Native gauge records use the
-action equation described below.
+completeness. Runtime completion uses native flatness and gauge checks.
+It never constructs a complete-bar model for certification or retries an
+unresolved degree with one. Native gauge records use the action equation
+described below.
 
-The reuse form requires a detailed E6 result with its retained cochain
-context. It uses the same resolution and representative basis, preserving
-the input's tagged page selection. Thus a detailed `n=5` input continues
-to contain E2 through E6. Raw tables, an earlier-page result and a saved
-page payload without the context cannot be used for extension work.
+The reuse forms require a detailed E6 result with its retained cochain
+context, and `koFull(ahss)` solves degree `ahss.maxDegree`. They use the
+same resolution and representative basis; `koFull_batch` also preserves
+the input's tagged page selection, so a detailed `n=5` input continues to
+contain E2 through E6. Raw tables, an earlier-page result and a saved page
+payload without the context cannot be used for extension work.
+
+A `koFull` result has these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `kind` | `"koFullDegreeResult"` |
+| `k` | The package degree |
+| `invariants` | The abelian invariants of the group, when it is computed |
+| `reason` | The reason, when the degree is unresolved |
+| `status` | `"computed"` or `"unresolved"` |
+| `line` | The E6 entries on the line `p+q=k-3`, as a `koAHSS` line record |
+| `degreeResult` | The detailed extension calculation of degree `k` |
+| `scope`, `certified_ko` | `"five-row-stacking-model"` and `false` |
+
+A `koFull_batch` result has these fields:
 
 | Field | Meaning |
 | --- | --- |
@@ -111,15 +137,14 @@ page payload without the context cannot be used for extension work.
 | `scope`, `certified_ko` | `"five-row-stacking-model"` and `false` |
 
 Degree `j` is at index `j+2`, including degree -1 at index 1. Every degree
-record also stores `degree:=j` and its associated-graded `layers`. When a
-native model is available, its `modelId` is retained. Completed native
-calculations have `gaugeCompletenessAssumed=true` and
-`certificateLevel="transfer-R"`.
+record, including `full.degreeResult`, also stores `degree:=j` and its
+associated-graded `layers`. When a native model is available, its
+`modelId` is retained. Completed native calculations have
+`gaugeCompletenessAssumed=true` and `certificateLevel="transfer-R"`.
 
 ```gap
 full := koFull(CyclicGroup(2), 0, 0, 2);;
-full.invariants;
-result := full.degreeResults[2+2];;
+result := full.degreeResult;;
 if result.status="computed" then
     Print(result.invariants, "\n", result.basis.orders, "\n");
 fi;
@@ -232,8 +257,8 @@ koAHSSExtensionFromLayers(layers, oracle[, rec()]);
 `layers` is a record with any of `A`, `B`, `C`, `D`; omitted layers are
 zero. A layer is a list of independent generator orders, or a record
 containing `orders` and optional caller metadata. Orders must be integers
-greater than one or zero for free generators. The only currently accepted
-options record is empty.
+greater than one or zero for free generators. The only accepted options
+record is empty.
 
 For each required torsion relation the assembler calls
 `oracle(layer,i,m,lower)`. A computed response must contain
@@ -355,8 +380,9 @@ normal forms are not enumerated. Free quotient coordinates split in the
 intended abelian abutment category.
 
 Degree-six extensions remain explicitly unresolved. Their native formula
-is not implemented, and the old complete-bar finite section is not selected
-as a fallback. This does not change the calibrated E6 page computation.
+is not implemented, and the degree-six section of the complete-bar
+reference model is not used as a fallback. The calibrated E6 page
+computation covers degree six.
 
 The runtime bundles the selected stacking sources under
 [python/stacking_model](../python/stacking_model/) with their
@@ -368,7 +394,7 @@ No expected classification table is consulted at runtime.
 
 ## Low-degree adapter and resource limits
 
-The current group-bar adapter implements these relation measurements:
+The group-bar adapter implements these relation measurements:
 
 | Package degree | Supported torsion query | Conditions |
 | --- | --- | --- |
@@ -392,7 +418,7 @@ generality does not remove a production cochain requirement.
 
 The native implementation has explicit resource bounds:
 
-| Work | Current bound |
+| Work | Bound |
 | --- | --- |
 | Distinct g-support simplices per degree in preflight | 8192 |
 | Processed sparse transport expansion terms | 2,000,000 |
@@ -401,17 +427,18 @@ The native implementation has explicit resource bounds:
 | Gauge-comparison affine search | 4096 equation evaluations and 64 leading choices shared across requested stages; integral kernel coefficients initially bounded by absolute value 1 |
 | Alternative lower-coordinate search | 32 marked finite normal forms; 4096 equation evaluations shared across stages and candidates |
 
-These are implementation limits, not additional tuning arguments to `koFull`.
+These are implementation limits, not additional tuning arguments to `koFull`
+or `koFull_batch`.
 Repeated integer solves reuse exact Smith preparations, bounded by eight
 entries and two million retained matrix cells including transforms.
-States and matrices use R; the complete-bar dimension and matrix limits
-no longer gate native completion. The fixed formulas still use sparse bar
+States and matrices use R; complete-bar dimension and matrix limits do
+not gate native completion. The fixed formulas still use sparse bar
 transport, and global lower-degree predicates enumerate the simplices
 specified above. See [resolution extensions](resolution-extensions.md).
 
 The native model assumes gauge completeness. The
-[initial mathematical review](transfer.md) explains why a strict retraction
-and soundness of individual relations alone did not establish that claim.
+[transfer note](transfer.md) explains why a strict retraction and sound
+individual relations do not establish that claim.
 The assumption is recorded in results; the relation checks do not turn
 it into a proof.
 
@@ -420,8 +447,9 @@ failing to find a gauge within the bounded search is not evidence that an
 extension splits. Exact identity failures and inconsistent coordinate data
 are errors; unavailable witnesses leave the corresponding result unresolved.
 
-The [paper comparison record](extension-paper-comparisons.md) uses spatial
+The [paper comparisons](extension-paper-comparisons.md) use spatial
 dimension `d`, related to package degree by `j=d+1`. Paper dimension `d`
-therefore appears in `full.invariants[d+3]`. Compare complete invariant
+is therefore `koFull(...,d+1).invariants`, or `full.invariants[d+3]` for a
+`koFull_batch` result. Compare complete invariant
 lists with the same twists and phase convention; neither E6 layer-order
 products nor unresolved outputs establish a full-group match.

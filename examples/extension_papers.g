@@ -21,7 +21,7 @@ CallFuncList(function()
     for case in fixture.cases do
         if IsBound(case.reuse_case) then full:=cache.(case.reuse_case);
         else
-            full:=koFull(CyclicGroup(2),case.s,case.omega,case.cutoff);
+            full:=koFull_batch(CyclicGroup(2),case.s,case.omega,case.cutoff);
             cache.(case.id):=full;
             Print("Completed ",case.id,": ",full.status,"\n");
         fi;

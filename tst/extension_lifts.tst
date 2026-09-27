@@ -39,7 +39,7 @@ gap> # Production check: lift every marked generator, including the p+ip A
 gap> # generator, in the same complete bar basis used by the actual xtimes.
 gap> flatActualChecks := function(k,s,omega)
 > local ahss,layers,model,get,name,layer,i,lift,curvature,count;
-> ahss:=koAHSS(CyclicGroup(2),s,omega,k,rec(details:=true));
+> ahss:=koAHSS_batch(CyclicGroup(2),s,omega,k,rec(details:=true));
 > layers:=KOAHSS_ExtensionLayers(ahss._context,k);
 > model:=KOAHSS_ExtensionBarModel(ahss._context.backend,k);
 > get:=KOAHSS_ExtensionLiftSolver(ahss._context.backend,k,layers,model);

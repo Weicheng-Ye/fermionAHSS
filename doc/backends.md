@@ -2,13 +2,15 @@
 
 ## HAP resolutions
 
-The high-level `koAHSS(group,s,omega,k[,n])` wrapper constructs resolutions
-for finite groups. Its first argument can also be an explicit integral
-HAP resolution: `koAHSS(R,s,omega,k[,n][,options])` preserves R and its
-twist basis. `koFull` accepts the same explicit-resolution first argument
-and always uses native higher-extension searches in degrees 3–5, assuming
-gauge completeness. It has no model-selection option or complete-bar
-certification fallback; see [native extension searches](resolution-extensions.md).
+The high-level wrappers `koAHSS(group,s,omega,k[,n])` and
+`koAHSS_batch(group,s,omega,k[,n])` construct resolutions for finite
+groups. Their first argument can also be an explicit integral HAP
+resolution: `koAHSS_batch(R,s,omega,k[,n][,options])` preserves R and its
+twist basis. `koFull` and `koFull_batch` accept the same explicit-resolution
+first argument and use native higher-extension searches in degrees 3–5,
+assuming gauge completeness. They have no model-selection option or
+complete-bar certification fallback; see
+[native extension searches](resolution-extensions.md).
 For an explicitly constructed integral HAP resolution, use:
 
 ```gap
@@ -23,7 +25,7 @@ degree-zero generators are supported when each has augmentation one and
 the contraction is anchored at the first generator at the identity.
 An explicit resolution may model an infinite group if HAP supplies the
 required integral data; the finite-group convenience wrapper does not
-construct such a resolution. Native higher extensions currently require
+construct such a resolution. Native higher extensions require
 a finite group, one degree-zero generator and the checked strict
 retraction identity; the broader AHSS input domain does not remove those
 extension prerequisites.
@@ -87,8 +89,9 @@ representative; abstract ranks do not supply that information.
 target cocycle vectors. `ctx` contains `degree`, `cochain`, `s`, `omega`,
 `backend`, and current-page `source` and `target` cells. It also records the
 tertiary reference and correction coefficient. Final `T` has correction
-coefficient zero. The separate legacy `TReference` callback receives its
-coefficient-one correction exactly once; an explicit final `T` takes precedence.
+coefficient zero. A custom space may instead supply a `TReference` callback,
+to which the binary correction of `koAHSSTertiaryCorrection` is added once
+with coefficient one; an explicit `T` takes precedence.
 
 A callback may return `fail` or an unresolved record when unavailable.
 Bad callback types, invalid cocycles, failed identities, and inadequate

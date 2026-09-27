@@ -1,14 +1,17 @@
 # Extensions on a supplied resolution
 
-`koFull` solves higher extensions in the same integral HAP resolution used
-for the AHSS. It accepts a supplied resolution directly and retains the
-resolution object and the coordinates of its twists:
+`koFull` and `koFull_batch` solve higher extensions in the same integral
+HAP resolution used for the AHSS. They accept a supplied resolution
+directly and retain the resolution object and the coordinates of its
+twists:
 
 ```gap
 R := ResolutionFiniteGroup(CyclicGroup(4),6);;
 full := koFull(R,[1],0,3);;
 full.invariants;
-full.degreeResults[5].modelId;  # package degree 3
+full.degreeResult.modelId;          # package degree 3
+batch := koFull_batch(R,[1],0,3);;
+batch.degreeResults[5].modelId;     # package degree 3
 ```
 
 The finite-group constructor and a retained detailed E6 calculation use
@@ -16,11 +19,11 @@ the same native-resolution implementation:
 
 ```gap
 full := koFull(CyclicGroup(2),0,0,3);;
-ahss := koAHSS(R,[1],0,3,rec(details:=true));;
+ahss := koAHSS_batch(R,[1],0,3,rec(details:=true));;
 full := koFull(ahss);;
 ```
 
-There is no `extensionModel` option. The supplied resolution must have
+There is no model-selection option. The supplied resolution must have
 the boundary, group action, integral contracting homotopy and length
 required by the page calculation; through E6 the length requirement is
 `max(3,k+3)`. No resolution is reconstructed when R is supplied.
@@ -30,7 +33,7 @@ matrices use R in package degrees 3–5 when its fixed comparison passes
 the retraction check. Nonlinear formulas still use bar simplices,
 evaluated lazily through sparse comparison chains. No complete-bar model
 is constructed for extension certification or fallback. Degrees -1 through
-2 retain their existing adapters. Degree-six extensions are explicitly
+2 use the low-degree adapter. Degree-six extensions are explicitly
 unresolved because the native degree-six formula is not implemented.
 
 ## Completion and the gauge-completeness assumption
@@ -39,9 +42,9 @@ The native calculation assumes gauge completeness: two flat bar states
 represented by native states are bar-gauge equivalent exactly when their
 native states are equivalent under the transferred gauge action. This is
 an assumption of the computation, not a theorem established by the runtime
-checks. The [initial mathematical review](transfer.md) records the gap in
-the original justification. Full results and completed native degree results record
-`gaugeCompletenessAssumed=true`.
+checks; the [transfer note](transfer.md) gives a counterexample to its
+derivation from those checks alone. `koFull_batch` results and completed
+native degree results record `gaugeCompletenessAssumed=true`.
 
 The engine retains the following exact checks on R:
 
@@ -60,7 +63,7 @@ errors; they are not treated as split extensions.
 
 | Result field | Meaning |
 | --- | --- |
-| `full.gaugeCompletenessAssumed` | `true`; identifies the assumption used for native completion |
+| `batch.gaugeCompletenessAssumed` | `true`; identifies the assumption used for native completion |
 | `degree.modelId` | Identifier of the native model when setup supplied one |
 | `degree.gaugeCompletenessAssumed` | `true` for a completed native higher calculation |
 | `degree.certificateLevel` | `"transfer-R"` for a completed native calculation |
@@ -69,19 +72,18 @@ errors; they are not treated as split extensions.
 Native `canonicalComparison` records verify `target = act(gauge,canonical)`
 on R. They contain `certificateLevel="transfer-R"` and have no literal
 bar `boundary` field. `searchComplete` refers to the native affine family
-examined. There are no public model-selection, failed-transfer or
-independent bar-certificate records.
+examined.
 
 ## Exact transport and worker
 
 The sparse comparison first checks \(fg=1\) over the integral group
 ring on every basis generator through cochain degree k+2. This is
-stronger than checking only trivial and sign characters. The current
-native path also requires one degree-zero generator and a finite group.
+stronger than checking only trivial and sign characters. The native
+path also requires one degree-zero generator and a finite group.
 A supplied HAP resolution may therefore be accepted by the AHSS API while
 its higher extension calculation remains unresolved. Infinite groups,
 multiple degree-zero generators and comparisons failing the strict
-retraction identity are outside the current native extension domain.
+retraction identity are outside the native extension domain.
 
 Given the checked retraction, the model constructs the normalized
 homotopy on chains:
@@ -91,8 +93,8 @@ q=1-gf,\qquad u=qhq,\qquad h'=u\partial u.
 \]
 
 This supplies the annihilation and square-zero side conditions, rather
-than assuming they hold for the original HAP comparison. The proof and
-cochain signs are in [the review](transfer.md). All integral arithmetic
+than assuming they hold for the HAP comparison. The proof and cochain
+signs are in [the transfer note](transfer.md). All integral arithmetic
 is exact; B and C are reduced modulo two before subsequent lifts.
 
 The embedding of a native state is triangular:
@@ -118,7 +120,7 @@ To avoid ambiguous branch choices, the implementation evaluates global
 zero predicates exactly on all normalized simplices in the required lower
 degree. It does not infer them from a sample or from g-support. This
 conservative choice includes P1/P2 automatically but is more expensive
-than the plan's proposed specialized flag tables. These lower-degree
+than specialized flag tables would be. These lower-degree
 predicate checks are distinct from constructing a complete bar model with
 its cochain arrays and matrices. A predicate exceeding its budget returns
 unresolved before sampling.
@@ -135,28 +137,15 @@ layers needed at each step and checks its final equation and flatness.
 The preflight and sparse homotopy have explicit term budgets. The worker
 limits each complete lower-degree flag test to 8192 simplices and bounds
 its caches. These are implementation bounds, not mathematical claims of
-nonexistence. The initial preflight counts g-support; it does not claim
-to have built the entire face/homotopy closure in advance.
+nonexistence. The preflight counts g-support; it does not claim to have
+built the entire face/homotopy closure in advance.
 
 Native solving reduces matrix sizes substantially: cyclic resolutions
 can have rank one in each degree even when the complete bar is too large.
 The calibrated per-simplex formulas and lower-degree predicate checks
-remain costly. Removing complete-bar certification removes that size gate;
-it does not remove the native engine's separate search and transport bounds.
+remain costly. No complete-bar size limit applies, but the native engine
+has its own search and transport bounds.
 
 The portable [resolution example](../examples/resolution_extensions.g)
-exercises C2, signed C4 and C8 extensions on supplied resolutions. Current
-checks of the shared cochain kernel and of worker reply reading are recorded
-in [the shared-kernel verification record](verification/shared-kernel-20260927.md),
-those of the worker and word-evaluator speed-ups in
-[their verification record](verification/worker-speedups-20260927.md), and
-those of the bundled universal values and memo speed-ups in
-[the latest record](verification/bundled-values-20260927.md);
-the removal of the finite audit and the exact worker evaluation policy are
-checked in
-[the acceleration verification record](verification/extension-acceleration-20260926.md).
-The [native-default record](verification/native-extension-default-20260926.md)
-is retained as historical evidence. Historical transfer and reference
-comparisons remain in
-[the initial implementation verification record](verification/resolution-extensions-20260926.md).
-All results retain `certified_ko=false` and the existing five-row scope.
+exercises C2, signed C4 and C8 extensions on supplied resolutions. All
+results retain `certified_ko=false` and the five-row scope.

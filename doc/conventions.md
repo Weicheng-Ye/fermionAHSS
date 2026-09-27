@@ -156,8 +156,7 @@ For a binary cocycle in this interval-cut convention, the equality
 \(e(a)=Q^1(a)=a\smile_{n-1}a\) holds literally as binary cochains.
 The integral cochains \(B(a)\) and \(C_B\) below still retain essential
 carry information. For a noncocycle, use the full expression (C5);
-\(d\widetilde x/2\) need not be integral. The literal cocycle equality is
-also checked in the chi verification (source-workspace provenance: `note/extra/chi_suspension_degree6/verify.py`; not bundled).
+\(d\widetilde x/2\) need not be integral.
 
 The primary maps adjoining the higher differentials are
 
@@ -190,7 +189,8 @@ P_\omega=\widetilde\omega\smile\widetilde\omega
 \]
 
 It is an ordinary integral lift of the mod-four Pontryagin square, so
-\(dP_\omega\) is divisible by four. The legacy correction uses
+\(dP_\omega\) is divisible by four. The correction added to a
+`TReference` callback (see [backends.md](backends.md)) uses
 \(q(\omega)=[dP_\omega/4]\). This \(q(\omega)\) is distinct from the
 secondary integer cochain \(q(A)\) and the degree-three source variable
 called `q` in the kernel.

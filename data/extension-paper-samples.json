@@ -204,7 +204,5 @@
       "comparison_status": "not-run",
       "note": "The body describes a nontrivial extension to Z4; no single expected group is selected for this conflicting source entry."
     }
-  ],
-  "recorded_results": "extension-paper-results-20260925-full.json",
-  "historical_recorded_results": "extension-paper-results-20260925.json"
+  ]
 }

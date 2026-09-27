@@ -174,7 +174,7 @@ gap> transferModel.close();; transferBar.close();;
 gap> # The valid contractible-summand resolution is still accepted by the
 gap> # public API; only the strict native retraction is refused, with a
 gap> # recorded unresolved result in the original supplied basis.
-gap> transferExtraFull:=koFull(transferExtra,0,0,3);;
+gap> transferExtraFull:=koFull_batch(transferExtra,0,0,3);;
 gap> Assert(0,IsIdenticalObj(transferExtraFull.ahss._context.resolution,transferExtra));
 gap> Assert(0,transferExtraFull.degreeResults[5].status="unresolved");
 gap> Assert(0,transferExtraFull.degreeResults[5].reason=transferFailure.reason);

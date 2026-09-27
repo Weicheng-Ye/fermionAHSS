@@ -13,8 +13,8 @@ CallFuncList(function()
     for order in [2,4,8] do
         R:=ResolutionFiniteGroup(CyclicGroup(order),6);
         sign:=0; if order=4 then sign:=[1]; fi;
-        ahss:=koAHSS(R,sign,0,3,rec(details:=true));
-        native:=koFull(ahss);
+        ahss:=koAHSS_batch(R,sign,0,3,rec(details:=true));
+        native:=koFull_batch(ahss);
         Assert(0,IsIdenticalObj(native.ahss._context.resolution,R));
         Assert(0,native.status="computed");
         degree:=native.degreeResults[5];

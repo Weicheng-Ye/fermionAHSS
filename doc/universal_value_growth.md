@@ -12,8 +12,7 @@ finite closed form. The pair source is **not** periodic in its labels
 modulo any integer, because it contains the non-additive part of `V_1`;
 `V_1` grows linearly in the labels, exactly affinely on residue classes
 modulo four; and both functions are determined by finite data through an
-explicit closed form of the degree-one contraction. No formula,
-calibration table or stored value is changed here. Notation follows
+explicit closed form of the degree-one contraction. Notation follows
 [conventions.md](conventions.md) and the helper reference; the statements
 marked as proved follow from the implemented definitions, the others are
 finite exact checks recorded in Section 8.
@@ -440,22 +439,17 @@ values.
 * The pair source is determined by the finite `S_rest` data together with
   the closed form of `V_1`.
 
-## 8. Verification record (2026-09-27)
+## 8. Finite checks
 
-Base revision `f9eb8b6` with the uncommitted
-[shared-kernel changes](verification/shared-kernel-20260927.md), which
-that record shows return identical universal values. The checks ran in
-fresh processes with `FERMIONAHSS_CACHE_DIR` empty (no persistent store
-written), with the exact evaluation policy of the extension worker
-installed, on the 1129 stored `source_value` keys (337 with both `a` and
-`a'` nonzero) and the 714 stored `V1_pair` keys of a degree-four
-`koFull(CyclicGroup(2),[1],[1],4)` run, plus synthetic keys. About two
-hours of wall time on a loaded 32-thread machine; the scripts were external
-scratch tools and are not bundled. Observed:
+The checks evaluated the formulas with the exact evaluation policy of the
+extension worker and no persistent store, on the 1129 `source_value` keys
+(337 with both `a` and `a'` nonzero) and the 714 `V1_pair` keys of the
+degree-four calculation `koFull(CyclicGroup(2),[1],[1],4)`, plus synthetic
+keys. The scripts are not bundled.
 
 | Check | Result |
 | --- | --- |
-| The user's test: first 40 nontrivial stored keys x 10 labels, shifts `+4,+8,+16` | Unchanged in 374, 388, 388 of 400; the 12 exceptions to `+8` are the 12 exceptions to `+16`, scanned for every `d` in `[-24,40]` (6 drifts, 6 transitions) |
+| First 40 nontrivial stored keys x 10 labels, shifts `+4,+8,+16` | Unchanged in 374, 388, 388 of 400; the 12 exceptions to `+8` are the 12 exceptions to `+16`, scanned for every `d` in `[-24,40]` (6 drifts, 6 transitions) |
 | Theorem 1, `S = S[V_1:=0] + (V_1(A+A')-V_1(A)-V_1(A'))` | 400 of 400 evaluations (40 keys x 10 labels x shifts `0,4,8,-4,16`); the three `V_1` calls recorded inside `S` equal the constructed keys |
 | Period of `S[V_1:=0, beta:=0]` under `±4,+8` | 400 of 400 unchanged |
 | Period of `S[V_1:=0]` | unchanged under `+8` and `+16` in 400 of 400, under `±4` in 384 of 400 |
@@ -466,9 +460,7 @@ scratch tools and are not bundled. Observed:
 | Proposition 3 against `V1_pair` (independent evaluator of the closed form) | equal in 317 of 317 keys, 160 of them transients with `-3<=m<=3`; the front-by-front split of the code's own chains agrees in 96 of 96 |
 | Theorem 2: 8 keys x 5 vertices, `m` in `[-24,24]` and `±32,±40,±48,±64` (2280 values) | affine law on every residue class at every `m` beyond the threshold in 80 of 80 sides; slope denominators 1, 4, 8, 16 |
 | Family attribution of the drifts (values of the closed form per family) | drift of instance 1 entirely in `phi(4,5)`; class-dependent increments only in the family `(j,j+1)` |
-| Re-evaluation on the final working tree (fresh process, 90 s): instance 1 at `L=1,17,33`; instance 3 at `d=0,8,16`; instance 2 at `d=0,8,16,32`; the example key at `m=0,1,2,3,4,8,-1,-2,-5,-6`; the closed form at two shifted keys; Theorem 1 at one shifted key | `0,-4,-8`; `-5/4,3/4,3/4`; `0,-4,-8,-16`; `-65/16,-17/8,-27/16,1/4,-5/16,55/16,-7/2,-119/16,-45/4,-275/16`; equal; equal, all as stated above |
 
 The numerical rows support but do not replace the proofs of Theorems 1
 and 2 and Proposition 3; the period of `beta` beyond the checked ranges
-is not established. `certified_ko` and the scope statements of
-[mathematical-status.md](mathematical-status.md) are unchanged.
+is not established.
