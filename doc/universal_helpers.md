@@ -377,6 +377,13 @@ prescribed rational lift can still be integral there. Dropping `E_0`
 would change the fixed source convention used by the general `V1`
 evaluator.
 
+The values of `V1` grow linearly in the integer labels, exactly affinely
+on residue classes modulo four beyond the ordering of the Cayley
+vertices; the closed form of `R`, `h` and `V1` behind this, and its
+consequence that the degree-four pair source is not periodic in its
+labels, are recorded in
+[universal_value_growth.md](universal_value_growth.md).
+
 ## 6. V2: section, contraction, and complete coefficient table
 
 Use two diagonal matrix models: signed integral rows `(sigma_i,M_i)` and

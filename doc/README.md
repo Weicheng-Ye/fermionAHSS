@@ -12,6 +12,7 @@ formulas and calibration data while updating transport and Python paths.
 | [secondary_operations.md](secondary_operations.md) | Complete Tau and Psi formulas, exact common lift, domains, and indeterminacy |
 | [tertiary_operations.md](tertiary_operations.md) | Implemented R0–R3 phases, current cubic correction, and all 19 prime-three terms |
 | [universal_helpers.md](universal_helpers.md) | Chi ANF decoding and degree table, zeta words, universal contractors, finite source tables, and every normalization selector |
+| [universal_value_growth.md](universal_value_growth.md) | Growth and periodicity of the two stored universal source values: exact decomposition of the pair source, closed form of the degree-one contraction, affine growth of `V_1` on residue classes, and the finite data that determine them |
 | [backends.md](backends.md) | HAP, cochain, and page interfaces; direct-operation audits and exact quotient conventions |
 | [extensions.md](extensions.md) | Detailed AHSS results, `koFull`, retained flat tuples, exact boundary comparisons, common-coordinate Smith presentations, and the abelian-quotient assumption |
 | [transfer.md](transfer.md) | Initial resolution-transfer plan review, exact retraction preflight, completeness counterexample, and historical prerequisite measurements |
