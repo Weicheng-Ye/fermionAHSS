@@ -10,18 +10,54 @@ CallFuncList(function()
     BindGlobal("KOAHSS_DANUS_KERNEL",Filename(directory,"../python/worker.py"));
 end,[]);
 
+# A pty ReadLine returns what has arrived so far, which is part of a line
+# when the worker has not yet written the rest; read on to the newline.
+BindGlobal("KOAHSS_ReadWorkerLine",function(stream)
+    local line,more;
+    line:=ReadLine(stream);
+    while line<>fail and Last(line)<>'\n' do
+        more:=ReadLine(stream);
+        if more=fail then return fail; fi;
+        Append(line,more);
+    od;
+    return line;
+end);
+
+# One kernel process answers every batch of the GAP session, so its universal
+# values and one-time setup are computed once. Each request carries a new id;
+# a reply to an earlier, interrupted request is skipped.
+BindGlobal("KOAHSS_DANUS_WORKER",rec(stream:=fail,id:=0));
+
 BindGlobal("KOAHSS_DanusBatch",function(n,samples)
-    local executable, input, output, text, status, answer, serialized;
+    local worker, executable, id, line, answer;
     if LoadPackage("json")=fail then Error("koAHSS: natural d5 requires the GAP json package"); fi;
-    executable:=Filename(DirectoriesSystemPrograms(),"python3");
-    if executable=fail then Error("koAHSS: natural d5 requires Python 3.10 or newer"); fi;
-    serialized:=CallFuncList(ValueGlobal("GapToJsonString"),[rec(schema:=1,degree:=n,samples:=samples)]);
-    input:=InputTextString(serialized); text:=""; output:=OutputTextString(text,true);
-    SetPrintFormattingStatus(output,false);
-    status:=Process(DirectoryCurrent(),executable,input,output,[KOAHSS_DANUS_KERNEL]);
-    CloseStream(input); CloseStream(output);
-    if status<>0 then Error("koAHSS: exact Danus d5 kernel failed: ",text); fi;
-    answer:=CallFuncList(ValueGlobal("JsonStringToGap"),[text]);
+    worker:=KOAHSS_DANUS_WORKER;
+    if worker.stream=fail then
+        executable:=Filename(DirectoriesSystemPrograms(),"python3");
+        if executable=fail then Error("koAHSS: natural d5 requires Python 3.10 or newer"); fi;
+        worker.stream:=InputOutputLocalProcess(DirectoryCurrent(),executable,
+            ["-u",KOAHSS_DANUS_KERNEL,"--serve"]);
+    fi;
+    worker.id:=worker.id+1; id:=worker.id;
+    WriteLine(worker.stream,CallFuncList(ValueGlobal("GapToJsonString"),
+        [rec(schema:=1,id:=id,degree:=n,samples:=samples)]));
+    repeat
+        line:=KOAHSS_ReadWorkerLine(worker.stream);
+        if line=fail then
+            CloseStream(worker.stream); worker.stream:=fail;
+            Error("koAHSS: exact Danus d5 kernel stopped before returning a result");
+        fi;
+        answer:=CallFuncList(ValueGlobal("JsonStringToGap"),[line]);
+        if not IsRecord(answer) or not IsBound(answer.id) or not IsInt(answer.id)
+           or answer.id>id then
+            CloseStream(worker.stream); worker.stream:=fail;
+            Error("koAHSS: malformed Danus d5 kernel reply: ",line);
+        fi;
+    until answer.id=id;
+    Unbind(answer.id);
+    if not IsBound(answer.status) or answer.status<>"computed" then
+        Error("koAHSS: exact Danus d5 kernel failed: ",line);
+    fi;
     if not IsRecord(answer) or not IsBound(answer.status) or answer.status<>"computed"
        or not IsBound(answer.audit) or not IsRecord(answer.audit)
        or not IsBound(answer.phases) or Length(answer.phases)<>Length(samples) then

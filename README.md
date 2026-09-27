@@ -299,12 +299,16 @@ keyed by the hashes of all formula sources; set `FERMIONAHSS_CACHE_DIR` to
 choose another directory, or to an empty string to disable the store. A
 stale or unreadable store is ignored.
 
-The page worker bounds per-cochain and pure chain-operator memo tables
-to 256 entries by default. Nonnegative environment variables
-`KOAHSS_COCHAIN_CACHE_ENTRIES` and `KOAHSS_CHAIN_CACHE_ENTRIES` override
-them; zero disables the corresponding memoization. These are entry limits,
-not process-memory guarantees. Bar comparison chains and higher-degree
-universal contractors can be expensive.
+GAP starts one page worker ([worker.py](python/worker.py)) per session and
+sends it every T batch as one JSON line, so its universal values and set-up
+are computed once per session. The page worker bounds per-cochain and pure
+chain-operator memo tables to 256 entries by default. Nonnegative environment
+variables `KOAHSS_COCHAIN_CACHE_ENTRIES` and `KOAHSS_CHAIN_CACHE_ENTRIES`
+override them; zero disables the corresponding memoization. These are entry
+limits, not process-memory guarantees. Bar comparison chains and
+higher-degree universal contractors can be expensive. The Python workers run
+without automatic garbage collection: their memory is long-lived memo tables
+with almost no reference cycles, which collection only rescanned.
 
 ## Verification and development status
 

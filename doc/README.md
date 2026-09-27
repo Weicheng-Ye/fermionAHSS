@@ -73,7 +73,7 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [natural_words.gi](../gap/natural_words.gi) | Interval cuts, integral cup signs, and compiled chi evaluation |
 | [natural_secondary.gi](../gap/natural_secondary.gi) | Complete lower formulas and matched lift |
 | [natural_tertiary.gi](../gap/natural_tertiary.gi) | Defining systems, Python worker, phase projection, and exact boundary |
-| [worker.py](../python/worker.py) | Exact JSON protocol and face-equation audits |
+| [worker.py](../python/worker.py) | Exact JSON line protocol, one process per GAP session, and face-equation audits |
 | [low_phases.py](../python/low_phases.py) | Degree-zero, -one, and -two phases |
 | [high_phase.py](../python/high_phase.py) | Degree-three phase |
 | [cochain_tools.py](../python/cochain_tools.py) | The single interval-cut engine: cup-i words, integral signs, coboundary, interval pullback and prism, Q |

@@ -147,7 +147,9 @@ it does not remove the native engine's separate search and transport bounds.
 The portable [resolution example](../examples/resolution_extensions.g)
 exercises C2, signed C4 and C8 extensions on supplied resolutions. Current
 checks of the shared cochain kernel and of worker reply reading are recorded
-in [the shared-kernel verification record](verification/shared-kernel-20260927.md);
+in [the shared-kernel verification record](verification/shared-kernel-20260927.md),
+and those of the worker and word-evaluator speed-ups in
+[their verification record](verification/worker-speedups-20260927.md);
 the removal of the finite audit and the exact worker evaluation policy are
 checked in
 [the acceleration verification record](verification/extension-acceleration-20260926.md).

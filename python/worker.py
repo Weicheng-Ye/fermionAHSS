@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""Exact batch protocol used by GAP's natural d5 adapter (stdin/stdout)."""
+"""Exact batch protocol used by GAP's natural d5 adapter (stdin/stdout).
+
+With --serve the process answers one JSON request per line, echoing its id,
+until stdin closes; GAP keeps one such process for its whole session.
+"""
 from fractions import Fraction
+import gc
 from itertools import combinations
 import json
 import os
@@ -128,7 +133,29 @@ def evaluate(request):
                            local_R_solve=False,old_correction_applied=False))
 
 
+def serve():
+    for line in sys.stdin:
+        if not line.strip():
+            continue
+        request=None
+        try:
+            request=json.loads(line)
+            result=evaluate(request)
+        except Exception as error:
+            result=dict(status='error',type=type(error).__name__,reason=str(error))
+        if isinstance(request,dict) and 'id' in request:
+            result['id']=request['id']
+        sys.stdout.write(json.dumps(result,separators=(',',':'))+'\n')
+        sys.stdout.flush()
+
+
 if __name__=='__main__':
+    # Worker heaps are large, long-lived memo tables with almost no reference
+    # cycles, so automatic collection only rescans them.
+    gc.disable()
+    if sys.argv[1:]==['--serve']:
+        serve()
+        sys.exit(0)
     try:
         result=evaluate(json.load(sys.stdin))
     except Exception as error:

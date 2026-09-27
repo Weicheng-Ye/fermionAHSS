@@ -10,6 +10,7 @@ of the transferred gauge relation or a ko classification.
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
 from functools import lru_cache
+import gc
 import itertools
 import json
 import sys
@@ -538,4 +539,7 @@ def serve():
 
 
 if __name__ == "__main__":
+    # Worker heaps are large, long-lived memo tables with almost no reference
+    # cycles, so automatic collection only rescans them.
+    gc.disable()
     serve()

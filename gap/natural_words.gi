@@ -21,14 +21,17 @@ BindGlobal("KOAHSS_NATURAL_CHI_CONVENTION", "chi-tail-suspension-degree7");
 BindGlobal("KOAHSS_NATURAL_WORD_PATTERN_CACHE",rec(
     entries:=rec(),count:=0,patternCount:=0));
 
-InstallGlobalFunction(koAHSSNaturalWordValue, function(arg)
-    local word, degrees, inputs, simplex, integral, cupIndex, arity, degree,
-          labels, j, last, occurrences, fixedSign, visit, result,
-          collectOnly,patterns,cache,key,cacheable,pattern,value,entry;
-    if not Length(arg) in [4,5] then
-        Error("koAHSSNaturalWordValue(word,degrees,inputs,simplex[,integralCupIndex])");
+# The interval cuts of a word depend only on the word, the input degrees and
+# the mode. An evaluator checks these and collects the cuts once; the function
+# it returns only multiplies input values on each simplex.
+BindGlobal("KOAHSS_NaturalWordEvaluator", function(arg)
+    local word, degrees, inputs, integral, cupIndex, arity, degree, labels,
+          last, occurrences, fixedSign, checked, cuts, evaluate, cacheable,
+          cache, key, patterns;
+    if not Length(arg) in [3,4] then
+        Error("KOAHSS_NaturalWordEvaluator(word,degrees,inputs[,integralCupIndex])");
     fi;
-    word := arg[1]; degrees := arg[2]; inputs := arg[3]; simplex := arg[4];
+    word := arg[1]; degrees := arg[2]; inputs := arg[3];
     if IsString(word) then
         if IsEmpty(word) or not ForAll(word, c -> c in "123456789") then
             Error("koAHSS: a natural word must contain positive integer labels");
@@ -51,90 +54,118 @@ InstallGlobalFunction(koAHSSNaturalWordValue, function(arg)
        or not ForAll(inputs, IsFunction) then
         Error("koAHSS: word inputs must be one cochain function per degree");
     fi;
-    if not IsList(simplex) then Error("koAHSS: simplex vertices must be a list"); fi;
-    integral := Length(arg) = 5; cupIndex := 0;
+    integral := Length(arg) = 4; cupIndex := 0;
     if integral then
-        cupIndex := arg[5];
+        cupIndex := arg[4];
         if not IsInt(cupIndex) or cupIndex < 0 or arity <> 2
            or labels <> List([0..cupIndex+1], j -> 1+j mod 2) then
             Error("koAHSS: integral mode requires the matching alternating binary cup word");
         fi;
     fi;
     degree := Sum(degrees) - Length(labels) + arity;
-    if degree < 0 then return 0; fi;
-    if Length(simplex) <> degree+1 then
-        Error("koAHSS: simplex has the wrong degree for the word operation");
+    if degree < 0 then
+        return function(simplex)
+            if not IsList(simplex) then Error("koAHSS: simplex vertices must be a list"); fi;
+            return 0;
+        end;
     fi;
-    if degree < Maximum(degrees) then return 0; fi;
+    checked := function(simplex)
+        if not IsList(simplex) then Error("koAHSS: simplex vertices must be a list"); fi;
+        if Length(simplex) <> degree+1 then
+            Error("koAHSS: simplex has the wrong degree for the word operation");
+        fi;
+        return simplex;
+    end;
     occurrences := List([1..arity], j -> Number(labels, x -> x=j));
-    if ForAny([1..arity], j -> occurrences[j] > degrees[j]+1) then return 0; fi;
+    if degree < Maximum(degrees)
+       or ForAny([1..arity], j -> occurrences[j] > degrees[j]+1) then
+        return function(simplex) checked(simplex); return 0; end;
+    fi;
     last := List([1..arity], j -> Last(Positions(labels,j)));
     fixedSign := cupIndex*Sum(degrees) + Binomial(cupIndex,2);
-    result := 0; collectOnly:=false;
-    cacheable:=arity<=4 and degree<=12 and Length(labels)<=12;
-    patterns:=fail;
-    if cacheable then
-        cache:=KOAHSS_NATURAL_WORD_PATTERN_CACHE;
-        key:=Concatenation(JoinStringsWithSeparator(List(labels,String),","),"/",
-            JoinStringsWithSeparator(List(degrees,String),","),"/",String(integral));
-        if integral then key:=Concatenation(key,"/",String(cupIndex)); fi;
-        if IsBound(cache.entries.(key)) then patterns:=cache.entries.(key); fi;
-    fi;
-    # Positions here are one-based. The note's cut i_l is endpoint-1.
-    # Repeated vertices within one input cannot occur in any retained cut:
-    # their multiplicity would make the total face size too small. Rejecting
-    # them early is therefore equivalent to the note's increasing-union rule.
-    visit := function(position, previous, faces, masses, parity, product)
-        local label, ends, endpoint, face, updated, mass, sign, k, value;
-        label := labels[position];
-        if position = Length(labels) then ends := [degree+1];
-        else ends := [previous..degree+1]; fi;
-        for endpoint in ends do
-            if not IsEmpty(faces[label]) and Last(faces[label]) >= previous then
-                continue;
-            fi;
-            face := Concatenation(faces[label], [previous..endpoint]);
-            if Length(face) > degrees[label]+1 then continue; fi;
-            if position = last[label] and Length(face) <> degrees[label]+1 then
-                continue;
-            fi;
-            updated := ShallowCopy(faces); updated[label] := face;
-            value := product;
-            if position = last[label] and not collectOnly then
-                k := inputs[label](simplex{face});
-                if not IsInt(k) then Error("koAHSS: word cochains must return integers"); fi;
-                if not integral then k := k mod 2; fi;
-                value := value*k;
-                if value = 0 then continue; fi;
-            fi;
-            sign := parity; mass := endpoint-previous;
-            if position < last[label] then
-                mass := mass+1; sign := sign+endpoint-1;
-            fi;
-            if integral then
-                for k in [1..position-1] do
-                    if labels[k] > label then sign := sign + masses[k]*mass; fi;
-                od;
-            fi;
-            if position = Length(labels) then
-                if collectOnly then
-                    if integral then Add(patterns,[updated,(-1)^(fixedSign+sign)]);
-                    else Add(patterns,[updated,1]); fi;
-                elif integral then result := result + (-1)^(fixedSign+sign)*value;
-                else result := (result+value) mod 2; fi;
-            else
-                visit(position+1, endpoint, updated,
-                    Concatenation(masses,[mass]), sign, value);
-            fi;
-        od;
-    end;
-    if not cacheable then
+    # Enumerate the cuts: collect them as [faces,sign] when simplex=fail,
+    # otherwise evaluate the word on the simplex while enumerating.
+    cuts := function(simplex)
+        local collectOnly, result, found, visit;
+        collectOnly := simplex = fail; result := 0; found := [];
+        # Positions here are one-based. The note's cut i_l is endpoint-1.
+        # Repeated vertices within one input cannot occur in any retained cut:
+        # their multiplicity would make the total face size too small. Rejecting
+        # them early is therefore equivalent to the note's increasing-union rule.
+        visit := function(position, previous, faces, masses, parity, product)
+            local label, ends, endpoint, face, updated, mass, sign, k, value;
+            label := labels[position];
+            if position = Length(labels) then ends := [degree+1];
+            else ends := [previous..degree+1]; fi;
+            for endpoint in ends do
+                if not IsEmpty(faces[label]) and Last(faces[label]) >= previous then
+                    continue;
+                fi;
+                face := Concatenation(faces[label], [previous..endpoint]);
+                if Length(face) > degrees[label]+1 then continue; fi;
+                if position = last[label] and Length(face) <> degrees[label]+1 then
+                    continue;
+                fi;
+                updated := ShallowCopy(faces); updated[label] := face;
+                value := product;
+                if position = last[label] and not collectOnly then
+                    k := inputs[label](simplex{face});
+                    if not IsInt(k) then Error("koAHSS: word cochains must return integers"); fi;
+                    if not integral then k := k mod 2; fi;
+                    value := value*k;
+                    if value = 0 then continue; fi;
+                fi;
+                sign := parity; mass := endpoint-previous;
+                if position < last[label] then
+                    mass := mass+1; sign := sign+endpoint-1;
+                fi;
+                if integral then
+                    for k in [1..position-1] do
+                        if labels[k] > label then sign := sign + masses[k]*mass; fi;
+                    od;
+                fi;
+                if position = Length(labels) then
+                    if collectOnly then
+                        if integral then Add(found,[updated,(-1)^(fixedSign+sign)]);
+                        else Add(found,[updated,1]); fi;
+                    elif integral then result := result + (-1)^(fixedSign+sign)*value;
+                    else result := (result+value) mod 2; fi;
+                else
+                    visit(position+1, endpoint, updated,
+                        Concatenation(masses,[mass]), sign, value);
+                fi;
+            od;
+        end;
         visit(1, 1, List([1..arity], j -> []), [], 0, 1);
+        if collectOnly then return found; fi;
         return result;
-    fi;
-    if patterns=fail then
-        collectOnly:=true; patterns:=[];
-        visit(1, 1, List([1..arity], j -> []), [], 0, 1);
+    end;
+    evaluate := function(patterns, simplex)
+        local result, pattern, value, j, entry;
+        result := 0;
+        for pattern in patterns do
+            value:=pattern[2];
+            for j in [1..arity] do
+                entry:=inputs[j](simplex{pattern[1][j]});
+                if not IsInt(entry) then Error("koAHSS: word cochains must return integers"); fi;
+                if not integral then entry:=entry mod 2; fi;
+                value:=value*entry;
+                if value=0 then break; fi;
+            od;
+            result:=result+value;
+        od;
+        if not integral then result:=result mod 2; fi;
+        return result;
+    end;
+    cacheable:=arity<=4 and degree<=12 and Length(labels)<=12;
+    if not cacheable then return simplex -> cuts(checked(simplex)); fi;
+    cache:=KOAHSS_NATURAL_WORD_PATTERN_CACHE;
+    key:=Concatenation(JoinStringsWithSeparator(List(labels,String),","),"/",
+        JoinStringsWithSeparator(List(degrees,String),","),"/",String(integral));
+    if integral then key:=Concatenation(key,"/",String(cupIndex)); fi;
+    if IsBound(cache.entries.(key)) then patterns:=cache.entries.(key);
+    else
+        patterns:=cuts(fail);
         # Bound both the number of shapes and their retained interval cuts.
         if Length(patterns)<=4096 then
             if cache.count>=512 or cache.patternCount+Length(patterns)>65536 then
@@ -145,19 +176,19 @@ InstallGlobalFunction(koAHSSNaturalWordValue, function(arg)
             cache.patternCount:=cache.patternCount+Length(patterns);
         fi;
     fi;
-    for pattern in patterns do
-        value:=pattern[2];
-        for j in [1..arity] do
-            entry:=inputs[j](simplex{pattern[1][j]});
-            if not IsInt(entry) then Error("koAHSS: word cochains must return integers"); fi;
-            if not integral then entry:=entry mod 2; fi;
-            value:=value*entry;
-            if value=0 then break; fi;
-        od;
-        result:=result+value;
-    od;
-    if not integral then result:=result mod 2; fi;
-    return result;
+    # Larger shapes are not retained; their cuts are collected on each call.
+    if Length(patterns)>4096 then
+        return simplex -> evaluate(cuts(fail), checked(simplex));
+    fi;
+    return simplex -> evaluate(patterns, checked(simplex));
+end);
+
+InstallGlobalFunction(koAHSSNaturalWordValue, function(arg)
+    if not Length(arg) in [4,5] then
+        Error("koAHSSNaturalWordValue(word,degrees,inputs,simplex[,integralCupIndex])");
+    fi;
+    return CallFuncList(KOAHSS_NaturalWordEvaluator,
+        arg{Difference([1..Length(arg)],[4])})(arg[4]);
 end);
 
 BindGlobal("KOAHSS_NATURAL_CHI_ANF_COMPILED",rec(head:=[],tail:=[]));
@@ -288,8 +319,20 @@ InstallGlobalFunction(koAHSSNaturalChiValue, function(arg)
     return result;
 end);
 
+# The Cartan word of zeta_kind in input degree n>0, as a word evaluator.
+BindGlobal("KOAHSS_NaturalZetaEvaluator", function(kind, n, x, y)
+    local word;
+    if kind = 1 then
+        word := [1,2,3,2];
+        Append(word, List([0..n-1], j -> 4-j mod 2));
+    else
+        word := [1,2,3,1];
+        Append(word, List([0..n], j -> 3+j mod 2));
+    fi;
+    return KOAHSS_NaturalWordEvaluator(word, [kind,kind,n,n], [x,x,y,y]);
+end);
+
 InstallGlobalFunction(koAHSSNaturalZetaValue, function(kind, n, x, y, simplex)
-    local word, j;
     if not kind in [1,2] or not IsInt(n) or n < 0 then
         Error("koAHSS: Cartan word helpers require kind 1 or 2 and nonnegative input degree");
     fi;
@@ -298,12 +341,5 @@ InstallGlobalFunction(koAHSSNaturalZetaValue, function(kind, n, x, y, simplex)
            or Length(simplex)<>kind+2 then Error("invalid degree-zero Cartan input"); fi;
         return 0;
     fi;
-    if kind = 1 then
-        word := [1,2,3,2];
-        Append(word, List([0..n-1], j -> 4-j mod 2));
-    else
-        word := [1,2,3,1];
-        Append(word, List([0..n], j -> 3+j mod 2));
-    fi;
-    return koAHSSNaturalWordValue(word, [kind,kind,n,n], [x,x,y,y], simplex);
+    return KOAHSS_NaturalZetaEvaluator(kind, n, x, y)(simplex);
 end);

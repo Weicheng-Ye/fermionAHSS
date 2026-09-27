@@ -207,11 +207,11 @@ BindGlobal("KOAHSS_NaturalCochains",function(backend)
         if i<0 or ctx.isZero(a) or ctx.isZero(b) then return ctx.zero(n); fi;
         word:=List([0..i+1],j->1+j mod 2);
         if integral then
-            return make(n,sigma->koAHSSNaturalWordValue(word,[a.degree,b.degree],
-                [a.value,b.value],sigma,i));
+            return make(n,KOAHSS_NaturalWordEvaluator(word,[a.degree,b.degree],
+                [a.value,b.value],i));
         fi;
-        return make(n,sigma->koAHSSNaturalWordValue(word,[a.degree,b.degree],
-            [a.value,b.value],sigma));
+        return make(n,KOAHSS_NaturalWordEvaluator(word,[a.degree,b.degree],
+            [a.value,b.value]));
     end;
     ctx.product:=function(a,b) return ctx.cup(0,a,b,false); end;
     ctx.square2:=a->ctx.cup(a.degree-2,a,a,false);
@@ -222,8 +222,8 @@ BindGlobal("KOAHSS_NaturalCochains",function(backend)
         if a.degree=0 or ctx.isZero(x) or ctx.isZero(a) then
             return ctx.zero(a.degree+kind+1);
         fi;
-        return make(a.degree+kind+1,sigma->koAHSSNaturalZetaValue(
-            kind,a.degree,x.value,a.value,sigma));
+        return make(a.degree+kind+1,
+            KOAHSS_NaturalZetaEvaluator(kind,a.degree,x.value,a.value));
     end;
     ctx.chi:=function(a)
         local faces,cache,order,next;
@@ -254,7 +254,8 @@ BindGlobal("KOAHSS_NaturalCochains",function(backend)
 end);
 
 BindGlobal("KOAHSS_NaturalPrimaryData",function(backend,n,input,inputType)
-    local ctx,a,A,B,e,u,v,w,c,legacy,fast,scalarE,word,transport;
+    local ctx,a,A,B,e,u,v,w,c,legacy,fast,scalarE,word,transport,
+          uValue,vValue,wValue;
     ctx:=KOAHSS_NaturalCochains(backend);
     if ctx=fail then return fail; fi;
     A:=ctx.lift(n,input,0);
@@ -280,22 +281,23 @@ BindGlobal("KOAHSS_NaturalPrimaryData",function(backend,n,input,inputType)
             return QuoInt(value,2) mod 2;
         end;
         word:=List([0..n-1],j->1+j mod 2);
+        # Keep the existing word evaluator's cut order and zero-product
+        # short circuit; in particular s(face)=0 must not force delta a/2.
+        if not ctx.isZero(u) then
+            uValue:=KOAHSS_NaturalWordEvaluator(word,[n,n],[a.value,a.value]);
+        fi;
+        if not ctx.isZero(v) then
+            vValue:=KOAHSS_NaturalWordEvaluator([1,2],[2,n],[ctx.omega.value,a.value]);
+        fi;
+        if not ctx.isZero(w) then
+            wValue:=KOAHSS_NaturalWordEvaluator([1,2],[1,n+1],[ctx.s.value,scalarE]);
+        fi;
         fast:=ctx.make(n+2,function(sigma)
             local value;
             value:=0;
-            # Keep the existing word evaluator's cut order and zero-product
-            # short circuit; in particular s(face)=0 must not force delta a/2.
-            if not ctx.isZero(u) then
-                value:=value+koAHSSNaturalWordValue(word,[n,n],[a.value,a.value],sigma);
-            fi;
-            if not ctx.isZero(v) then
-                value:=value+koAHSSNaturalWordValue([1,2],[2,n],
-                    [ctx.omega.value,a.value],sigma);
-            fi;
-            if not ctx.isZero(w) then
-                value:=value+koAHSSNaturalWordValue([1,2],[1,n+1],
-                    [ctx.s.value,scalarE],sigma);
-            fi;
+            if not ctx.isZero(u) then value:=value+uValue(sigma); fi;
+            if not ctx.isZero(v) then value:=value+vValue(sigma); fi;
+            if not ctx.isZero(w) then value:=value+wValue(sigma); fi;
             return value mod 2;
         end);
         # Decide on the ORIGINAL simplex, before entering the outer memo.
