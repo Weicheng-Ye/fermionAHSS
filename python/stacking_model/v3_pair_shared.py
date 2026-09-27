@@ -56,11 +56,7 @@ def to_diag(A, Aprime, s, vertices):
                           for r in range(n)))
 
 
-def hD(x, y, s):
-    dx = p.binary(p.differential(x))
-    return p.binary(p.cup(x, y, x.degree - 1) + p.cup(dx, y, x.degree)
-                    + p.cup(s, p.binary(p.cup(x, y, x.degree)
-                                         + p.cup(dx, y, x.degree + 1))))
+hD = p.hD
 
 
 def source_pair(A, Aprime, s, omega):

@@ -1,8 +1,8 @@
 """Lazy resolution coordinates for the fixed normalized-bar stacking model.
 
 The comparison supplied by GAP must be an integral strong deformation
-retraction. Universal formulas are imported through the checksum-verified
-worker; their source and calibration are unchanged. Global branch predicates
+retraction. Universal formulas are imported through the package worker;
+their calibration is unchanged. Global branch predicates
 are evaluated on the complete bar only in their required lower degrees.
 
 This implements the conditional cochain transfer, not a proof of completeness

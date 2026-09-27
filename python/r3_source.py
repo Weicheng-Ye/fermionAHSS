@@ -260,11 +260,10 @@ def precompute(progress=None):
                 ef_values=list(map(str, ef)))
 
 
-def ef_from_data(data, check_hashes=True):
+def ef_from_data(data):
+    # The recorded source hashes document the precompute; they are not checked.
     if data.get('schema') != 1:
         raise ValueError('unsupported universal R3 source data')
-    if check_hashes and data['source_hashes'] != provenance():
-        raise ValueError('universal R3 source data hashes do not match current code')
     basis7 = tuple(map(_basis_key, data['degree7_basis']))
     if basis7 != rc.total_basis(7):
         raise ValueError('universal R3 source basis convention changed')

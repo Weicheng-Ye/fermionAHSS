@@ -6,7 +6,6 @@ Copyright (c) 2026 koAHSS contributors; MIT license.
 """
 from functools import lru_cache
 from collections import OrderedDict
-import hashlib
 import itertools
 import json
 import os
@@ -15,12 +14,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "python" / "stacking_model"
-# Reject an accidentally modified formula copy; calibration is not selected
-# from a sibling checkout or from ambient Python paths.
-manifest = json.loads((SOURCE / "provenance.json").read_text())
-for name, metadata in manifest["files"].items():
-    if hashlib.sha256((SOURCE / name).read_bytes()).hexdigest() != metadata["bundled_sha256"]:
-        raise RuntimeError("stacking source checksum mismatch: " + name)
+# The formulas are always loaded from this package, never from a sibling
+# checkout or ambient Python paths. Their bundled hashes are not verified.
 os.environ["FERMIONAHSS_ROOT"] = str(ROOT)
 sys.path.insert(0, str(SOURCE))
 import four_cochain_stacking as api

@@ -287,14 +287,17 @@ Final T has zero rank correction and `mu_R=0`, and includes
 is fixed; no local residual solution or shortcut based on injectivity of
 `Dtilde` selects it.
 
-The extension worker evaluates the unchanged formulas under an exact
-execution policy ([extension_acceleration.py](python/extension_acceleration.py)):
-faster interval-cut evaluation, canonical structural zeros, identity
-memoization of pure cochain builders, and universal source values kept across
-processes. The last are stored under `$XDG_CACHE_HOME/fermionAHSS` (default
-`~/.cache/fermionAHSS`) in a file keyed by the hashes of all formula sources;
-set `FERMIONAHSS_CACHE_DIR` to choose another directory, or to an empty
-string to disable the store. A stale or unreadable store is ignored.
+All Python workers evaluate cochains through one interval-cut engine,
+[cochain_tools.py](python/cochain_tools.py), and one set of shared helpers in
+[phase_eval.py](python/phase_eval.py); the bundled stacking formulas import
+them instead of keeping copies. The extension worker adds an exact execution
+policy ([extension_acceleration.py](python/extension_acceleration.py)):
+canonical structural zeros, identity memoization of pure cochain builders,
+and universal source values kept across processes. The last are stored
+under `$XDG_CACHE_HOME/fermionAHSS` (default `~/.cache/fermionAHSS`) in a file
+keyed by the hashes of all formula sources; set `FERMIONAHSS_CACHE_DIR` to
+choose another directory, or to an empty string to disable the store. A
+stale or unreadable store is ignored.
 
 The page worker bounds per-cochain and pure chain-operator memo tables
 to 256 entries by default. Nonnegative environment variables

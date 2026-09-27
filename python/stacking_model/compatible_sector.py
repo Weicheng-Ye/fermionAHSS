@@ -8,47 +8,41 @@ from fractions import Fraction
 
 from cochains import (Cochain, binary_sum, cup, differential,
                       signed_differential)
+import phase_eval as p
+
+
+def _local(c, name=""):
+    return Cochain(c.degree, c, name)
 
 
 def Q(x, j):
     """Cochain Steenrod square including its coboundary term."""
-    r = x.degree
-    return binary_sum(cup(x, x, r-j),
-                      cup(x, differential(x).mod2(), r-j+1))
+    return _local(p.Q(x, j))
 
 
 def E(x, omega):
-    return binary_sum(Q(x, 2), cup(omega, x))
+    return _local(p.E(x, omega))
 
 
 def QD(x, s, omega):
-    return binary_sum(E(x, omega), cup(s, Q(x, 1)))
+    return _local(p.QD(x, s, omega))
 
 
 def polarization(x, y, j=2):
     """h^j_r(x,y), with delta h + h(delta x,delta y) = Delta Q^j."""
-    if x.degree != y.degree:
-        raise ValueError("polarization inputs must have the same degree")
-    r = x.degree
-    return binary_sum(cup(x, y, r-j+1),
-                      cup(differential(x).mod2(), y, r-j+2))
+    return _local(p.polarization(x, y, j))
 
 
 def alpha(A, Aprime, s):
     """The primary correction only; no nonzero-A beta or gamma is supplied."""
-    a, aprime = A.mod2(), Aprime.mod2()
-    return binary_sum(polarization(a, aprime),
-                      cup(s, polarization(a, aprime, 1)))
+    if A.degree != Aprime.degree:
+        raise ValueError("polarization inputs must have the same degree")
+    return _local(p.hD(A.mod2(), Aprime.mod2(), s))
 
 
 def integral(cochain, label):
     """Require exact integrality on evaluation, never truncate a fraction."""
-    def evaluate(simplex):
-        value = Fraction(cochain(simplex))
-        if value.denominator != 1:
-            raise ArithmeticError(f"{label} is not integral: {value}")
-        return value.numerator
-    return Cochain(cochain.degree, evaluate, label)
+    return _local(p.integral(cochain, label), label)
 
 
 def pure_c_g(C, s, omega):

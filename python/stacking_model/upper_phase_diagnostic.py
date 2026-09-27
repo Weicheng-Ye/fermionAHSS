@@ -5,12 +5,7 @@ p,low=hp.p,hp.low
 
 
 def production_phase(n,A,B,C,s,omega):
-    def lift(c):
-        def value(face):
-            base=tuple(v[0] for v in face)
-            return 0 if any(a==b for a,b in zip(base,base[1:])) else c(base)
-        return p.Cochain(c.degree,value)
-    args=tuple(map(lift,(A,B,C,s,omega)))
+    args=tuple(map(hp.interval,(A,B,C,s,omega)))
     if n<3:
         operation=low.build_phase(n,*args)
     else:

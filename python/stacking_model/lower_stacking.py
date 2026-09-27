@@ -8,29 +8,17 @@ from dataclasses import dataclass
 
 from cochains import Cochain, binary_sum, differential
 from compatible_sector import QD, alpha
+import cochain_tools
 
 
 def pullback_interval(c, multiply=False):
     """Normalized pullback to X times I, optionally times its last coordinate."""
-    def value(vertices):
-        base = tuple(v[0] for v in vertices)
-        if any(a == b for a, b in zip(base, base[1:])):
-            return 0
-        result = c(base)
-        return result * vertices[-1][1] if multiply else result
-    return Cochain(c.degree, value)
+    return Cochain(c.degree, cochain_tools.interval_pullback(c, multiply))
 
 
 def prism(c):
     """Signed right prism; callers reduce binary outputs explicitly."""
-    def value(vertices):
-        result = 0
-        for j in range(len(vertices)):
-            simplex = (tuple((v, 0) for v in vertices[:j+1])
-                       + tuple((v, 1) for v in vertices[j:]))
-            result += (-1)**j * c(simplex)
-        return result
-    return Cochain(c.degree-1, value)
+    return Cochain(c.degree-1, cochain_tools.right_prism(c))
 
 
 def prism_gauge(B, s, omega):

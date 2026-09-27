@@ -359,8 +359,10 @@ is not implemented, and the old complete-bar finite section is not selected
 as a fallback. This does not change the calibrated E6 page computation.
 
 The runtime bundles the selected stacking sources under
-[python/stacking_model](../python/stacking_model/) with
-[source provenance and checksums](../python/stacking_model/provenance.json).
+[python/stacking_model](../python/stacking_model/) with their
+[upstream provenance](../python/stacking_model/provenance.json). Helpers that
+are identical to the package kernel (`cochain_tools.py`, `phase_eval.py`) are
+imported from it; the bundled hashes are not verified at runtime.
 Loading the package does not require the separate research workspace.
 No expected classification table is consulted at runtime.
 

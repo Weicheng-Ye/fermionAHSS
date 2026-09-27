@@ -570,7 +570,8 @@ Each row has exactly one `w_k`, so this displays all 34 nonzero values.
 
 This displays all 16 nonzero primitive coefficients. The largest
 denominator is 16. The matrices and all zero entries remain available in
-the JSON, and the runtime checks their source hashes and basis ordering.
+the JSON. The runtime checks their basis ordering; the recorded source
+hashes document the precompute and are not verified at load time.
 
 ## 8. Evaluated normalization selectors
 

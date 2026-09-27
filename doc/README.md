@@ -75,7 +75,8 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [worker.py](../python/worker.py) | Exact JSON protocol and face-equation audits |
 | [low_phases.py](../python/low_phases.py) | Degree-zero, -one, and -two phases |
 | [high_phase.py](../python/high_phase.py) | Degree-three phase |
-| [phase_eval.py](../python/phase_eval.py) | Shared lower phase and source splitting |
+| [cochain_tools.py](../python/cochain_tools.py) | The single interval-cut engine: cup-i words, integral signs, coboundary, interval pullback and prism, Q |
+| [phase_eval.py](../python/phase_eval.py) | Shared lower phase, source splitting, chi, polarization and hD, integrality checks |
 | [mod3_power.py](../python/mod3_power.py) | Prime-three formula and signed transport |
 | [pages.gi](../gap/pages.gi) | Exact homology, surviving representatives, and page quotients |
 | [extensions.gi](../gap/extensions.gi) | Marked abelian extension presentations, Smith transformations, and the `koFull` wrapper |
@@ -83,7 +84,7 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [extension_lifts.gi](../gap/extension_lifts.gi) | Immutable full generator lifts, affine B/C defining choices, integral D solves, and exact flatness witnesses |
 | [extension_transfer.gi](../gap/extension_transfer.gi) | Native extension model, exact retraction preflight and sparse normalized transport |
 | [extension_transfer.py](../python/extension_transfer.py) | Lazy transferred curvature, products and gauge actions using the fixed formulas |
-| [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: fast interval cuts, structural zeros, identity-memoized builders, persistent universal values |
+| [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: structural zeros, identity-memoized builders, persistent universal values |
 | [extension_bar.gi](../gap/extension_bar.gi) | Legacy bounded complete finite-bar model, retained for reference tests |
 | [extension_relations.gi](../gap/extension_relations.gi) | Powers of fixed full lifts, common lower coordinates, and retained reduction carries |
 | [extension_equivalence.gi](../gap/extension_equivalence.gi) | Exact ordered native gauge comparison, without assumed cochain associativity |

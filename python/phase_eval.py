@@ -14,11 +14,11 @@ import re
 PACKAGE = Path(__file__).resolve().parents[1]
 ROOT = PACKAGE.parent
 try:
-    from .cochain_tools import (Cochain, cup, differential, q2, square, zero,
-                               zeta1, zeta2, word_op, cut_terms)
+    from .cochain_tools import (Cochain, Q, cup, differential, q2, square, zero,
+                               zeta1, zeta2, word_op, cut_terms, face_getter)
 except ImportError:
-    from cochain_tools import (Cochain, cup, differential, q2, square, zero,
-                               zeta1, zeta2, word_op, cut_terms)
+    from cochain_tools import (Cochain, Q, cup, differential, q2, square, zero,
+                               zeta1, zeta2, word_op, cut_terms, face_getter)
 
 
 def scale(c, q):
@@ -46,17 +46,39 @@ def divide(c, denominator, name='even quotient'):
     return Cochain(c.degree, value)
 
 
-def Q(c, degree):
-    return binary(cup(c, c, c.degree-degree)
-                  + cup(c, binary(differential(c)), c.degree-degree+1))
-
-
 def E(c, omega):
     return binary(Q(c, 2) + cup(omega, c))
 
 
 def QD(c, s, omega):
     return binary(E(c, omega) + cup(s, Q(c, 1)))
+
+
+def _polarization(x, y, j):
+    r = x.degree
+    return binary(cup(x, y, r-j+1) + cup(binary(differential(x)), y, r-j+2))
+
+
+def polarization(x, y, j=2):
+    """h^j(x,y), with delta h + h(delta x,delta y) = Delta Q^j."""
+    if x.degree != y.degree:
+        raise ValueError("polarization inputs must have the same degree")
+    return _polarization(x, y, j)
+
+
+def hD(x, y, s):
+    """The binary cross term h^2(x,y) + s h^1(x,y) of the stacking products."""
+    return binary(_polarization(x, y, 2) + cup(s, _polarization(x, y, 1)))
+
+
+def integral(cochain, label):
+    """Require exact integrality on evaluation, never truncate a fraction."""
+    def value(simplex):
+        answer = Fraction(cochain(simplex))
+        if answer.denominator != 1:
+            raise ArithmeticError(f'{label} is not integral: {answer}')
+        return answer.numerator
+    return Cochain(cochain.degree, value)
 
 
 @lru_cache(None)
@@ -89,24 +111,29 @@ def chi_anf(n):
     return faces,tuple(masks)
 
 
+@lru_cache(None)
+def _chi_table(n):
+    faces, masks = chi_anf(n)
+    return tuple(face_getter(face) for face in faces), masks
+
+
 def chi(c):
-    faces, masks = chi_anf(c.degree)
+    getters, masks = _chi_table(c.degree)
     @lru_cache(None)
     def evaluate_active(active):
         # Different universal simplices often restrict the input to the
         # same binary face pattern. The ANF depends only on that pattern.
         return sum((active & mask) == mask for mask in masks) % 2
     def value(z):
-        active = sum(c(tuple(z[j] for j in face)) << i for i, face in enumerate(faces))
-        return evaluate_active(active)
+        if type(z) is not tuple:
+            z = tuple(z)
+        return evaluate_active(sum(c(get(z)) << i for i, get in enumerate(getters)))
     return Cochain(c.degree+3, value)
 
 
-def source(A, s, omega):
-    """The A-only source splitting, n=1,2,3, with epsilon100."""
+def source_splitting(A, s, omega):
+    """The degree-independent A-only splitting shared by every source."""
     n = A.degree
-    if n not in (1, 2, 3):
-        raise ValueError('source splitting is only implemented in degrees1,2,3')
     a = binary(A)
     t = binary(divide(A-a, 2, 'A carry'))
     B = divide(differential(a), 2, 'binary Bockstein')
@@ -124,9 +151,18 @@ def source(A, s, omega):
     qint = cup(omega, B, integral=True)+cup(B, B, n-1, integral=True)
     LA = divide(qint-ds(g, s)+cup(s, p, integral=True), 2, 'source LA')
     k0 = binary(FA+binary(LA)+cup(cup(cup(s, s), s), a))
-    result = dict(a=a, t=t, B=B, e=e, CB=CB, p=p, q0=p,
-                  g=g, k0=k0, k=k0, q=p, FA=FA, LA=LA)
+    return dict(a=a, t=t, B=B, e=e, CB=CB, p=p, q0=p,
+                g=g, k0=k0, k=k0, q=p, FA=FA, LA=LA)
+
+
+def source(A, s, omega):
+    """The A-only source splitting, n=1,2,3, with epsilon100."""
+    n = A.degree
+    if n not in (1, 2, 3):
+        raise ValueError('source splitting is only implemented in degrees1,2,3')
+    result = source_splitting(A, s, omega)
     if n == 1:
+        a, t, p, k0 = result['a'], result['t'], result['p'], result['k0']
         e0 = cup(s, t)
         de0 = binary(differential(e0))
         result['q'] = cup(binary(omega+cup(s, s)), a)

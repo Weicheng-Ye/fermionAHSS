@@ -71,8 +71,10 @@ The low-degree adapter still handles order-two C-layer relations in
 degree 1 with arbitrary valid `omega`, and C/B-layer relations in degree 2
 with `omega=0`. Its phase restriction is bundled in
 [stacking-low-phase.json](../data/stacking-low-phase.json). The higher
-formulas are bundled with [source hashes](../python/stacking_model/provenance.json);
+formulas are bundled with their [upstream provenance](../python/stacking_model/provenance.json);
 runtime loading does not require the separate stacking research workspace.
+Helpers identical to the package kernel are imported from it, and the
+bundled hashes are no longer verified at runtime.
 
 Degrees -1 and 0 have only D. Unsupported queries, incomplete page data
 and exhausted resource bounds remain unresolved. Native transfer currently
@@ -178,7 +180,9 @@ The flattened `python/` layout changes the package-data lookup in
 `phase_eval.py`. Its packaged source hash and the dependent R3 source hash
 are updated to match that path-only packaging change. Numeric source
 coefficients, calibration values, and mathematical formulas are unchanged;
-this is not a new calibration.
+this is not a new calibration. Since the
+[shared-kernel change](verification/shared-kernel-20260927.md), these
+recorded R3 hashes are no longer checked when the data are loaded.
 
 Finite executable checks support the adapter and arithmetic. They do not
 replace the universal arguments or establish an all-degree theorem. Fresh

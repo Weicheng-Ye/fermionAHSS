@@ -1,23 +1,19 @@
 """Exact execution policy for the extension transfer worker.
 
-The calibrated formula sources, and the modules whose hashes certify the
-bundled calibration tables, stay byte-identical.  Like runtime_cache.py,
-this module only changes how the worker evaluates those unchanged formulas;
-every cochain value is exactly the value of the original evaluator.  It is
-installed by extension_transfer.py alone, never by the page worker.
+The interval-cut engine itself lives in cochain_tools.py and phase_eval.py,
+shared with the page worker. This module, installed by extension_transfer.py
+alone, adds policies that change how the koFull worker evaluates the
+unchanged formulas; every cochain value is exactly that of the original
+evaluator.
 
-1. Evaluation: interval-cut words read their faces through precomputed
-   C-level getters, calling a cochain enters its memo table without an
-   intermediate Python frame, and memo tables are created without
-   functools.update_wrapper.
-2. Structural zeros: zero() returns one canonical zero per degree.  A word
+1. Structural zeros: zero() returns one canonical zero per degree.  A word
    with a zero factor, a sum or difference with zero, a scalar multiple, mod
    two reduction, coboundary, quotient, interval lift, prism or transport of
    zero vanishes by its definition and returns that canonical zero.
-3. Identity memoization: pure cochain builders return the same cochain for
+2. Identity memoization: pure cochain builders return the same cochain for
    the same input objects, so a term shared by several products (for
    example the potential of one operand) is evaluated once.
-4. Persistent universal values: values of universal source functions are
+3. Persistent universal values: values of universal source functions are
    kept across processes, keyed by the hashes of every formula source.
 
 Copyright (c) 2026 koAHSS contributors; MIT license.
@@ -29,7 +25,6 @@ import functools
 import hashlib
 import importlib
 import json
-import operator
 import os
 from pathlib import Path
 import sys
@@ -40,6 +35,7 @@ import phase_eval
 
 ROOT = Path(__file__).resolve().parents[1]
 _installed = False
+_Cochain = cochain_tools.Cochain
 
 
 def is_zero(cochain):
@@ -47,81 +43,7 @@ def is_zero(cochain):
     return getattr(cochain, 'structural_zero', False)
 
 
-# 1. Evaluation -------------------------------------------------------------
-
-_Cochain = cochain_tools.Cochain
-_lru_cache_wrapper = getattr(functools, '_lru_cache_wrapper', None)
-_CacheInfo = getattr(functools, '_CacheInfo', None)
-
-
-def _memo(evaluate):
-    # The same unbounded C memo table that lru_cache(None) builds, without
-    # copying metadata; a replaced cochain_tools.lru_cache policy still wins.
-    if (cochain_tools.lru_cache is functools.lru_cache
-            and _lru_cache_wrapper is not None and _CacheInfo is not None):
-        wrapper = _lru_cache_wrapper(evaluate, None, False, _CacheInfo)
-        wrapper.__wrapped__ = evaluate
-        return wrapper
-    return cochain_tools.lru_cache(None)(evaluate)
-
-
-def _cochain_init(self, degree, evaluate, name=""):
-    self.degree = degree
-    self.evaluate = _memo(evaluate)
-    self.name = name
-
-
-def _getter(face):
-    """Return a C-level function taking a simplex to its face tuple."""
-    if len(face) == 1:
-        return operator.itemgetter(slice(face[0], face[0] + 1))
-    return operator.itemgetter(*face)
-
-
-def _word_op(word, *cochains, integral_index=None):
-    degree = sum(c.degree for c in cochains) - (len(word) - len(cochains))
-    # Every interval-cut term multiplies one value of each factor.
-    if any(is_zero(c) for c in cochains):
-        return zero(degree)
-    terms = cochain_tools.cut_terms(word, tuple(c.degree for c in cochains),
-                                    integral_index)
-    prepared = tuple((weight, tuple((c, _getter(face))
-                                    for c, face in zip(cochains, faces)))
-                     for faces, weight in terms)
-    integral = integral_index is not None
-
-    def evaluate(simplex):
-        if type(simplex) is not tuple:
-            simplex = tuple(simplex)
-        total = 0
-        for weight, factors in prepared:
-            value = weight
-            for c, get in factors:
-                value *= c(get(simplex))
-                if not value:
-                    break
-            total += value
-        return total if integral else total % 2
-
-    return _Cochain(degree, evaluate)
-
-
-def _chi(c):
-    faces, masks = phase_eval.chi_anf(c.degree)
-    getters = tuple(_getter(face) for face in faces)
-
-    @functools.lru_cache(None)
-    def evaluate_active(active):
-        return sum((active & mask) == mask for mask in masks) % 2
-
-    def value(z):
-        if type(z) is not tuple:
-            z = tuple(z)
-        return evaluate_active(sum(c(get(z)) << i for i, get in enumerate(getters)))
-    return _Cochain(c.degree + 3, value)
-
-
-# 2. Structural zeros --------------------------------------------------------
+# 1. Structural zeros --------------------------------------------------------
 
 _ZEROS = {}
 _original_zero = cochain_tools.zero
@@ -134,6 +56,16 @@ def zero(degree):
         answer.structural_zero = True
         _ZEROS[degree] = answer
     return answer
+
+
+def _word_rule(function):
+    @functools.wraps(function)
+    def word_op(word, *cochains, integral_index=None):
+        # Every interval-cut term multiplies one value of each factor.
+        if any(is_zero(c) for c in cochains):
+            return zero(cochain_tools.word_degree(word, cochains))
+        return function(word, *cochains, integral_index=integral_index)
+    return word_op
 
 
 def _check_degrees(a, b):
@@ -205,7 +137,7 @@ def _transported_rule(function):
     return transported
 
 
-# 3. Identity memoization -------------------------------------------------------
+# 2. Identity memoization -------------------------------------------------------
 
 class _IdentityMemo:
     """Bounded memo of a pure builder, keyed by its argument objects.
@@ -247,23 +179,24 @@ MEMOIZED = {
         'reduced_phi_shift', 'closed_difference', 'shifted_A_phase',
         'reduced_A_phase', 'A_phase', 'shifted_comparison_gauge', 'comparison_gauge'),
     'upper_phase_diagnostic': ('production_phase',),
-    'h_tau_primitive': ('hD', 'uniform_source', 'interval', 'prism'),
+    'h_tau_primitive': ('uniform_source',),
     'off_shell_beta': ('primary', 'curvature', 'alpha', 'raw_H', 'natural_f',
                        'coordinate_gauge', 'current_f'),
     'stacking_lower': ('alpha', 'legal_beta', 'all_cochain_beta'),
     'all_cochain_upper': ('r', 'K', 'current_curvature', 'coordinate', 'integer_gauge'),
-    'natural_upper': ('curvature', 'integral', 'ghat'),
+    'natural_upper': ('curvature', 'ghat'),
     'pure_c_normalization': ('phase_correction', 'correction'),
     'production_upper_binary_comparison': ('J0', 'affine_J0_source', 'affine_J0_primitive'),
     'upper_pair_source': ('source', 'full_source', 'reduced_full_source'),
-    'phase_eval': ('source', 'theta', 'Q', 'E', 'QD', 'ds'),
+    'phase_eval': ('source', 'source_splitting', 'theta', 'E', 'QD', 'ds', 'hD', 'integral'),
+    'cochain_tools': ('Q', 'interval_pullback', 'right_prism'),
 }
 # Enough for the terms shared by consecutive products; larger tables only
 # retain memory (measured on the degree-four and degree-six workers).
 MEMO_LIMIT = 32
 
 
-# 4. Persistent universal values -------------------------------------------------
+# 3. Persistent universal values -------------------------------------------------
 
 UNIVERSAL = (('production_gamma4', 'source_value'), ('low_phases', 'V1_pair'))
 # Frozen dataclasses that occur in universal keys; nothing else is decoded.
@@ -476,32 +409,27 @@ def install():
         return
     modules = {name: importlib.import_module(name) for name in
                set(MEMOIZED) | {name for name, _ in UNIVERSAL}}
-    # 1. Evaluation.
-    _Cochain.__init__ = _cochain_init
-    _Cochain.__call__ = property(operator.attrgetter('evaluate'))
-    _rebind(cochain_tools.word_op, _word_op)
-    _rebind(phase_eval.chi, _chi)
-    # 2. Structural zeros.
+    # 1. Structural zeros.
     _Cochain.__add__ = _add
     _Cochain.__sub__ = _sub
     _Cochain.mod2 = _mod2
     _rebind(_original_zero, zero)
     _rebind(_original_differential, _differential)
+    _rebind(cochain_tools.word_op, _word_rule(cochain_tools.word_op))
     _rebind(phase_eval.scale, _scale_rule(phase_eval.scale))
     _rebind(phase_eval.divide, _zero_preserving(phase_eval.divide))
-    hp = modules['h_tau_primitive']
-    _rebind(hp.interval, _zero_preserving(hp.interval))
-    _rebind(hp.prism, _zero_preserving(hp.prism, degree_shift=-1))
-    natural = modules['natural_upper']
-    _rebind(natural.integral, _zero_preserving(natural.integral))
+    _rebind(cochain_tools.interval_pullback, _zero_preserving(cochain_tools.interval_pullback))
+    _rebind(cochain_tools.right_prism,
+            _zero_preserving(cochain_tools.right_prism, degree_shift=-1))
+    _rebind(phase_eval.integral, _zero_preserving(phase_eval.integral))
     low = modules['low_phases']
     _rebind(low.transported, _transported_rule(low.transported))
-    # 3. Identity memoization, wrapping the zero-aware versions above.
+    # 2. Identity memoization, wrapping the zero-aware versions above.
     for module_name, names in MEMOIZED.items():
         module = modules[module_name]
         for name in names:
             _rebind(getattr(module, name), _IdentityMemo(getattr(module, name), MEMO_LIMIT))
-    # 4. Universal values; persist() attaches the cross-process store.
+    # 3. Universal values; persist() attaches the cross-process store.
     for module_name, name in UNIVERSAL:
         original = getattr(modules[module_name], name)
         table = _tables[module_name + '.' + name] = UniversalTable(

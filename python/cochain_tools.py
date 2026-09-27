@@ -1,11 +1,16 @@
 """Exact interval-cut cochain operations and the lexicographic certificate.
 
 All arithmetic is integral or Boolean; no external packages are required.
+This module is the single implementation of the interval-cut engine: the
+vendored stacking_model/cochains.py wraps these functions in its validating
+Cochain class, and the page and extension workers both evaluate through it.
 """
 from collections import Counter
+import functools
 from functools import lru_cache
 from itertools import combinations
 import json
+from operator import attrgetter, itemgetter
 import time
 
 
@@ -13,6 +18,9 @@ import time
 def cut_terms(word, degrees, integral_index=None):
     labels = tuple(int(c) - 1 for c in word)
     degree = sum(degrees) - (len(labels) - len(degrees))
+    # Cochains of negative degree vanish, so their words have no terms.
+    if degree < 0 or any(d < 0 for d in degrees):
+        return ()
     last = {c: max(j for j, z in enumerate(labels) if z == c) for c in set(labels)}
     result = Counter()
 
@@ -51,14 +59,29 @@ def cut_terms(word, degrees, integral_index=None):
     return tuple((faces, value) for faces, value in result.items() if value)
 
 
+_lru_cache_wrapper = getattr(functools, '_lru_cache_wrapper', None)
+_CacheInfo = getattr(functools, '_CacheInfo', None)
+
+
+def _memoize(evaluate):
+    # The same unbounded C memo table that lru_cache(None) builds, without
+    # copying metadata. A replaced module-level lru_cache (runtime_cache.py)
+    # is honoured.
+    if lru_cache is functools.lru_cache and _lru_cache_wrapper is not None:
+        wrapper = _lru_cache_wrapper(evaluate, None, False, _CacheInfo)
+        wrapper.__wrapped__ = evaluate
+        return wrapper
+    return lru_cache(None)(evaluate)
+
+
 class Cochain:
     def __init__(self, degree, evaluate, name=""):
         self.degree = degree
-        self.evaluate = lru_cache(None)(evaluate)
+        self.evaluate = _memoize(evaluate)
         self.name = name
 
-    def __call__(self, simplex):
-        return self.evaluate(simplex)
+    # Calling a cochain enters its memo table without a Python frame.
+    __call__ = property(attrgetter('evaluate'))
 
     def __add__(self, other):
         assert self.degree == other.degree
@@ -76,34 +99,88 @@ def zero(degree):
     return Cochain(degree, lambda t: 0)
 
 
-def word_op(word, *cochains, integral_index=None):
-    degree = sum(c.degree for c in cochains) - (len(word) - len(cochains))
+def face_getter(face):
+    """A C-level map from a simplex to its face tuple."""
+    if len(face) == 1:
+        return itemgetter(slice(face[0], face[0] + 1))
+    return itemgetter(*face)
+
+
+def word_degree(word, cochains):
+    return sum(c.degree for c in cochains) - (len(word) - len(cochains))
+
+
+def word_evaluator(word, cochains, integral_index=None):
+    """Evaluation function of an interval-cut word on the given cochains."""
     terms = cut_terms(word, tuple(c.degree for c in cochains), integral_index)
+    prepared = tuple((weight, tuple((c, face_getter(face))
+                                    for c, face in zip(cochains, faces)))
+                     for faces, weight in terms)
+    integral = integral_index is not None
 
     def evaluate(simplex):
+        if type(simplex) is not tuple:
+            simplex = tuple(simplex)
         total = 0
-        for faces, weight in terms:
+        for weight, factors in prepared:
             value = weight
-            for c, face in zip(cochains, faces):
-                value *= c(tuple(simplex[j] for j in face))
+            for c, get in factors:
+                value *= c(get(simplex))
                 if not value:
                     break
             total += value
-        return total if integral_index is not None else total % 2
+        return total if integral else total % 2
 
-    return Cochain(degree, evaluate)
+    return evaluate
+
+
+def word_op(word, *cochains, integral_index=None):
+    return Cochain(word_degree(word, cochains),
+                   word_evaluator(word, cochains, integral_index))
+
+
+def cup_word(index):
+    """The interval-cut word of the cup-i product."""
+    return "".join(str(1 + j % 2) for j in range(index + 2))
 
 
 def cup(a, b, index=0, integral=False):
     if index < 0:
         return zero(a.degree + b.degree - index)
-    word = "".join(str(1 + j % 2) for j in range(index + 2))
-    return word_op(word, a, b, integral_index=index if integral else None)
+    return word_op(cup_word(index), a, b, integral_index=index if integral else None)
+
+
+def coboundary_evaluator(a):
+    """Evaluation function of the ordinary coboundary of a."""
+    return lambda t: sum((-1) ** j * a(t[:j] + t[j + 1:]) for j in range(len(t)))
 
 
 def differential(a):
-    return Cochain(a.degree + 1, lambda t: sum((-1) ** j * a(t[:j] + t[j + 1:])
-                                              for j in range(len(t))))
+    return Cochain(a.degree + 1, coboundary_evaluator(a))
+
+
+def interval_pullback(c, scaled=False):
+    """Normalized pullback to X times the interval, optionally times its last coordinate."""
+    def value(vertices):
+        base = tuple(v[0] for v in vertices)
+        if any(a == b for a, b in zip(base, base[1:])):
+            return 0
+        result = c(base)
+        return result * vertices[-1][1] if scaled else result
+    return Cochain(c.degree, value)
+
+
+def right_prism(c):
+    """Signed right prism over the vertex pairs (v, 0) and (v, 1)."""
+    return Cochain(c.degree - 1, lambda vertices: sum(
+        (-1) ** j * c(tuple((v, 0) for v in vertices[:j + 1]) + tuple((v, 1) for v in vertices[j:]))
+        for j in range(len(vertices))))
+
+
+def Q(c, degree):
+    """Cochain Steenrod square Q^degree, including its coboundary term."""
+    return (cup(c, c, c.degree - degree)
+            + cup(c, differential(c).mod2(), c.degree - degree + 1)).mod2()
 
 
 def square(a, k):
@@ -111,7 +188,7 @@ def square(a, k):
 
 
 def q2(a):
-    return (cup(a, a, a.degree - 2) + cup(a, differential(a).mod2(), a.degree - 1)).mod2()
+    return Q(a, 2)
 
 
 def zeta1(x, y):

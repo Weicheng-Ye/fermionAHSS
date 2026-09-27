@@ -109,8 +109,8 @@ reflect `d(Phi(e)) xtimes Phi(canonical)`; the curvature of a native
 gauge is never substituted for that full bar boundary. These evaluations
 use sparse requested simplices, not a complete-bar coordinate array.
 
-The Python worker imports the existing checksum-verified formulas. Its
-GAP callbacks request sparse f or normalized-homotopy chains on demand.
+The Python worker imports the bundled formulas and the shared cochain kernel.
+Its GAP callbacks request sparse f or normalized-homotopy chains on demand.
 The top-degree formulas are projected only along g-support during native
 operations.
 
@@ -146,8 +146,10 @@ it does not remove the native engine's separate search and transport bounds.
 
 The portable [resolution example](../examples/resolution_extensions.g)
 exercises C2, signed C4 and C8 extensions on supplied resolutions. Current
-checks, including the removal of the finite audit and the exact worker
-evaluation policy, are recorded in
+checks of the shared cochain kernel and of worker reply reading are recorded
+in [the shared-kernel verification record](verification/shared-kernel-20260927.md);
+the removal of the finite audit and the exact worker evaluation policy are
+checked in
 [the acceleration verification record](verification/extension-acceleration-20260926.md).
 The [native-default record](verification/native-extension-default-20260926.md)
 is retained as historical evidence. Historical transfer and reference

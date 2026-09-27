@@ -28,12 +28,7 @@ def successor_gamma(A,B,C,Ap,Bp,Cp,s,omega):
     return gamma(A,B,C,Ap,Bp,Cp,s,omega)
 
 
-def integral(cochain,label):
-    def value(vertices):
-        answer=F(cochain(vertices))
-        if answer.denominator!=1:raise ArithmeticError(f'{label} is not integral: {answer}')
-        return answer.numerator
-    return p.Cochain(cochain.degree,value)
+integral=p.integral
 
 
 def ghat(A,B,C,s,omega):

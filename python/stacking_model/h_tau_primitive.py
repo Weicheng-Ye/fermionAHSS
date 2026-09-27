@@ -13,6 +13,7 @@ import sys
 ROOT = Path(os.environ.get('FERMIONAHSS_ROOT', str(Path(__file__).resolve().parents[2])))
 sys.path.insert(0, str(ROOT / 'python'))
 import phase_eval as p
+import cochain_tools
 import low_phases as low
 import chain_models as cm
 import source_primitive as sp
@@ -22,49 +23,17 @@ import exterior_bar as eb
 from g6_repair import f2_solve
 
 
-def hD(x, y, s):
-    dx = p.binary(p.differential(x))
-    return p.binary(p.cup(x,y,x.degree-1)+p.cup(dx,y,x.degree)
-                    +p.cup(s,p.binary(p.cup(x,y,x.degree)+p.cup(dx,y,x.degree+1))))
+hD = p.hD
 
 
 def uniform_source(A, s, omega):
     """The n-independent k0,g specialization of phase_eval.source."""
-    n = A.degree
-    a = p.binary(A)
-    t = p.binary(p.divide(A-a,2,'A carry'))
-    B = p.divide(p.differential(a),2,'binary Bockstein')
-    e = p.binary(B)
-    CB = p.binary(p.divide(B+e,2,'plus carry'))
-    u,v,w = p.square(a,2),p.cup(omega,a),p.cup(s,e)
-    primary = p.binary(u+v+w)
-    FA = p.binary(p.zeta2(omega,a)+p.chi(a)
-                  +p.cup(u,v,n+1)+p.cup(u,w,n+1)+p.cup(v,w,n+1)
-                  +p.zeta1(s,e)+p.cup(p.cup(omega,s,1),e)
-                  +p.cup(s,u)+p.cup(p.cup(s,s),CB))
-    g = p.binary(p.Q(t,2)+p.cup(omega,t)
-                 +p.cup(p.binary(p.differential(t)),p.cup(s,a),n)
-                 +p.zeta1(s,a)+p.cup(p.cup(omega,s,1),a))
-    q = p.cup(omega,B,integral=True)+p.cup(B,B,n-1,integral=True)
-    LA = p.divide(q-p.ds(g,s)+p.cup(s,primary,integral=True),2,'source LA')
-    k0 = p.binary(FA+p.binary(LA)+p.cup(p.cup(p.cup(s,s),s),a))
-    return dict(k0=k0,g=g,p=primary)
+    data = p.source_splitting(A, s, omega)
+    return dict(k0=data['k0'], g=data['g'], p=data['p'])
 
 
-def interval(c, scaled=False):
-    def value(vertices):
-        base = tuple(v[0] for v in vertices)
-        if any(a == b for a,b in zip(base,base[1:])):
-            return 0
-        result = c(base)
-        return result*vertices[-1][1] if scaled else result
-    return p.Cochain(c.degree,value)
-
-
-def prism(c):
-    return p.Cochain(c.degree-1,lambda vertices: sum(
-        (-1)**j*c(tuple((v,0) for v in vertices[:j+1])+tuple((v,1) for v in vertices[j:]))
-        for j in range(len(vertices))))
+interval = cochain_tools.interval_pullback
+prism = cochain_tools.right_prism
 
 
 def closed_source(A,s,omega):
