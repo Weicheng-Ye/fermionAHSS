@@ -242,7 +242,10 @@ only the D layer, so no relation is measured there. In degrees 4–6 the
 D-layer product omits the pure-C normalization of the production
 correction, an integral coboundary, so measured D representatives differ
 from the complete-bar reference model's by D-gauges while the group on gauge
-classes is the same (see [extensions.md](doc/extensions.md)). Degree six is the
+classes is the same (see [extensions.md](doc/extensions.md)). In degrees 5
+and 6 the A=0 sector uses the direct formulas: the curvature of a state
+with A=0 is the exact A=0 phase, and the product of two states with A=B=0
+is `pure_c_gamma`, again up to an explicit integral coboundary. Degree six is the
 cutoff of the all-cochain differential: its D-layer terms, the correction
 `J_6` and the legal stacking correction `gamma_6`, are evaluated on the
 legal lower locus, which is the only locus the native engine reaches; see

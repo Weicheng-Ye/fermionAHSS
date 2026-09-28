@@ -52,6 +52,13 @@ def fixed_complex():
                 kernel_diagonal=tuple(kernel_diagonal[i][i] for i in range(len(mid)-rank)))
 
 
+def one_fiber_zero(simplex):
+    """Whether one of the two fibers of a universal pair simplex vanishes."""
+    rows = simplex[0].rows
+    return (not any(x for a in rows for row in a.matrix for x in row)
+            or not any(x for a in rows for row in a.matrix_prime for x in row))
+
+
 class SourcePrimitive7:
     """Source must be normalized, degree7, and signed-closed modulo integers."""
     def __init__(self, source):
@@ -89,6 +96,11 @@ class SourcePrimitive7:
         small = dict(zip(pair.rc.total_basis(6), self.coefficients()))
         def value(vertices):
             simplex = (pair.to_diag(A, Ap, s, vertices), pair.to_omega(omega, vertices))
+            if one_fiber_zero(simplex):
+                # Every term of the contraction keeps a zero fiber, on which
+                # the source is zero, and the relative small basis has no word
+                # of one fiber alone: the primitive vanishes without a chain.
+                return F(0)
             return self.evaluate(pair.rc.Htot(simplex))+sum(
                 c*small.get(b, F(0)) for b, c in pair.rc.Ftot(simplex).items())
         return pair.p.Cochain(6, value)

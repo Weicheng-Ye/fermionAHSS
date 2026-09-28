@@ -313,7 +313,9 @@ class TransferredModel:
                 # Native curvature reaches this layer only after the lower
                 # layers vanish, so the degree-six section branch of the note
                 # is never needed.
-                value = native.g(k, self.triple(state, full=False), self.s, self.omega)
+                value = native.g(k, self.triple(state, full=False), self.s, self.omega,
+                                 a_zero=self.is_zero(state[0], False),
+                                 b_zero=self.is_zero(state[1], True))
         else:
             raise ValueError("transferred nonlinear differential covers degrees 0 through 6")
         state.layers[key] = value
@@ -380,9 +382,10 @@ class TransferredModel:
                     legal, self.s, self.omega)
             pure = (self.is_zero(result[0], False) and self.is_zero(result[1], True)
                     and self.is_zero(self.differential(result[2], False), True))
-            a_zero = k < 6 or (self.is_zero(left[0], False) and self.is_zero(right[0], False))
+            a_zero = (self.is_zero(left[0], False), self.is_zero(right[0], False))
+            b_zero = self.is_zero(left[1], True) and self.is_zero(right[1], True)
             return native.gamma(k, self.triple(left), self.triple(right),
-                                legal, pure, a_zero, self.s, self.omega)
+                                legal, pure, a_zero, self.s, self.omega, b_zero)
         def build(result, layer):
             value = left[layer] + right[layer] + result.cross(layer)
             return value if layer in (0, 3) else p.binary(value)

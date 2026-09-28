@@ -12,9 +12,57 @@ from itertools import combinations
 
 from cochains import Cochain, binary_sum, cup, differential, signed_differential
 from compatible_sector import E, Q, QD, alpha, integral, polarization
-from lower_stacking import pullback_interval, prism
+import cochain_tools as words
 import h_tau_primitive as production
 p, cm = production.p, production.cm
+
+
+def _prism_simplex(z, j):
+    return tuple((v, 0) for v in z[:j + 1]) + tuple((v, 1) for v in z[j:])
+
+
+def closed_prism(b, s, omega):
+    """I Theta_{m+1}(delta(b l), Q_D(b l)) for a closed binary b, as an explicit cochain on X.
+
+    With l the interval coordinate and P_j the prism simplices of the right
+    prism I, the prism of Theta on the suspended data equals, for b closed
+    modulo two and any s, omega,
+
+        sum_{j<N} (-1)^j h(E(v)(P_j)) + (-1)^N [h(E(v)(P_N) + H_m(b)) + qint_m(b)/4 + h(Z_m(b))],
+
+    N = m+3, v = Q_D(b l) on X x I, and H_m, qint_m, Z_m the q-dependent
+    words of phase_eval.theta applied to b itself: on P_j with j<N every
+    q-dependent word of Theta_{m+1} has two top vertices in one interval of
+    each of its cuts and vanishes, and on the cone P_N each word reduces to
+    its degree-m counterpart on the base. Only the E part is still read on
+    the prism simplices; the chi word of degree m+1 is never evaluated.
+    """
+    m = b.degree
+    N = m + 3
+    bi = words.interval_pullback(b, True)
+    si, wi = words.interval_pullback(s), words.interval_pullback(omega)
+    Ev = p.E(p.QD(bi, si, wi), wi)
+    B = p.divide(words.differential(b), 2, 'closed prism Bockstein')
+    e = p.binary(B)
+    CB = p.binary(p.divide(B + e, 2, 'closed prism carry'))
+    u, wp, se = words.square(b, 2), words.cup(omega, b), words.cup(s, e)
+    H = p.binary(words.zeta2(omega, b) + p.chi(b) + words.cup(u, wp, m + 1)
+                 + words.cup(u, se, m + 1) + words.cup(wp, se, m + 1)
+                 + words.zeta1(s, e) + words.cup(words.cup(omega, s, 1), e)
+                 + words.cup(s, u) + words.cup(words.cup(s, s), CB))
+    qint = words.cup(omega, B, integral=True) + words.cup(B, B, m - 1, integral=True)
+    Z = p.binary(words.cup(s, words.square(b, 2)) + words.cup(omega, words.square(b, 1)))
+    sign = -1 if N % 2 else 1
+
+    def value(z):
+        z = tuple(z)
+        total = F(0)
+        for j in range(N):
+            if Ev(_prism_simplex(z, j)) % 2:
+                total += F(-1 if j % 2 else 1, 2)
+        top = (Ev(_prism_simplex(z, N)) + H(z)) % 2
+        return total + sign * (F(top, 2) + F(qint(z), 4) + F(Z(z), 2))
+    return Cochain(N, value)
 
 
 @lru_cache(None)
@@ -181,10 +229,8 @@ class HigherA0Stacking:
     def boundary_phase(self,b,s,omega):
         if (b.degree,s.degree,omega.degree) != (self.m,1,2):
             raise ValueError('inconsistent input degrees')
-        bi = pullback_interval(b,True)
-        si,wi = pullback_interval(s),pullback_interval(omega)
-        raw = p.theta(differential(bi).mod2(),QD(bi,si,wi),si,wi)
-        suspended = prism(Cochain(raw.degree,raw))
+        # The prism I Theta(delta(b l), Q_D(b l)) of the closed b, in closed form.
+        suspended = closed_prism(b,s,omega)
         if self.m == 3:
             return suspended-F(1,2)*E(cup(s,b),omega)
         return -suspended+F(1,2)*binary_sum(E(Q(b,1),omega),cup(s,QD(b,s,omega)))

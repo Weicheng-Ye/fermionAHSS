@@ -303,6 +303,31 @@ other. The stacking group on gauge classes is unchanged, the second phase
 evaluation at A=B=0 is saved, and native D representatives differ from the
 finite-section reference model's by D-coboundaries, which the D stage of
 the gauge comparison absorbs.
+
+In degrees 5 and 6 the A=0 sector uses the direct formulas of
+`a0_high_gamma` and `compatible_sector` (`extension_native_upper`). For a
+lower-legal state with A=0 on the resolution the D-layer curvature
+`closed_ab_upper.J(0,B,C)` equals, as a cochain,
+\(\delta_s[\Omega_{a0}(B,C)+\mathsf h(t\smile_{k-1}Q_D(B))]-\mathsf h(E(t))\)
+with \(\Omega_{a0}\) the phase of `HigherA0Stacking`, \(t\) the binary C
+residual \(\rho(\delta C+Q_D(B))\), and `pure_c_g(C)` when B=0 as well:
+the source splitting of A=0 vanishes, so `production_phase(n,0,B,C)` is
+\(\Omega_{a0}(B,C)\) for closed B, \(f^\sharp(0,B)=Q_D(B)\), and every
+comparison gauge and universal primitive vanishes at A=0. No universal
+simplex is registered for such a curvature. For two fully legal states
+with A=B=0 the product correction `closed_ab_upper.gamma` equals
+`pure_c_gamma(C,C')` plus \(\delta_s\) of the explicit integral cochain
+\(-I\,\gamma_C(C\ell,C'\ell)+I\,\widetilde{\mathrm{pol}(\delta(C\ell),\delta(C'\ell))}-[s\smile C]\,[s\smile C']\)
+(\(I\) the right prism, \(\ell\) the interval coordinate,
+\(\gamma_C\) = `pure_c_gamma`, the last term the carry of the half lifts),
+an integral coboundary absorbed by a D-gauge; the native product uses
+`pure_c_gamma` there, keeping the half-lift carry and the K change. With a
+nonzero B the difference of the two corrections is \(\delta_s\) of a
+rational cochain whose integrality is only tested, so that sector keeps
+`closed_ab_upper.gamma`. In degree 6 a product of which exactly one factor
+has a nonzero A layer is evaluated: its universal pair primitive vanishes
+identically, since every term of the pair contraction keeps a zero fiber
+and the relative small basis has no word of one fiber alone.
 All independent generators of D, C, B and A receive a full flat lift,
 including free generators and generators over a zero lower group.
 

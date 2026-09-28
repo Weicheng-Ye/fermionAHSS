@@ -65,6 +65,33 @@ def same_class(bar, k, actual, expected):
     return modulus != 0 and differences[0] % modulus == 0
 
 
+def random_cochains(seed, dimension):
+    """Random binary/integral cochains on the standard simplex of a dimension."""
+    import random
+    from itertools import combinations
+    from extension_worker import api
+    p = api.p
+    rng = random.Random(seed)
+
+    def faces(degree):
+        return list(combinations(range(dimension + 1), degree + 1))
+
+    def binary(degree):
+        table = {f: rng.randrange(2) for f in faces(degree)}
+        return p.Cochain(degree, lambda f: table[tuple(f)])
+
+    def closed_binary(degree):
+        return p.binary(p.differential(binary(degree - 1)))
+
+    def integral(degree, low=-2, high=3):
+        table = {f: rng.randrange(low, high) for f in faces(degree)}
+        return p.Cochain(degree, lambda f: table[tuple(f)])
+
+    def twists(sign, omega):
+        return (closed_binary(1) if sign else p.zero(1), closed_binary(2) if omega else p.zero(2))
+    return dict(binary=binary, closed_binary=closed_binary, integral=integral, twists=twists, p=p)
+
+
 class ExtensionTransferTests(unittest.TestCase):
     def test_twists_do_not_request_bar_values_during_setup(self):
         _, _, calls = c2_models(1, 1)
@@ -127,6 +154,109 @@ class ExtensionTransferTests(unittest.TestCase):
         expected = bar.export(bar.rule.xtimes(bar.state(5, data), bar.state(5, data)))
         self.assertTrue(same_class(bar, 5, actual, expected), (actual, expected))
         self.assertEqual({f: actual[f] for f in "ABC"}, {f: [0] for f in "ABC"})
+
+    def test_pure_c_products_use_the_direct_formula_up_to_a_coboundary(self):
+        # A=B=0 products of fully legal degree-five states are corrected by
+        # pure_c_gamma; the reference model's product differs by a D-coboundary.
+        import compatible_sector
+        for sign, omega in ((1, 0), (0, 1), (1, 1)):
+            native, bar, _ = c2_models(sign, omega)
+            states = [state([0], [0], [c], [d]) for c, d in ((1, 0), (1, 2), (1, -1))]
+            states = [x for x in states if native.kappa(5, x) == native.zero(6)]
+            if not states:
+                continue
+            pairs = [(left, right) for left in states for right in states]
+            expected = [bar.export(bar.rule.xtimes(bar.state(5, left), bar.state(5, right)))
+                        for left, right in pairs]
+            with patch.object(native_module.closed, "gamma",
+                              side_effect=AssertionError("production gamma on the pure sector")):
+                for (left, right), reference in zip(pairs, expected):
+                    actual, _ = native.product(5, left, right)
+                    self.assertTrue(same_class(bar, 5, actual, reference), (sign, omega, actual, reference))
+                    self.assertEqual(native.divide_left(5, left, actual), right)
+
+    def test_a0_curvature_equals_the_production_j_exactly(self):
+        # Theorem: g_k(0,B,C) = closed_ab_upper.J(0,B,C) as cochains for closed B.
+        from fractions import Fraction
+        import all_cochain_upper as upper
+        for k in (5, 6):
+            for sign, omega in ((0, 0), (1, 0), (0, 1), (1, 1)):
+                for b_zero in (True, False):
+                    tools = random_cochains(10 * k + 2 * sign + omega + (1 if b_zero else 0), k + 2)
+                    p = tools["p"]
+                    s, w = tools["twists"](sign, omega)
+                    B = p.zero(k - 2) if b_zero else tools["closed_binary"](k - 2)
+                    C = tools["binary"](k - 1)
+                    triple = upper.Triple(p.zero(k - 3), B, C, True)
+                    simplex = tuple(range(k + 3))
+                    direct = native_module.a0_curvature(k, triple, s, w, b_zero)
+                    production = native_module.closed.J(triple.A, B, C, s, w)
+                    self.assertEqual(Fraction(direct(simplex)), Fraction(production(simplex)),
+                                     (k, sign, omega, b_zero))
+
+    def test_a0_states_never_evaluate_the_production_phase(self):
+        native, _, _ = c2_models(1, 0, top=8)
+        with patch.object(native_module.closed, "J", side_effect=AssertionError("production J at A=0")):
+            self.assertEqual(native.kappa(6, state([0], [1], [0], [0])), native.zero(7))
+            self.assertEqual(sorted(native.kappa(5, state([0], [0], [1], [0]))), ["A", "B", "C", "D"])
+
+    def test_closed_prism_equals_the_prism_of_theta(self):
+        # I Theta(delta(b l), Q_D(b l)) for closed b, in closed form.
+        from fractions import Fraction
+        import a0_high_gamma
+        from cochains import Cochain as LocalCochain
+        from compatible_sector import QD
+        from lower_stacking import prism, pullback_interval
+        for m in (3, 4):
+            for sign, omega in ((0, 0), (1, 0), (0, 1), (1, 1)):
+                tools = random_cochains(100 + 10 * m + 2 * sign + omega, m + 3)
+                p = tools["p"]
+                s, w = tools["twists"](sign, omega)
+                b = tools["closed_binary"](m)
+                simplex = tuple(range(m + 4))
+                bi = pullback_interval(LocalCochain(m, b), True)
+                si, wi = pullback_interval(LocalCochain(1, s)), pullback_interval(LocalCochain(2, w))
+                raw = p.theta(a0_high_gamma.differential(bi).mod2(), QD(bi, si, wi), si, wi)
+                expected = prism(LocalCochain(raw.degree, raw))(simplex)
+                actual = a0_high_gamma.closed_prism(LocalCochain(m, b), LocalCochain(1, s),
+                                                    LocalCochain(2, w))(simplex)
+                self.assertEqual(Fraction(actual), Fraction(expected), (m, sign, omega))
+
+    def test_pair_source_prisms_of_pulled_back_data_vanish(self):
+        # phi(A,0,0) = -V_P(A): the prism of Theta on pulled-back data is zero.
+        from fractions import Fraction
+        import closed_a_upper as upper
+        for sign, omega in ((0, 0), (1, 0), (0, 1), (1, 1)):
+            tools = random_cochains(200 + 2 * sign + omega, 6)
+            p = tools["p"]
+            s, w = tools["twists"](sign, omega)
+            A = p.ds(tools["integral"](1), s)
+            simplex = tuple(range(7))
+            phi = upper.phi(A, p.zero(3), p.zero(4), s, w)
+            self.assertEqual(Fraction(phi(simplex)), -Fraction(upper.source_primitive(A, s, w)(simplex)),
+                             (sign, omega))
+
+    def test_pair_primitive_vanishes_with_one_zero_fiber(self):
+        from fractions import Fraction
+        import production_gamma5
+        import production_gamma6
+        for module, degree, dimension in ((production_gamma5, 2, 6), (production_gamma6, 3, 7)):
+            for sign, omega in ((0, 0), (1, 1)):
+                tools = random_cochains(300 + degree + sign, dimension)
+                p = tools["p"]
+                s, w = tools["twists"](sign, omega)
+                A = p.ds(tools["integral"](degree - 1), s)
+                primitive = module.constructor().primitive(A, p.zero(degree), s, w)
+                self.assertEqual(Fraction(primitive(tuple(range(dimension + 1)))), 0)
+                primitive = module.constructor().primitive(p.zero(degree), A, s, w)
+                self.assertEqual(Fraction(primitive(tuple(range(dimension + 1)))), 0)
+        # The degree-six correction of one nonzero A layer is admitted by the guard.
+        import all_cochain_upper as upper
+        p = upper.p
+        legal = upper.Triple(p.zero(3), p.zero(4), p.zero(5), True)
+        with patch.object(native_module, "A_STACKING", False):
+            correction = native_module.gamma(6, legal, legal, True, False, (False, True), p.zero(1), p.zero(2))
+        self.assertEqual(correction.degree, 7)
 
     def test_debug_phi_values_use_requested_vertices_and_are_immutable_in_cache(self):
         native, _, _ = c2_models()
@@ -320,15 +450,22 @@ class ExtensionTransferTests(unittest.TestCase):
             for data in flat:
                 complete = bar.export(bar.rule.d(bar.state(6, data)))
                 self.assertEqual(complete, native.zero(7))
-            # A nonzero A layer in a degree-six product is refused by the guard
-            # on the nested pair source; products and actions are compared on
-            # the flat states with a zero A layer (none besides zero for the
-            # omega twist without sign).
+            # Two nonzero A layers in a degree-six product are refused by the
+            # guard on the nested pair source; with one nonzero A layer the
+            # pair primitive vanishes and the product is compared with the
+            # reference model. Products and actions of zero-A states are
+            # compared on the flat states with a zero A layer (none besides
+            # zero for the omega twist without sign).
             a_zero = [data for data in flat if data["A"] == [0]]
-            for data in flat:
-                if data["A"] != [0]:
-                    with self.assertRaises(native_module.PairSourceLimit):
-                        native.product(6, state([0], [0], [0], [3]), data)
+            nonzero = [data for data in flat if data["A"] != [0]]
+            for data in nonzero:
+                with self.assertRaises(native_module.PairSourceLimit):
+                    native.product(6, data, data)
+            for data in nonzero[:1]:
+                left = state([0], [0], [0], [3])
+                actual, _ = native.product(6, left, data)
+                expected = bar.export(bar.rule.xtimes(bar.state(6, left), bar.state(6, data)))
+                self.assertTrue(same_class(bar, 6, actual, expected), (actual, expected))
             if not a_zero:
                 continue
             left = dict(a_zero[0], D=[3])

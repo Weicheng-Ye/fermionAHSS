@@ -24,14 +24,39 @@ the legal branch of every degree from 4 to 6:
   actions receive flat states and differential images, whose lower pairs
   are legal. Such a request is reported as unresolved.
 
-The stacking correction of two degree-six states whose A layers are not
-both zero evaluates the universal pair source of production_gamma6. Each of
-its universal terms contains three V3 source contractions on eight-vertex
+Two exact identities dispatch the A=0 sector of degrees 5 and 6 to the
+direct formulas of a0_high_gamma and compatible_sector (doc/extensions.md):
+
+- For a lower-legal triple with A=0 on R, the D-layer curvature
+  g_k(0,B,C) = closed_ab_upper.J(0,B,C) equals, as a cochain,
+  delta_s[Omega_a0(B,C) + h(t cup_{k-1} Q_D(B))] - h(E(t)) with
+  Omega_a0 = HigherA0Stacking(k).omega and t the C residual, and equals
+  compatible_sector.pure_c_g(C) when B=0 as well: production_phase(n,0,B,C)
+  is Omega_a0(B,C) for closed B because the source splitting of A=0 vanishes,
+  f^sharp(0,B) = Q_D(B), and every comparison gauge and universal primitive
+  vanishes at A=0. No universal simplex is registered on this branch.
+- For two fully legal triples with A=B=0 on R, the product correction
+  closed_ab_upper.gamma equals compatible_sector.pure_c_gamma(C,C') plus
+  delta_s of the explicit integral cochain
+  -I(pure_c_gamma(Cl,C'l)) + I(lift(pol(delta(Cl),delta(C'l)))) - [s cup C][s cup C']
+  (I the right prism, l the interval coordinate), an integral coboundary
+  absorbed by a D-gauge; the half-lift carry and the K change are kept.
+  With a nonzero B the difference of the two corrections is delta_s of a
+  rational cochain whose integrality is only tested, so that sector keeps
+  closed_ab_upper.gamma.
+
+The stacking correction of two degree-six states with two nonzero A layers
+evaluates the universal pair source of production_gamma6. Each of its
+universal terms contains three V3 source contractions on eight-vertex
 universal simplices, and the pair contraction itself has thousands of terms
 per output simplex, so this correction costs orders of magnitude more than
 any degree-five term. It is therefore refused, leaving the degree
 unresolved, unless FERMIONAHSS_DEGREE_SIX_A_STACKING=1 is set; the
-differential J_6 with nonzero A and every term with A=0 are evaluated.
+differential J_6 with nonzero A, every term with A=0 and the correction of
+two states of which at most one has a nonzero A layer are evaluated: with
+one fiber zero the pair primitive vanishes identically (every contraction
+term has a zero fiber and the relative small basis has no such word), which
+universal_pair7 short-circuits.
 
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
@@ -39,7 +64,10 @@ import os
 
 import all_cochain_upper as upper
 import closed_ab_upper as closed
+import compatible_sector as sector
 import natural_upper as natural
+from a0_high_gamma import HigherA0Stacking
+from cochains import Cochain as LocalCochain
 
 p = upper.p
 
@@ -65,8 +93,45 @@ def _check(k, triple, name):
                          f'({k - 3},{k - 2},{k - 1})')
 
 
-def g(k, triple, s, omega):
-    """g_k(A,B,C) of (A13) in degree k: J or the prism G below the cutoff, J_6 at it."""
+_A0 = {}
+
+
+def _a0(k):
+    """The one A=0 stacking instance per degree; it memoizes its universal values."""
+    if k not in _A0:
+        _A0[k] = HigherA0Stacking(k)
+    return _A0[k]
+
+
+def _local(cochain):
+    """A phase_eval cochain as the cochain type of the stacking formulas."""
+    return LocalCochain(cochain.degree, cochain)
+
+
+def a0_curvature(k, triple, s, omega, b_zero):
+    """g_k(0,B,C) of a lower-legal triple with A=0 on R, k=5,6, as an exact cochain.
+
+    Equal to closed_ab_upper.J(0,B,C): pure_c_g(C) when B=0 as well, otherwise
+    delta_s[Omega_a0(B,C) + h(t cup_{k-1} Q_D(B))] - h(E(t)).
+    """
+    if b_zero:
+        return p.Cochain(k + 2, sector.pure_c_g(_local(triple.C), _local(s), _local(omega)))
+    tau = p.QD(triple.B, s, omega)
+    t = p.binary(p.differential(triple.C) + tau)
+    omega_a0 = _a0(k).omega(_local(triple.B), _local(triple.C), _local(s), _local(omega))
+    potential = p.Cochain(k + 1, omega_a0) + p.half(p.binary(p.cup(t, tau, k - 1)))
+    return natural.integral(p.ds(potential, s) - p.half(p.E(t, omega)), 'A=0 D-layer curvature')
+
+
+def g(k, triple, s, omega, a_zero=False, b_zero=False):
+    """g_k(A,B,C) of (A13) in degree k: J or the prism G below the cutoff, J_6 at it.
+
+    ``a_zero`` and ``b_zero`` say whether the A and B layers vanish on R; a
+    lower-legal triple with A=0 in degree 5 or 6 uses the direct A=0 formulas.
+    """
+    if k in (5, 6) and a_zero and triple.lower_legal:
+        _check(k, triple, 'differential')
+        return a0_curvature(k, triple, s, omega, b_zero)
     if k in (3, 4, 5):
         return upper.g(triple, s, omega)
     if k != 6:
@@ -80,12 +145,15 @@ def g(k, triple, s, omega):
     return closed.J(triple.A, triple.B, triple.C, s, omega)
 
 
-def legal_gamma(u, v, sum_legal, sum_pure_closed, s, omega):
+def legal_gamma(u, v, sum_legal, sum_pure_closed, s, omega, pure_sector=False):
     """gamma_k of two lower-legal triples in degrees 4 to 6, without the pure-C normalization.
 
     This is the legal branch of all_cochain_upper.gamma with
     closed_ab_upper.gamma in place of the normalized correction; the C
-    residuals of the two inputs may be nonzero.
+    residuals of the two inputs may be nonzero. With ``pure_sector`` (both
+    triples fully legal with A=B=0 on R, degrees 5 and 6) the correction is
+    compatible_sector.pure_c_gamma, which differs from closed_ab_upper.gamma
+    by the integral coboundary of the module docstring.
     """
     total = upper.product(u, v, sum_legal, sum_pure_closed, s, omega)
     change = p.zero(u.A.degree + 4) - upper.K(u, s) - upper.K(v, s) + upper.K(total, s)
@@ -94,12 +162,23 @@ def legal_gamma(u, v, sum_legal, sum_pure_closed, s, omega):
     # difference is an integer carry before taking any coboundary.
     carry = natural.integral(p.half(p.cup(s, t)) + p.half(p.cup(s, tp))
                              - p.half(p.cup(s, ts)), 'pure-C successor carry')
-    base = closed.gamma(u.A, u.B, u.C, v.A, v.B, v.C, s, omega)
+    if pure_sector:
+        base = p.Cochain(u.A.degree + 4, sector.pure_c_gamma(
+            _local(u.C), _local(v.C), _local(s), _local(omega)))
+    else:
+        base = closed.gamma(u.A, u.B, u.C, v.A, v.B, v.C, s, omega)
     return base - carry + change
 
 
-def gamma(k, u, v, sum_legal, sum_pure_closed, a_zero, s, omega):
-    """gamma_k of two triples in degree k; ``a_zero`` says whether both A layers vanish on R."""
+def gamma(k, u, v, sum_legal, sum_pure_closed, a_zero, s, omega, b_zero=False):
+    """gamma_k of two triples in degree k.
+
+    ``a_zero`` is the pair of flags saying whether the A layer of ``u``,
+    respectively of ``v``, vanishes on R (a single flag stands for both), and
+    ``b_zero`` says whether both B layers vanish on R.
+    """
+    if isinstance(a_zero, bool):
+        a_zero = (a_zero, a_zero)
     if k == 3:
         return upper.gamma(u, v, sum_legal, sum_pure_closed, s, omega)
     if k not in (4, 5, 6):
@@ -113,11 +192,13 @@ def gamma(k, u, v, sum_legal, sum_pure_closed, a_zero, s, omega):
                 'needs the section retraction of the finite cochain model, which the '
                 'native resolution model does not evaluate')
         return upper.gamma(u, v, sum_legal, sum_pure_closed, s, omega)
-    if k == 6 and not a_zero and not A_STACKING:
+    if k == 6 and not any(a_zero) and not A_STACKING:
         raise PairSourceLimit(
-            'the degree-six stacking correction of states with a nonzero A layer '
+            'the degree-six stacking correction of two states with nonzero A layers '
             'evaluates the universal pair source of production_gamma6, whose terms '
             'nest the V3 contraction and which is not practical to evaluate; set '
             'FERMIONAHSS_DEGREE_SIX_A_STACKING=1 to evaluate it regardless of its '
             'running time')
-    return legal_gamma(u, v, sum_legal, sum_pure_closed, s, omega)
+    pure_sector = (k in (5, 6) and all(a_zero) and b_zero
+                   and bool(u.full_legal) and bool(v.full_legal))
+    return legal_gamma(u, v, sum_legal, sum_pure_closed, s, omega, pure_sector)

@@ -296,6 +296,31 @@ where \(z\) is closed, \(\delta v=Dz\),
 source tables in [universal_helpers.md](universal_helpers.md), Sections
 6–7. These data fix every coefficient; no primitive on \(X\) is selected.
 
+For a closed binary \(b\) of degree \(m\) the prism term needs no
+evaluation of \(\Theta_{m+1}\) on \(X\times I\). With \(N=m+3\),
+\(P_j\) the prism simplices of (15) and \(v=Q_D(b\ell)\),
+
+\[
+I\Theta_{m+1}\bigl(\delta(b\ell),Q_D(b\ell)\bigr)=
+\sum_{j<N}(-1)^j\,\mathsf h\bigl(E(v)(P_j)\bigr)
++(-1)^N\Bigl[\mathsf h\bigl(E(v)(P_N)+H_m(b)\bigr)
++\tfrac14\bigl(\widetilde\omega\smile\mathcal B_b+\mathcal B_b\smile_{m-1}\mathcal B_b\bigr)
++\mathsf h(s\operatorname{Sq}^2b+\omega\operatorname{Sq}^1b)\Bigr],
+\tag{16a}
+\]
+
+exactly as cochains: \(\delta(b\ell)=b\smile\delta\ell\) vanishes on
+every face with two top vertices, so on \(P_j\) with \(j<N\) each
+\(q\)-dependent word of \(\Theta_{m+1}\) has two top vertices in one
+interval of each cut and vanishes, while on the cone \(P_N\) every such
+word reduces to its degree-\(m\) counterpart on the base (the chi word of
+degree \(m+1\) to \(\chi_m(b)\)). Only the \(E\) part is still read
+on the prism simplices. The identity fails for non-closed \(b\), where
+only the Stokes relation
+\(\delta_s I u+I\delta_{s}u=\Theta_{m+1}(\delta b,Q_Db)\) modulo integers
+survives; the implementation uses (16a) for the closed inputs of the A=0
+stacking formulas (`a0_high_gamma.closed_prism`).
+
 For **k=5**, take \(n=2\), \(A=A_5\), \(b=B_5\), \(C=C_5\), and put
 \(U_A=\zeta_{1,4}(s,p)+s\kappa_2+(\omega\smile_1s)p\). The complete
 phase to use in (8) is

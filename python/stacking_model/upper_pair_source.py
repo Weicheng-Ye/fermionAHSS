@@ -29,7 +29,10 @@ def source(A,Aprime,s,omega):
     P,Pprime=upper.primary(A,s,omega),upper.primary(Aprime,s,omega)
     k,kprime=upper.fsharp(A,B,s,omega),upper.fsharp(Aprime,B,s,omega)
     theta=theta_phase(n).phase(*(as_cochain(c)for c in(P,k,Pprime,kprime,s,omega)))
-    return (upper.phi(A,B,C,s,omega)+upper.phi(Aprime,B,C,s,omega)
+    # phi(A,0,0) is -V_P: its cross term vanishes with C=0, and its prism is
+    # the prism of Theta on pulled-back data, a normalized natural cochain
+    # that vanishes on the degenerate prism simplices.
+    return (p.scale(upper.source_primitive(A,s,omega)+upper.source_primitive(Aprime,s,omega),-1)
             -upper.phi(A+Aprime,alpha,beta,s,omega)-p.Cochain(theta.degree,theta))
 
 
