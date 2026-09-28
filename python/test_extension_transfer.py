@@ -5,20 +5,28 @@ transport tests exercise sparse nonidentity comparisons. These tests do not
 assert completeness of the transferred gauge relation.
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
+import contextlib
+import io
+import json
+import os
 import unittest
 from unittest.mock import patch
 
 from extension_worker import FiniteBar
+from extension_degree_six import configure_degree_six
+import extension_transfer
 from extension_transfer import TransferredModel, TransferResourceLimit, degrees
+import extension_native_six as six
 
 
-def c2_models(sign=0, omega=0):
+def c2_models(sign=0, omega=0, top=7):
+    """The C2 models with resolution degrees 0..top; degree six needs top=8."""
     bar = FiniteBar([[0, 1], [1, 0]], [sign], [omega])
-    setup = dict(schema=1, multiplication=bar.mul, ranks=[1] * 8,
-        ordinary=[[[0 if n % 2 == 0 else 2]] for n in range(7)],
+    setup = dict(schema=1, multiplication=bar.mul, ranks=[1] * (top + 1),
+        ordinary=[[[0 if n % 2 == 0 else 2]] for n in range(top)],
         signed=[[[(-2 if n % 2 == 0 else 0) if sign else
-                  (0 if n % 2 == 0 else 2)]] for n in range(7)],
-        g=[[[[1, 1, list(bar.simplices(n)[0])]]] for n in range(8)],
+                  (0 if n % 2 == 0 else 2)]] for n in range(top)],
+        g=[[[[1, 1, list(bar.simplices(n)[0])]]] for n in range(top + 1)],
         s=[sign], omega=[omega])
     calls = []
     def transport(kind, degree, vertices):
@@ -217,6 +225,81 @@ class ExtensionTransferTests(unittest.TestCase):
         expected = bar.export(bar.rule.xtimes(bar.rule.d(bar.state(2, shifted["gauge"])),
                                              bar.state(3, shifted["state"])))
         self.assertEqual(actual, expected)
+
+    def test_degree_six_curvature_stops_before_the_d_layer_off_the_legal_locus(self):
+        # A nonclosed A (sign 0: delta_s A = 2A) reports its first obstruction
+        # only; the degree-six D-layer formula is never requested there.
+        native, _, _ = c2_models(0, 1, top=8)
+        with patch.object(six, "g", side_effect=AssertionError("D-layer formula off the legal locus")):
+            self.assertEqual(native.kappa(6, state([1], [1], [1], [5])),
+                             state([2], [0], [0], [0]))
+        request = dict(operation="xtimes", degree=6, state=state([1], [0], [0], [0]),
+                       other=native.zero(6))
+        with self.assertRaises(ValueError):
+            native.calculate(request)
+        self.assertEqual(native.calculate(dict(request, upto=0))["state"]["A"], [1])
+        with self.assertRaises(ValueError):
+            native.calculate(dict(operation="d", degree=7, state=native.zero(6)))
+
+    def test_degree_six_section_branch_is_reported_as_unresolved(self):
+        import all_cochain_upper as upper
+        p = upper.p
+        triple = upper.Triple(p.zero(3), p.zero(4), p.zero(5), False)
+        s, omega = p.zero(1), p.zero(2)
+        with self.assertRaises(six.SectionBranchRequired):
+            six.g(triple, s, omega)
+        with self.assertRaises(six.SectionBranchRequired):
+            six.gamma(triple, triple, False, False, True, s, omega)
+        with self.assertRaises(ValueError):
+            six.g(upper.Triple(p.zero(2), p.zero(3), p.zero(4), True), s, omega)
+        # A nonzero A layer in a degree-six stacking correction is refused
+        # before any formula is evaluated, unless the override is set.
+        legal = upper.Triple(p.zero(3), p.zero(4), p.zero(5), True)
+        with patch.object(six, "A_STACKING", False), self.assertRaises(six.PairSourceLimit):
+            six.gamma(legal, legal, True, False, False, s, omega)
+        self.assertTrue(issubclass(six.PairSourceLimit, six.NativeDegreeSixLimit))
+        # The worker loop reports the branch as unresolved, not as an error.
+        native, _, _ = c2_models(1, 0, top=8)
+        lines = [json.dumps(dict(operation="setup")),
+                 json.dumps(dict(operation="d", degree=6, state=native.zero(6)))]
+        out = io.StringIO()
+        with patch.object(extension_transfer, "TransferredModel", return_value=native), \
+             patch.object(native, "calculate", side_effect=six.SectionBranchRequired("section")), \
+             patch.object(extension_transfer.acceleration, "persist"), \
+             patch.object(extension_transfer.acceleration, "flush"), \
+             patch.object(extension_transfer.sys, "stdin", io.StringIO("\n".join(lines) + "\n")), \
+             contextlib.redirect_stdout(out):
+            extension_transfer.serve()
+        answers = [json.loads(line) for line in out.getvalue().splitlines() if line.strip()]
+        self.assertEqual(answers[0]["status"], "computed")
+        self.assertEqual(answers[1]["status"], "unresolved")
+        self.assertEqual(answers[1]["exception"], "SectionBranchRequired")
+
+    @unittest.skipUnless(os.environ.get("FERMIONAHSS_SLOW_TRANSFER_TESTS") == "1",
+                         "degree-six formulas on the complete C2 bar; opt in explicitly")
+    def test_degree_six_operations_match_the_complete_bar_section_model(self):
+        from test_extension_degree_six import c2_data
+        for sign, omega in ((1, 0), (0, 1)):
+            native, bar, _ = c2_models(sign, omega, top=8)
+            configure_degree_six(bar, c2_data(signed=bool(sign)))
+            flat = [data for a, b, c in ((0, 0, 1), (1, 0, 0), (1, 1, 1), (2, 0, 1))
+                    for data in (state([a], [b], [c], [0]),)
+                    if not any(any(v) for v in native.kappa(6, data).values())]
+            self.assertTrue(flat)
+            for data in flat:
+                complete = bar.export(bar.rule.d(bar.state(6, data)))
+                self.assertEqual(complete, native.zero(7))
+            left = dict(flat[0], D=[3])
+            right = dict(flat[-1], D=[-1])
+            actual, _ = native.product(6, left, right)
+            expected = bar.export(bar.rule.xtimes(bar.state(6, left), bar.state(6, right)))
+            self.assertEqual(actual, expected)
+            self.assertEqual(native.divide_left(6, left, actual), right)
+            gauge = state([1], [1], [0], [2])
+            actual, _ = native.act(6, gauge, flat[0])
+            expected = bar.export(bar.rule.xtimes(bar.rule.d(bar.state(5, gauge)),
+                                                 bar.state(6, flat[0])))
+            self.assertEqual(actual, expected)
 
     def test_cached_left_division_restores_total_minus_left_d(self):
         native, _, _ = c2_models()

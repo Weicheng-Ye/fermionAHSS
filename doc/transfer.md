@@ -185,7 +185,7 @@ audit.transferReady;             # false
 audit.degrees;                   # ranks, g terms, distinct g-support counts
 ```
 
-The audit accepts package degrees 1–5 and checks through k+2. It requires
+The audit accepts package degrees 1–6 and checks through k+2. It requires
 resolution length at least k+3 because HAP can leave the final
 contraction degree unavailable. Its optional limits record accepts
 `maxSupport` (8192 distinct normalized g simplices per degree by default)

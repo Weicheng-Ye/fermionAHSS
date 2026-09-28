@@ -1,7 +1,7 @@
 {
   "source": "fermionAHSS_stacking",
   "license": "MIT",
-  "changes": "Absolute development paths replaced by paths relative to this vendored package. Since 2026-09-27, helpers identical to the package kernel (interval-cut engine, interval pullback and prism, Q/E/QD, polarization and hD, integral, source splitting) are imported from python/cochain_tools.py and python/phase_eval.py instead of being duplicated; bundled_sha256 values record the earlier copies and are not verified at runtime.",
+  "changes": "Absolute development paths replaced by paths relative to this vendored package. Since 2026-09-27, helpers identical to the package kernel (interval-cut engine, interval pullback and prism, Q/E/QD, polarization and hD, integral, source splitting) are imported from python/cochain_tools.py and python/phase_eval.py instead of being duplicated; bundled_sha256 values record the earlier copies and are not verified at runtime. universal_pair7.SourcePrimitive7.primitive reads its fixed lower basis as r3_pair_chain.total_basis(6), the same tuple as fixed_complex()['lower'], so that the certificate-only boundary data of the degree-eight basis are not computed in production; its values are unchanged.",
   "files": {
     "a0_degree1.py": {
       "source_sha256": "a516f7314e83d5c55e199c19ba8ed4ec2c9a29e227c1caa2cd1681bcdca44558",

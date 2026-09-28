@@ -47,14 +47,15 @@ def main():
     for path in ([universal.BUNDLED] if universal.BUNDLED.exists() else []) + args.add:
         read(path, classes, keys, previous)
     started, changed, tables = time.time(), 0, {}
+    # Every registered table is written, empty when no input lists its keys.
     # Source values first: they evaluate most of the V1 values they need.
-    for name in sorted(keys, reverse=True):
+    for name in sorted(acceleration._tables, reverse=True):
         table = acceleration._tables[name]
         rows = tables[name] = []
-        for text in sorted(keys[name]):
+        for text in sorted(keys.get(name, {})):
             value = json.dumps(universal._encode(table(keys[name][text]), classes),
                                sort_keys=True)
-            changed += any(old != value for old in previous[(name, text)])
+            changed += any(old != value for old in previous.get((name, text), ()))
             rows.append('[' + text + ',' + value + ']')
     body = ',\n'.join(json.dumps(name) + ':[\n' + ',\n'.join(rows) + '\n]'
                       for name, rows in sorted(tables.items()))

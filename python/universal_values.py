@@ -4,8 +4,9 @@ A universal function depends only on its key, never on the group, the
 resolution or the process. Its values are shipped in
 data/universal-values.json and kept in a cache file of the cache directory,
 both keyed by the hash of every formula source; a file with another hash is
-ignored. The koFull worker keeps production_gamma4.source_value and
-low_phases.V1_pair, the page worker low_phases.V1_pair.
+ignored. The koFull worker keeps the tables listed in
+extension_acceleration.py (the degree-four and degree-six pair sources, V1,
+V3 and the n=3 legal-beta source), the page worker low_phases.V1_pair.
 
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
@@ -23,10 +24,13 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 # Frozen dataclasses that occur in universal keys; nothing else is decoded.
 KEY_CLASSES = (('chain_models', 'Diag'), ('r1_pair_chain', 'Borel'),
-               ('r1_pair_chain_signed', 'Borel'))
+               ('r1_pair_chain_signed', 'Borel'), ('r3_chain', 'Diag3'),
+               ('r3_chain', 'U2'), ('r3_pair_chain', 'Diag3'), ('r3_pair_chain', 'U2'),
+               ('a0_high_gamma', 'KB'))
 # Runtime and test modules do not determine universal values.
 _NOT_SOURCES = {'extension_transfer.py', 'extension_worker.py',
-                'extension_degree_six.py', 'extension_acceleration.py',
+                'extension_degree_six.py', 'extension_native_six.py',
+                'extension_acceleration.py',
                 'worker.py', 'runtime_cache.py', 'generate_universal_values.py',
                 'universal_values.py'}
 # Values computed with the current sources and shipped with the package; see

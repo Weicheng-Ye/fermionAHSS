@@ -174,6 +174,8 @@ ReadPackage("fermionAHSS", "examples/twisted_c2.g");
 ```
 
 See [c2.g](examples/c2.g) and [twisted_c2.g](examples/twisted_c2.g).
+[degree_six.g](examples/degree_six.g) solves the degree-six extension of
+C4 with `s=[1]` on a supplied resolution (about ten minutes).
 For twists with a known resolution basis, explicitly retain that resolution:
 
 ```gap
@@ -216,7 +218,7 @@ full.degreeResult.modelId;
 
 The same native-resolution engine is used with a group or a detailed E6
 result; no model-selection option is needed or accepted. States and linear
-solves use R in degrees 1–5, and the fixed formulas are evaluated on
+solves use R in degrees 1–6, and the fixed formulas are evaluated on
 simplices of a comparison complex lazily: the group bar when it retracts
 onto R, and otherwise a cell complex built from the generators of R, which
 also covers infinite groups and several degree-zero generators. The
@@ -235,9 +237,17 @@ basis, and uses those same lifts for every subsequent relation.
 Stacking powers are identified by exact native gauge comparisons with the
 ordered product of the recorded lower generators.
 
-The native complete-state runtime covers degrees 1–5. Degrees -1 and 0 have
-only the D layer, so no relation is measured there. Degree-six extensions
-remain explicitly unresolved because their native formula is not implemented.
+The native complete-state runtime covers degrees 1–6. Degrees -1 and 0 have
+only the D layer, so no relation is measured there. Degree six is the
+cutoff of the all-cochain differential: its D-layer terms, the correction
+`J_6` and the legal stacking correction `gamma_6`, are evaluated on the
+legal lower locus, which is the only locus the native engine reaches; see
+[resolution extensions](doc/resolution-extensions.md). The degree-six
+stacking correction of states with a nonzero A layer evaluates a universal
+pair source whose terms nest the V3 contraction; it is refused, leaving the
+degree unresolved, unless `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` is set, while
+the B, C and D layers of degree six are computed (see
+[extensions.md](doc/extensions.md)).
 A higher-degree result is completed once every stacking relation has its
 exact native comparison. Stacking is assumed to be commutative and
 associative on gauge classes, so no finite multiplication table is audited
@@ -376,11 +386,18 @@ canonical structural zeros, identity memoization of pure cochain builders,
 and universal source values kept across processes. Coboundaries, scalar
 multiples and chi, whose values are almost never requested twice for the
 same simplex, keep no memo table and are evaluated on each request.
+Cochains constructed while a universal value is evaluated keep bounded memo
+tables, the chain operators of the universal contractions keep bounded
+caches as in the page worker, the theta values of the degree-three source
+and of the theta-pair sources are kept per universal simplex within the
+process, and the registry of universal source simplices is recycled
+between requests once it grows large.
 
 Universal values depend only on their key. Both workers keep them through
 the store of [universal_values.py](python/universal_values.py): the
-extension worker for its source values and `V1` values, the page worker for
-the same `V1` table. The store is a file under `$XDG_CACHE_HOME/fermionAHSS`
+extension worker for the pair sources of degrees four and six, the `V1` and
+`V3` sources and the degree-six legal-beta source, the page worker for the
+same `V1` table. The store is a file under `$XDG_CACHE_HOME/fermionAHSS`
 (default `~/.cache/fermionAHSS`) keyed by the hashes of all formula sources;
 set `FERMIONAHSS_CACHE_DIR` to choose another directory, or to an empty
 string to disable it. A stale or unreadable store is ignored. The values
@@ -412,7 +429,11 @@ TestPackage("fermionAHSS");
 ```
 
 The Python tests run with
-`python3 -m unittest discover -s python -p 'test_*.py'`. The scripts in
+`python3 -m unittest discover -s python -p 'test_*.py'`. The degree-six
+comparison with the complete-bar section model, `tst/extension_degree_six.tst`,
+is not part of `TestPackage`; run it with `Test` on that file (about five
+minutes), and set `FERMIONAHSS_SLOW_TRANSFER_TESTS=1` for the corresponding
+opt-in Python tests. The scripts in
 `examples/` run standalone from this directory, for example
 `gap -q --quitonbreak examples/c2.g`; `examples/extension_papers.g`
 compares `koFull_batch` with the [paper fixtures](doc/extension-paper-comparisons.md).

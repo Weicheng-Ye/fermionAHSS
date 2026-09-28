@@ -57,11 +57,14 @@ def install_cochain_cache_limit(entries=256):
 # deliberately outside this list.
 _CHAIN_CACHE_MODULES = ('chain_models', 'r3_chain', 'exterior_bar')
 _configured_chain_entries = None
+_configured_chain_modules = ()
 
 
-def _chain_modules():
+def _chain_modules(names=None):
+    if names is None:
+        names = _configured_chain_modules or _CHAIN_CACHE_MODULES
     return [import_module('.' + name, __package__) if __package__ else
-            import_module(name) for name in _CHAIN_CACHE_MODULES]
+            import_module(name) for name in names]
 
 
 def _chain_functions(module):
@@ -77,7 +80,7 @@ def chain_cache_limit():
     return _configured_chain_entries
 
 
-def install_chain_cache_limit(entries=256):
+def install_chain_cache_limit(entries=256, modules=None):
     """Bound pure chain-operator caches without altering mathematical sources.
 
     Call before a worker request.  Each module-owned functools cache is
@@ -86,17 +89,22 @@ def install_chain_cache_limit(entries=256):
     loses recomputable chain dictionaries: registered sources, source IDs,
     factory caches, and calibrated coefficient data are never changed.
 
+    ``modules`` names the modules to bound; the default is the page worker's
+    list. The extension worker passes the chain modules of the stacking
+    formulas as well.
+
     No old wrappers are retained here, since that would retain their former
     unbounded caches.  Reconfiguration is intended for a single-threaded
     worker or diagnostic process, not concurrent evaluators.
     """
-    global _configured_chain_entries
+    global _configured_chain_entries, _configured_chain_modules
     if type(entries) is not int or entries < 0:
         raise ValueError('chain cache entries must be a nonnegative integer')
-    if _configured_chain_entries == entries:
+    modules = tuple(_CHAIN_CACHE_MODULES if modules is None else modules)
+    if _configured_chain_entries == entries and set(modules) <= set(_configured_chain_modules):
         return entries
     replacements = []
-    for module in _chain_modules():
+    for module in _chain_modules(modules):
         for name, value in _chain_functions(module):
             typed = value.cache_parameters()['typed']
             wrapped = lru_cache(entries, typed=typed)(value.__wrapped__)
@@ -105,6 +113,7 @@ def install_chain_cache_limit(entries=256):
     for module, name, wrapped in replacements:
         setattr(module, name, wrapped)
     _configured_chain_entries = entries
+    _configured_chain_modules = tuple(sorted(set(_configured_chain_modules) | set(modules)))
     return entries
 
 

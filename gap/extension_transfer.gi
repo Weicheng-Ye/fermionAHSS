@@ -360,8 +360,8 @@ BindGlobal("KOAHSS_ExtensionTransportPreflight",function(arg)
         degreeAudit,support,chain,term,simplex,image,lifted,entry,key,position,
         coefficients,keys,expected;
     transport:=arg[1]; k:=arg[2];
-    if not IsInt(k) or not k in [1..5] then
-        Error("extension transfer preflight supports package degrees 1..5");
+    if not IsInt(k) or not k in [1..6] then
+        Error("extension transfer preflight supports package degrees 1..6");
     fi;
     limits:=rec(maxSupport:=8192,maxTerms:=2000000);
     if Length(arg)=3 then
@@ -713,7 +713,7 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         transportNormalization:=transport.normalization,transportStats:=transport.stats,
         gaugeCompletenessAssumed:=true,sideConditionsByConstruction:=true,
         s:=ShallowCopy(backend.twists.s),omega:=ShallowCopy(backend.twists.omega));
-    model.supports:=degree->degree=k and degree in [1..5];
+    model.supports:=degree->degree=k and degree in [1..6];
     model.dimension:=function(n)
         if n<0 then return 0; fi;
         if n>k+2 then Error("transferred cochain degree exceeds model capacity"); fi;

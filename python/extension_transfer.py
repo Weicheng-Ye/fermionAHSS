@@ -22,6 +22,7 @@ acceleration.install()
 import off_shell_beta as off
 import stacking_lower as lower
 import all_cochain_upper as upper
+import extension_native_six as six
 from coherent_low_commutative import (DegreeOneCommutativeStacking,
                                      DegreeTwoCommutativeStacking)
 from a0_gamma import beta2
@@ -302,16 +303,21 @@ class TransferredModel:
                 value = api.cochain(self.low2.g(
                     *map(api.local, (state[1], state[2], self.s, self.omega)),
                     b_closed=self.is_zero(self.differential(state[1], False), True)))
-        elif k in (3, 4, 5):
+        elif k in (3, 4, 5, 6):
             if layer == 1:
                 value = off.primary(state[0], self.s, self.omega)
             elif layer == 2:
                 value = off.current_f(off.LowerPair(state[0], state[1],
                     self.legal_pair(state)), self.s, self.omega)
+            elif k == 6:
+                # The cutoff degree: J_6 on the legal lower locus. Native
+                # curvature reaches this layer only after the lower layers
+                # vanish, so the section branch of the note is never needed.
+                value = six.g(self.triple(state, full=False), self.s, self.omega)
             else:
                 value = upper.g(self.triple(state, full=False), self.s, self.omega)
         else:
-            raise ValueError("transferred nonlinear differential covers degrees 0 through 5")
+            raise ValueError("transferred nonlinear differential covers degrees 0 through 6")
         state.layers[key] = value
         return value
 
@@ -344,8 +350,8 @@ class TransferredModel:
         return LazyState(state.k + 1, build)
 
     def bar_product(self, left, right):
-        if left.k != right.k or left.k not in (1, 2, 3, 4, 5):
-            raise ValueError("transferred products cover equal degrees 1 through 5")
+        if left.k != right.k or left.k not in (1, 2, 3, 4, 5, 6):
+            raise ValueError("transferred products cover equal degrees 1 through 6")
         k = left.k
         def low_cross(result, layer):
             # The degree-one and degree-two products of the complete-bar
@@ -376,6 +382,10 @@ class TransferredModel:
                     legal, self.s, self.omega)
             pure = (self.is_zero(result[0], False) and self.is_zero(result[1], True)
                     and self.is_zero(self.differential(result[2], False), True))
+            if k == 6:
+                a_zero = self.is_zero(left[0], False) and self.is_zero(right[0], False)
+                return six.gamma(self.triple(left), self.triple(right),
+                                 legal, pure, a_zero, self.s, self.omega)
             return upper.gamma(self.triple(left), self.triple(right),
                                legal, pure, self.s, self.omega)
         def build(result, layer):
@@ -525,8 +535,8 @@ class TransferredModel:
 
     def calculate(self, request):
         operation, k = request["operation"], request["degree"]
-        if k not in (0, 1, 2, 3, 4, 5) or (k == 0 and operation not in ("d", "phi_values")):
-            raise ValueError("transferred states cover degrees 1 through 5; gauges include degree 0")
+        if k not in (0, 1, 2, 3, 4, 5, 6) or (k == 0 and operation not in ("d", "phi_values")):
+            raise ValueError("transferred states cover degrees 1 through 6; gauges include degree 0")
         key = json.dumps(request, sort_keys=True, separators=(",", ":"))
         if key in self._answers:
             return json.loads(self._answers[key])
@@ -591,11 +601,13 @@ def serve():
             else:
                 answer = model.calculate(request)
         except Exception as exc:
-            answer = {"status": "unresolved" if isinstance(exc, TransferResourceLimit) else "error",
+            unresolved = isinstance(exc, (TransferResourceLimit, six.NativeDegreeSixLimit))
+            answer = {"status": "unresolved" if unresolved else "error",
                       "exception": type(exc).__name__, "reason": str(exc)}
         # GAP may stop the worker right after the answer; store values first.
         acceleration.flush()
         print(json.dumps(answer, separators=(",", ":")), flush=True)
+        acceleration.recycle_sources()
 
 
 if __name__ == "__main__":

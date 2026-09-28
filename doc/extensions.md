@@ -289,7 +289,7 @@ vectors and inconsistent exact data are errors, not unresolved results.
 
 ## Complete flat representatives and gauge comparisons
 
-In degrees 1–5, the production engine uses the transferred four-cochain
+In degrees 1–6, the production engine uses the transferred four-cochain
 curvature and product in the retained resolution basis. The calibrated
 formulas are evaluated lazily through sparse bar transport. The leading
 E6 cochains keep their native coordinates.
@@ -379,10 +379,37 @@ classes are assumed rather than audited: products of the marked finite
 normal forms are not enumerated. Free quotient coordinates split in the
 intended abelian abutment category.
 
-Degree-six extensions remain explicitly unresolved. Their native formula
-is not implemented, and the degree-six section of the complete-bar
-reference model is not used as a fallback. The calibrated E6 page
-computation covers degree six.
+Degree six is the cutoff of the all-cochain differential of
+[all_cochain_differential.md](all_cochain_differential.md). Its lower
+three components are the formulas of degrees three to five with input
+degree three: \(\delta_sA\), \(\delta B+P_6(A)\) and
+\(\delta C+\tau'_3(A;B)\) on the legal lower locus \(L_6\), with the
+prism \(H_6\) outside it. On \(L_6\) the D-layer differential is
+\(J_6\), the integral cochain (A5) of the fixed degree-three phase
+\(\Omega_6\) with the residual correction, for arbitrary C; on a full
+defining system it is \(T_3\). The D-layer stacking correction of two
+lower-legal triples is the legal production \(\gamma_6\) with the common
+pure-C normalization and the rephasing of the successor, exactly as the
+finite-section reference model evaluates it on legal data. The native
+engine evaluates these D-layer terms only on lower-legal triples: native
+curvature stops at the first nonzero layer, and products and gauge actions
+receive flat states and differential images, whose lower pairs are legal.
+The section retraction \(\mathcal R_6\) that the note uses outside
+\(L_6\) is not evaluated on the resolution; a request for that branch
+leaves the degree unresolved with that reason. The degree-six section of
+the complete-bar reference model is used only by the tests.
+
+The stacking correction \(\gamma_6\) of two states whose A layers are
+not both zero on the resolution evaluates the universal pair source of
+`production_gamma6`. Each universal term of that source contains three V3
+source contractions on eight-vertex universal simplices, and the pair
+contraction itself has thousands of terms per output simplex, so this one
+correction costs orders of magnitude more than every degree-five term. The
+worker therefore refuses it and the degree stays unresolved with that
+reason, unless the environment variable `FERMIONAHSS_DEGREE_SIX_A_STACKING=1`
+asks for the evaluation regardless of its running time. The degree-six
+differential \(J_6\) with nonzero A, and every degree-six term of states
+with A zero (the B, C and D layers), are evaluated.
 
 The runtime bundles the selected stacking sources under
 [python/stacking_model](../python/stacking_model/) with their
@@ -415,6 +442,7 @@ The native implementation has explicit resource bounds:
 | Flat-lift affine search | 4096 distinct differential evaluations by default |
 | Gauge-comparison affine search | 4096 equation evaluations and 64 leading choices shared across requested stages; integral kernel coefficients initially bounded by absolute value 1 |
 | Alternative lower-coordinate search | 32 marked finite normal forms; 4096 equation evaluations shared across stages and candidates |
+| Degree-six stacking correction with a nonzero A layer | refused, unresolved, unless `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` |
 
 These are implementation limits, not additional tuning arguments to `koFull`
 or `koFull_batch`.

@@ -84,7 +84,9 @@ class SourcePrimitive7:
     def primitive(self, A, Ap, s, omega):
         if (A.degree, Ap.degree, s.degree, omega.degree) != (3, 3, 1, 2):
             raise ValueError('expected degrees (3,3,1,2)')
-        small = dict(zip(fixed_complex()['lower'], self.coefficients()))
+        # The lower basis is fixed_complex()['lower']; the certificate data
+        # of that complex are not needed to evaluate the primitive.
+        small = dict(zip(pair.rc.total_basis(6), self.coefficients()))
         def value(vertices):
             simplex = (pair.to_diag(A, Ap, s, vertices), pair.to_omega(omega, vertices))
             return self.evaluate(pair.rc.Htot(simplex))+sum(

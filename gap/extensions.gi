@@ -199,14 +199,11 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
     computeDegree:=function()
         local candidate;
         layers:=KOAHSS_ExtensionLayers(context,degree);
-        if degree=6 then
-            return rec(status:="unresolved",reason:="native extension degree six is not implemented",
-                pendingLayer:="model-setup");
-        elif degree<1 then
+        if degree<1 then
             # Degrees -1 and 0 have the single layer D: no relation is measured.
             return koAHSSExtensionFromLayers(layers,fail);
         fi;
-        # Degrees 1-5: the native transferred model on R.
+        # Degrees 1-6: the native transferred model on R.
         if not IsBoundGlobal("KOAHSS_ExtensionTransferredModel") then
             return rec(status:="unresolved",reason:="the native extension model is unavailable",
                 pendingLayer:="model-setup");

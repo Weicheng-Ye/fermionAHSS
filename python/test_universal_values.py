@@ -33,7 +33,7 @@ class BundledUniversalValues(unittest.TestCase):
             function = acceleration._tables[name].function
             values = [(key, universal._decode(value, classes)) for key, value in entries]
             nonzero = [(key, value) for key, value in values if value != 0]
-            for key, value in nonzero[::len(nonzero) // 3][:3]:
+            for key, value in nonzero[::max(1, len(nonzero) // 3)][:3]:
                 self.assertEqual(function(universal._decode(key, classes)), value)
 
 

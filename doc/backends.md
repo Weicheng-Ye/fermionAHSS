@@ -7,7 +7,7 @@ The high-level wrappers `koAHSS(group,s,omega,k[,n])` and
 groups. Their first argument can also be an explicit integral HAP
 resolution: `koAHSS_batch(R,s,omega,k[,n][,options])` preserves R and its
 twist basis. `koFull` and `koFull_batch` accept the same explicit-resolution
-first argument and use native extension searches in degrees 1–5,
+first argument and use native extension searches in degrees 1–6,
 assuming gauge completeness. They have no model-selection option or
 complete-bar certification fallback; see
 [native extension searches](resolution-extensions.md).

@@ -20,7 +20,7 @@ the [extension API](extensions.md).
 
 A supplied integral HAP resolution can replace the group argument.
 Native states and solves on that resolution are the only extension
-mode in degrees 1–5; there is no model-selection option. The comparison
+mode in degrees 1–6; there is no model-selection option. The comparison
 (the group bar, or else the cell complex on the generators of R) must pass
 the strict retraction check, and the sparse homotopy is normalized.
 The calculation assumes gauge completeness: native gauge equivalence
@@ -38,7 +38,7 @@ basis transformations, and carries the filtration inclusions and
 quotients to subsequent stages. Equal and independent nonzero lower
 images remain distinguishable.
 
-For degrees 1–5, the production engine retains the marked E6
+For degrees 1–6, the production engine retains the marked E6
 representatives in the supplied resolution basis. It
 solves and retains immutable full `(A,B,C,D)` lifts for every generator,
 including free A generators. Binary B/C defining choices are changed when
@@ -64,10 +64,18 @@ full stacked tuple. Native cohomology lifts prioritize the search but do
 not replace the complete cochain kernel. Unsuccessful bounded searches
 remain unresolved, with their diagnostics retained.
 
-Degree-six extensions are explicitly unresolved because a native degree-six
-formula is not implemented. The degree-six section of the complete-bar
-model serves only as a test reference and is not a runtime fallback. The
-E6 page calculation covers degrees up to six.
+Degree six uses the same engine with the degree-six D-layer terms of the
+[all-cochain note](all_cochain_differential.md): \(J_6\) and the legal
+production \(\gamma_6\) with the pure-C rephasing, evaluated on the
+legal lower locus, which is the only locus the native operations reach.
+The section retraction used by the note outside that locus is not
+evaluated on the resolution; such a request leaves the degree unresolved.
+The stacking correction of degree-six states with a nonzero A layer is
+refused for its running time unless `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` is
+set, again leaving the degree unresolved; see [extensions.md](extensions.md).
+The degree-six section of the complete-bar model serves only as a test
+reference and is not a runtime fallback. The E6 page calculation covers
+degrees up to six.
 
 Degrees one and two use the same engine with the degree-one and
 degree-two formulas of [low_degree_stacking.md](low_degree_stacking.md),

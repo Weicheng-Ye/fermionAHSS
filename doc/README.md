@@ -82,7 +82,8 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [extension_lifts.gi](../gap/extension_lifts.gi) | Immutable full generator lifts, affine B/C defining choices, integral D solves, and exact flatness witnesses |
 | [extension_transfer.gi](../gap/extension_transfer.gi) | Native extension model, exact retraction preflight and sparse normalized transport |
 | [extension_transfer.py](../python/extension_transfer.py) | Lazy transferred curvature, products and gauge actions using the fixed formulas |
-| [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: structural zeros, identity-memoized builders, persistent universal values, unstored coboundaries, scalar multiples and chi |
+| [extension_native_six.py](../python/extension_native_six.py) | Degree-six D-layer terms of the native model: `J_6` and the legal `gamma_6` with the pure-C rephasing, on the legal lower locus |
+| [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: structural zeros, identity-memoized builders, persistent universal values, unstored coboundaries, scalar multiples and chi, bounded memo tables and chain caches for universal evaluations, and the recycled source registry |
 | [universal_values.py](../python/universal_values.py) | Store of universal values shared by the extension and page workers: bundled values, the cache file and its source hash |
 | [generate_universal_values.py](../python/generate_universal_values.py) | Recomputes the bundled universal values in [universal-values.json](../data/universal-values.json) for the current formula sources |
 | [extension_bar.gi](../gap/extension_bar.gi) | Bounded complete finite-bar model, used only as a reference by the tests |
