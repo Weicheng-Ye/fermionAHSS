@@ -357,4 +357,11 @@ def build_phase(n,A,b,c,s,omega,*,epsilon=None,alpha=None):
     # The three sign-system factors multiply in order; the middle transport
     # occurs at the start of the second A factor and the last at the third.
     cube=transported(transported(A,A,s),A,s)
-    return base+p.scale(transported(pontryagin(omega),A,s),Fraction(alpha,4))-p.scale(cube,Fraction(1,4))
+    # The coefficient-two three-primary phase (2/3) lift(P^1_s rho_3 A): in
+    # input degree two the reduced power is the cube modulo three, whose
+    # Bockstein vanishes on cocycles, so the page differential is unchanged
+    # while the stacking correction receives the three-primary extension.
+    try: from .mod3_power import tertiary_three_primary_phase
+    except ImportError: from mod3_power import tertiary_three_primary_phase
+    return (base+p.scale(transported(pontryagin(omega),A,s),Fraction(alpha,4))-p.scale(cube,Fraction(1,4))
+            +tertiary_three_primary_phase(A,s))

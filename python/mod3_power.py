@@ -203,16 +203,25 @@ def beta_3_power_1(a, s):
 def tertiary_three_primary_phase(A, s):
     """A rational phase for 2 beta_{3,s} P^1_s rho_3(A), |A| <= 3.
 
-    A is an integral sign cocycle.  For |A| <= 2 the cohomology operation
-    vanishes (instability or the integral cubic lift), so choose phase zero.
+    A is an integral sign cocycle.  For |A| <= 1 the reduced power is zero
+    (instability), so the phase is zero.  For |A| = 2 the reduced power is
+    the cube of rho_3(A), the reduction of the integral cube, so the
+    cohomology operation beta_3 P^1 rho_3 vanishes on cocycles and the phase
+    does not change the page differential; the phase itself,
+    (2/3) times the 0,1,2 lift of the cube modulo three, is not zero, and
+    its failure of additivity, the integral cochain
+    (2/3)(L(A) + L(A') - L(A + A')), is the three-primary part of the
+    stacking correction.  Dropping it splits every extension of a
+    three-torsion class by the bosonic layer: with it, the untwisted Z/3 in
+    package degree five is Z/9, as ko-theory requires.
     The input cocycle condition belongs to the defining-system validation.
     """
     if A.degree not in (0, 1, 2, 3) or s.degree != 1:
         raise ValueError("the ko three-primary correction supports input degrees 0..3")
-    if A.degree < 3:
+    if A.degree < 2:
         return zero(A.degree + 4)
     power = reduced_power_1(A, s)
-    return Cochain(7, lambda simplex: Fraction(2 * power(simplex), 3),
+    return Cochain(A.degree + 4, lambda simplex: Fraction(2 * power(simplex), 3),
                    "ko_d5_three_primary_phase")
 
 

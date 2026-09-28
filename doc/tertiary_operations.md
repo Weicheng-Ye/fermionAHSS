@@ -71,7 +71,7 @@ helper \(R_n\) in the notes:
 \[
 \boxed{\quad T_n(A;b,c)=d_s\mathcal O_n(A,b,c),\qquad
 \mathcal O_n=\mathsf h(Ec)+\widehat R_n(A,b)
- +\mathbf1_{n=3}\tfrac23\widetilde{P^1_s\rho_3 A}.\quad}
+ +\mathbf1_{n\ge2}\tfrac23\widetilde{P^1_s\rho_3 A}.\quad}
 \tag{T}
 \]
 
@@ -95,7 +95,18 @@ not necessarily the literal GAP output. The separate half-lifts and
 integer coefficients below retain the kernel's representative convention.
 
 Final `T` has rank correction coefficient zero and \(\mu_R=0\).
-The coefficient-two three-primary term is included in (T).
+The coefficient-two three-primary term is included in (T) in input
+degrees two and three. In degree two the reduced power \(P^1_s\rho_3A\)
+is the cube of \(\rho_3A\), the reduction of the integral cube, so the
+operation \(\beta_3P^1_s\rho_3\) vanishes on cocycles and the term does
+not change \(T_2\) on the page; the phase itself,
+\(\tfrac23\) times the \(0,1,2\) lift of the cube modulo three, is
+not zero, and its failure of additivity is the three-primary part of the
+degree-five stacking correction: without it every extension of a
+three-torsion class of the row \(q=0\) by the bosonic row splits, with it
+the untwisted \(\mathbf Z/3\) in package degree five is \(\mathbf Z/9\),
+as in \(ko\)-theory, where the three-primary \(k\)-invariant
+\(\beta_3P^1\) links the rows \(q=0\) and \(q=-4\).
 
 On the page, the domain consists of classes in \(\ker\operatorname{Dbar}\)
 whose \(\operatorname{Tau}_n\) class vanishes. The target is
@@ -357,10 +368,19 @@ fixed A-only source \(V_2\) of \(\Theta_4(p,k)\), the actual phase is
 \widehat R_2={}&\mathsf h(\operatorname{Pol}_2(y,k))+\Pi_2-V_2
 +\mathsf h\bigl(E\lambda+(y+k)\cup_4d\lambda\bigr)\\
 &-\mathsf h(E(sb))+\mathsf h(U_A)+L_2-\tfrac14 A^{\cup3},\\
-\mathcal O_2={}&\mathsf h(Ec)+\widehat R_2.
+\mathcal O_2={}&\mathsf h(Ec)+\widehat R_2+\tfrac23\widetilde{P^1_s\rho_3A}.
 \end{aligned}}
 \tag{R2}
 \]
+
+The last term is \(\tfrac23\) times the \(0,1,2\) lift of the ordered
+cubic \(A^{\cup3}\) reduced modulo three, the reduced power of a
+degree-two class (`mod3_power.tertiary_three_primary_phase`). Its
+coboundary vanishes on cocycles, so \(T_2\) on the page is unchanged; the
+A-only part of the degree-five pair source
+(`production_gamma5_comparison.A_phase`) carries the same term, so that
+its failure of additivity enters the universal pair primitive and the
+stacking correction \(\gamma_5\).
 
 Each \(\mathsf h\) in (R2) is a separate half-lift, exactly as in
 [`phase_eval.phase2`](../python/phase_eval.py). Combining

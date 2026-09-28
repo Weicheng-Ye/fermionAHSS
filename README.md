@@ -387,9 +387,11 @@ supported only in degrees zero through three. The page window needs at
 most `Tau_3`, `Psi_4`, and `T_3`.
 
 Final T has zero rank correction and `mu_R=0`, and includes
-`2 beta_3,s P^1_s rho_3,s` in input degree three. Its universal helper
-is fixed; no local residual solution or shortcut based on injectivity of
-`Dtilde` selects it.
+`2 beta_3,s P^1_s rho_3,s` in input degrees two and three; in degree two
+the reduced power is the cube modulo three, so the term changes no page
+differential and enters only the degree-five stacking correction. Its
+universal helper is fixed; no local residual solution or shortcut based on
+injectivity of `Dtilde` selects it.
 
 All Python workers evaluate cochains through one interval-cut engine,
 [cochain_tools.py](python/cochain_tools.py), and one set of shared helpers in

@@ -77,14 +77,14 @@ the following fixed expressions:
 | 2 | \(\omega B\) | \(\mathsf h(C\smile\delta C+\omega C)\) |
 | 3 | \(\tau'_0(A;B)\) | \(\mathsf h(E_2C)+R_0(A,B)\) |
 | 4 | \(\tau'_1(A;B)\) | \(\mathsf h(E_3C)+\widehat R_1(A,B)\) |
-| 5 | \(\tau'_2(A;B)\) | \(\mathsf h(E_4C)+\widehat R_2(A,B)\) |
+| 5 | \(\tau'_2(A;B)\) | \(\mathsf h(E_4C)+\widehat R_2(A,B)+\frac23\widetilde{P^1_s\rho_3A}\) |
 | 6 | \(\tau'_3(A;B)\) | \(\mathsf h(E_5C)+\widehat R_3(A,B)+\frac23\widetilde{P^1_s\rho_3A}\) |
 
 The full finite \(\tau'_n\) expression is (10)–(12) of the
 [defining-system formula note](dimension_indexed_differentials.md).
 Its \(\Omega_5,\Omega_6\) are explicitly expanded in (17)–(18) there.
 In particular \(\widehat R_2\) includes \(-A^{\smile3}/4\) exactly
-once, and \(\Omega_6\) includes the coefficient-two prime-three term.
+once, and \(\Omega_5\) and \(\Omega_6\) include the coefficient-two prime-three term (the cube modulo three in degree two).
 These are the calibrated `chi7_tail` operations, with their specified
 integral carries and universal source tables; no new primitive on
 \(X\) is chosen.

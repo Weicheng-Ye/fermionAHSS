@@ -480,6 +480,42 @@ class ExtensionTransferTests(unittest.TestCase):
                                                  bar.state(6, a_zero[0])))
             self.assertTrue(same_class(bar, 6, actual, expected), (actual, expected))
 
+    def test_three_primary_phase_in_input_degree_two(self):
+        # (2/3) lift(P^1_s rho_3 A) with P^1 the cube modulo three in degree two;
+        # its failure of additivity is integral, and it enters the degree-two
+        # production phase.
+        from fractions import Fraction
+        import mod3_power
+        import low_phases
+        tools = random_cochains(500, 6)
+        p = tools["p"]
+        simplex = tuple(range(7))
+        for sign in (0, 1):
+            s, w = tools["twists"](sign, 0)
+            A = p.ds(tools["integral"](1), s)
+            Ap = p.ds(tools["integral"](1), s)
+            phase = mod3_power.tertiary_three_primary_phase(A, s)
+            self.assertEqual(phase.degree, 6)
+            power = mod3_power.reduced_power_1(A, s)
+            self.assertEqual(Fraction(phase(simplex)), Fraction(2 * power(simplex), 3))
+            self.assertIn(power(simplex), (0, 1, 2))
+            # The phase is defined only modulo integers up to the universal pair
+            # primitive: its failure of additivity is a third-integral cochain.
+            total = mod3_power.tertiary_three_primary_phase(A + Ap, s)
+            other = mod3_power.tertiary_three_primary_phase(Ap, s)
+            self.assertIn(Fraction(phase(simplex) + other(simplex) - total(simplex)).denominator, (1, 3))
+        self.assertEqual(mod3_power.tertiary_three_primary_phase(p.zero(1), p.zero(1)).degree, 5)
+        # A cocycle with a nonzero cube modulo three: the constant 1 on 2-faces.
+        A = p.Cochain(2, lambda face: 1)
+        s = p.zero(1)
+        self.assertEqual(Fraction(mod3_power.tertiary_three_primary_phase(A, s)(simplex)), Fraction(2, 3))
+        # The degree-two production phase contains the term.
+        b, c, w = p.zero(3), p.zero(4), p.zero(2)
+        full = low_phases.build_phase(2, A, b, c, s, w)
+        with patch.object(mod3_power, "tertiary_three_primary_phase", lambda A, s: p.zero(A.degree + 4)):
+            without = low_phases.build_phase(2, A, b, c, s, w)
+        self.assertEqual(Fraction(full(simplex)) - Fraction(without(simplex)), Fraction(2, 3))
+
     def test_layer_limited_operations_agree_with_their_full_layers(self):
         # A layer-limited action, division and differential equal the full
         # ones through the requested layer and are zero above it.

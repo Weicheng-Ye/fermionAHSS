@@ -32,12 +32,15 @@ def source(A, Ap, s, omega):
             -transgression_source(A,Ap,s,omega))
 
 
-FIXED_COEFFICIENTS = (F('7/8'),F('3/8'),F('1/4'),F('1/4'),F('1/2'),F('1/2'),F('1/2'),F('3/4'),F('1/2'),F('3/4'),F('3/4'),F('3/4'),F('1/2'),F('1/2'),F('1/4'),F('0'),F('1/4'),F('0'),F('0'),F('3/4'),F('3/4'),F('3/8'),F('0'),F('1/4'),F('1/4'),F('3/8'),F('0'),F('0'),F('0'),F('0'),F('1/4'),F('7/8'),F('0'),F('1/4'),F('3/4'),F('3/4'),F('3/4'),F('0'),F('1/8'),F('5/8'),F('0'),F('0'),F('0'),F('5/8'),F('0'),F('0'),F('0'),F('0'),)
+FIXED_COEFFICIENTS = (F('7/8'),F('3/8'),F('11/12'),F('11/12'),F('5/6'),F('5/6'),F('5/6'),F('5/12'),F('5/6'),F('5/12'),F('5/12'),F('5/12'),F('5/6'),F('5/6'),F('11/12'),F('1/3'),F('11/12'),F('1/3'),F('0'),F('3/4'),F('3/4'),F('3/8'),F('0'),F('1/4'),F('1/4'),F('3/8'),F('0'),F('0'),F('0'),F('0'),F('1/4'),F('7/8'),F('0'),F('1/4'),F('3/4'),F('3/4'),F('3/4'),F('0'),F('1/8'),F('5/8'),F('0'),F('0'),F('0'),F('5/8'),F('0'),F('0'),F('0'),F('0'),)
 
 
 class ProductionSourcePrimitive(SourcePrimitive6):
     def coefficients(self):
-        # Matched source periods and pivot values are recorded in the certificate.
+        # The values of SourcePrimitive6(source).coefficients() for the source
+        # above, recomputed whenever the source changes: its periods on the
+        # universal torsion cycles vanish, and the thirds come from the
+        # three-primary phase of A_phase, whose polarization the source carries.
         return FIXED_COEFFICIENTS
 
 

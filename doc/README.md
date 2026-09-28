@@ -55,7 +55,7 @@ are in [tertiary_operations.md](tertiary_operations.md).
 | R3 xi | `3/4` |
 | V2 source values | `(0,3/4,0,3/4,1/4)` |
 | R3 suspension periods | `(3/4,1/4,0,1/2,1/2)` |
-| Prime-three coefficient | `2`; contributes only in input degree three here |
+| Prime-three coefficient | `2`; on the page it contributes only in input degree three, in degree two it enters the degree-five stacking correction |
 
 The entries of \(\boldsymbol{\zeta}\) select the R1 rank normalization and
 the two R2 suspension terms, respectively. This vector is distinct from

@@ -18,10 +18,15 @@ def reduced_A_phase(A,s,omega):
 
 def A_phase(A,s,omega):
     import low_phases,low_calibration
+    from mod3_power import tertiary_three_primary_phase
     alpha=low_calibration.constants()['alpha']
     linear=low_phases.transported(low_phases.pontryagin(omega),A,s)
     cube=low_phases.transported(low_phases.transported(A,A,s),A,s)
-    return reduced_A_phase(A,s,omega)+p.scale(linear,F(alpha,4))-p.scale(cube,F(1,4))
+    # The A-only part of low_phases.build_phase(2, ...), including the
+    # coefficient-two three-primary phase of the cube modulo three, whose
+    # polarization the universal pair source must carry.
+    return (reduced_A_phase(A,s,omega)+p.scale(linear,F(alpha,4))-p.scale(cube,F(1,4))
+            +tertiary_three_primary_phase(A,s))
 
 
 def B_phase(B,s,omega):

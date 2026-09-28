@@ -72,7 +72,7 @@ meaning. Their definitions are given in Sections 4–5.
 | 2 | absent, 0, 1, 3 | \(\omega B_2\) | \(\mathsf h(C_2\smile\delta C_2+\omega C_2)\) |
 | 3 | 0, 1, 2, 4 | \(\tau'_0(A_3;B_3)\) | \(\mathsf h(E_2C_3)+R_0(A_3,B_3)\) |
 | 4 | 1, 2, 3, 5 | \(\tau'_1(A_4;B_4)\) | \(\mathsf h(E_3C_4)+\widehat R_1(A_4,B_4)\) |
-| 5 | 2, 3, 4, 6 | \(\tau'_2(A_5;B_5)\) | \(\mathsf h(E_4C_5)+\widehat R_2(A_5,B_5)\) |
+| 5 | 2, 3, 4, 6 | \(\tau'_2(A_5;B_5)\) | \(\mathsf h(E_4C_5)+\widehat R_2(A_5,B_5)+\frac23\widetilde{P^1_s\rho_3A_5}\) |
 | 6 | 3, 4, 5, 7 | \(\tau'_3(A_6;B_6)\) | \(\mathsf h(E_5C_6)+\widehat R_3(A_6,B_6)+\frac23\widetilde{P^1_s\rho_3A_6}\) |
 
 The last lift has values `0,1,2`. The degree-four signed reduced power
@@ -331,13 +331,19 @@ phase to use in (8) is
  &+\mathsf h(\operatorname{Pol}_2(y_2,\kappa_2))+\Pi_2-V_2\\
  &+\mathsf h\bigl(E\lambda_2+(y_2+\kappa_2)\smile_4\delta\lambda_2\bigr)\\
  &-\mathsf h(E(sb))+\mathsf h(U_A)
-   +\frac14 P_\omega\smile_s A-\frac14 A^{\smile3}.
+   +\frac14 P_\omega\smile_s A-\frac14 A^{\smile3}
+   +\frac23\widetilde{P^1_s\rho_3A}.
 \end{aligned}}
 \tag{17}
 \]
 
-The last product is the signed ordered cube, with its coefficient-system
-transports. The cubic correction is included exactly once.
+The last two products are the signed ordered cube, with its
+coefficient-system transports; the cubic correction is included exactly
+once, and the three-primary phase is \(\tfrac23\) times the \(0,1,2\) lift
+of the same cube reduced modulo three, since \(P^1\) of a degree-two class
+is its cube. Its coboundary vanishes on cocycles, so it does not change
+\(T_2\) on the page, but its failure of additivity is the three-primary
+part of \(\gamma_5\).
 
 For **k=6**, take \(n=3\), \(A=A_6\), \(b=B_6\), \(C=C_6\). Define
 \(N_3=\mathsf h(s^2\operatorname{Sq}^2a)\),

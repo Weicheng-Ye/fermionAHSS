@@ -148,8 +148,12 @@ residual solvability, exact boundary, and absolute normalization. The
 rank-six `BPSO(6)=BPU(4)` comparison fixes the `q(omega)A` correction to
 zero for the formulas in [tertiary_operations.md](tertiary_operations.md).
 The signed Euler calculation gives `mu_R=0`.
-Thus final T adds `2 beta_3,s P^1_s rho_3,s`, which can contribute only
-in input degree three here.
+Thus final T adds `2 beta_3,s P^1_s rho_3,s`. On the page it can
+contribute only in input degree three; in input degree two the reduced
+power is the cube modulo three, whose Bockstein vanishes on cocycles, but
+the phase itself enters the degree-five stacking correction, where its
+failure of additivity is the three-primary extension (the untwisted `Z/3`
+in package degree five is `Z/9`, not `Z/3 + Z/3`).
 
 The nonzero finite data are essential: tertiary low-selector vector
 \(\boldsymbol{\zeta}=(\zeta_1,\zeta_2,\zeta_3)=(0,1,0)\), V2 source
