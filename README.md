@@ -216,7 +216,7 @@ full.degreeResult.modelId;
 
 The same native-resolution engine is used with a group or a detailed E6
 result; no model-selection option is needed or accepted. States and linear
-solves use R in degrees 3–5, and the fixed formulas are evaluated on
+solves use R in degrees 1–5, and the fixed formulas are evaluated on
 simplices of a comparison complex lazily: the group bar when it retracts
 onto R, and otherwise a cell complex built from the generators of R, which
 also covers infinite groups and several degree-zero generators. The
@@ -235,7 +235,8 @@ basis, and uses those same lifts for every subsequent relation.
 Stacking powers are identified by exact native gauge comparisons with the
 ordered product of the recorded lower generators.
 
-The native complete-state runtime covers degrees 3–5. Degree-six extensions
+The native complete-state runtime covers degrees 1–5. Degrees -1 and 0 have
+only the D layer, so no relation is measured there. Degree-six extensions
 remain explicitly unresolved because their native formula is not implemented.
 A higher-degree result is completed once every stacking relation has its
 exact native comparison. Stacking is assumed to be commutative and
@@ -245,9 +246,9 @@ abutment category. For C2 the unitary degree-3 group is `[0,8]`, and the
 degree-4 group with `s=omega=[1]` is `[16]`; these and the other paper
 fixtures are described in [paper comparisons](doc/extension-paper-comparisons.md).
 
-Degrees -1 to 2 use a separate low-degree adapter, which supports
-degree-one C-layer relations for arbitrary valid `omega`, and degree-two
-C/B relations when `omega=0`.
+Degrees one and two use the degree-one and degree-two differentials and
+products of [low_degree_stacking.md](doc/low_degree_stacking.md), for
+arbitrary valid `s` and `omega`.
 Incomplete page data, missing witnesses and resource limits remain
 explicitly unresolved. The implementation retains `certified_ko=false`;
 see [extensions.md](doc/extensions.md) for the exact scope and limits.
@@ -372,13 +373,20 @@ All Python workers evaluate cochains through one interval-cut engine,
 them instead of keeping copies. The extension worker adds an exact execution
 policy ([extension_acceleration.py](python/extension_acceleration.py)):
 canonical structural zeros, identity memoization of pure cochain builders,
-and universal source values kept across processes. The last are stored
-under `$XDG_CACHE_HOME/fermionAHSS` (default `~/.cache/fermionAHSS`) in a file
-keyed by the hashes of all formula sources; set `FERMIONAHSS_CACHE_DIR` to
-choose another directory, or to an empty string to disable the store. A
-stale or unreadable store is ignored. The values that the C2 and Z4 examples
-need ship in [data/universal-values.json](data/universal-values.json) and are
-loaded before the store when their recorded hashes match the sources; set
+and universal source values kept across processes. Coboundaries, scalar
+multiples and chi, whose values are almost never requested twice for the
+same simplex, keep no memo table and are evaluated on each request.
+
+Universal values depend only on their key. Both workers keep them through
+the store of [universal_values.py](python/universal_values.py): the
+extension worker for its source values and `V1` values, the page worker for
+the same `V1` table. The store is a file under `$XDG_CACHE_HOME/fermionAHSS`
+(default `~/.cache/fermionAHSS`) keyed by the hashes of all formula sources;
+set `FERMIONAHSS_CACHE_DIR` to choose another directory, or to an empty
+string to disable it. A stale or unreadable store is ignored. The values
+that the C2 and Z4 examples need ship in
+[data/universal-values.json](data/universal-values.json) and are loaded
+before the store when their recorded hashes match the sources; set
 `FERMIONAHSS_BUNDLED_VALUES=0` to ignore them. After a change to the formula
 sources, `python3 python/generate_universal_values.py` recomputes that file.
 
@@ -391,7 +399,9 @@ override them; zero disables the corresponding memoization. These are entry
 limits, not process-memory guarantees. Bar comparison chains and
 higher-degree universal contractors can be expensive. The Python workers run
 without automatic garbage collection: their memory is long-lived memo tables
-with almost no reference cycles, which collection only rescanned.
+with almost no reference cycles, which collection only rescanned. The lazy
+states of the extension worker refer to themselves only through arguments,
+so a state and its cochains are freed as soon as they are unused.
 
 ## Testing
 

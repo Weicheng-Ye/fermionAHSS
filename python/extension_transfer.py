@@ -48,16 +48,30 @@ def integer(value):
 
 
 class LazyState:
-    """A triangular state whose upper formulas are built only when needed."""
-    def __init__(self, k, build):
+    """A triangular state whose upper formulas are built only when needed.
+
+    build(state, layer) and, for products, cross(state, layer) receive the
+    state they fill, so no closure refers back to it. A state and its
+    cochain memo tables are then released by reference counting once
+    unused; the worker runs without automatic garbage collection.
+    """
+    def __init__(self, k, build, cross=None):
         self.k = k
         self.build = build
         self.layers = {}
+        self.cross_terms = cross
+        self.crosses = {}
 
     def __getitem__(self, layer):
         if layer not in self.layers:
-            self.layers[layer] = self.build(layer)
+            self.layers[layer] = self.build(self, layer)
         return self.layers[layer]
+
+    def cross(self, layer):
+        """The formula term of a product layer beyond its two summands."""
+        if layer not in self.crosses:
+            self.crosses[layer] = self.cross_terms(self, layer)
+        return self.crosses[layer]
 
 
 class TransferredModel:
@@ -277,7 +291,7 @@ class TransferredModel:
             return state.layers[key]
         k = state.k
         degree = degrees(k + 1)[layer]
-        if layer == 0 or (k <= 2 and layer == 1) or (k == 1 and layer == 2):
+        if k <= 0 or layer == 0 or (k <= 2 and layer == 1) or (k == 1 and layer == 2):
             value = p.zero(degree)
         elif k == 1:
             value = api.cochain(self.low1.g(*map(api.local, (state[2], self.s, self.omega))))
@@ -297,7 +311,7 @@ class TransferredModel:
             else:
                 value = upper.g(self.triple(state, full=False), self.s, self.omega)
         else:
-            raise ValueError("transferred nonlinear differential covers degrees 1 through 5")
+            raise ValueError("transferred nonlinear differential covers degrees 0 through 5")
         state.layers[key] = value
         return value
 
@@ -307,24 +321,23 @@ class TransferredModel:
         checked = dict(checked, D=(0,) * self.dimension(k + 1))
         key = k, tuple(checked[f] for f in "ABC")
         if key not in self._phis:
-            def build(layer):
+            def build(result, layer):
                 signed = layer in (0, 3)
                 value = self.lift(degrees(k)[layer], checked[FIELDS[layer]], signed)
                 if layer:
                     value = value - self.homotopy(self.nonlinear(result, layer), signed)
                 return value if signed else p.binary(value)
-            result = LazyState(k, build)
-            self._phis[key] = result
+            self._phis[key] = LazyState(k, build)
         base = self._phis[key]
         if not any(d_coordinates):
             return base
         # Every nonlinear term reads ABC only. Reuse its entire cochain DAG
         # while preserving the exact signed integral D lift separately.
         d_lift = self.lift(k + 1, d_coordinates, True)
-        return LazyState(k, lambda layer: base[layer] if layer < 3 else base[3] + d_lift)
+        return LazyState(k, lambda _, layer: base[layer] if layer < 3 else base[3] + d_lift)
 
     def bar_d(self, state):
-        def build(layer):
+        def build(_, layer):
             value = self.differential(state[layer], layer in (0, 3))
             value = value + self.nonlinear(state, layer)
             return value if layer in (0, 3) else p.binary(value)
@@ -334,7 +347,7 @@ class TransferredModel:
         if left.k != right.k or left.k not in (1, 2, 3, 4, 5):
             raise ValueError("transferred products cover equal degrees 1 through 5")
         k = left.k
-        def low_cross(layer):
+        def low_cross(result, layer):
             # The degree-one and degree-two products of the complete-bar
             # reference: (C+C', D+D'+gamma1) and (B+B', C+C'+beta2, D+D'+gamma2).
             if layer < 2 or (k == 1 and layer == 2):
@@ -348,9 +361,9 @@ class TransferredModel:
                 (left[1], left[2], right[1], right[2], self.s, self.omega)),
                 b_closed=self.legal_pair(left), bp_closed=self.legal_pair(right),
                 sum_closed=self.legal_pair(result)))
-        def cross(layer):
+        def cross(result, layer):
             if k <= 2:
-                return low_cross(layer)
+                return low_cross(result, layer)
             if layer == 0:
                 return p.zero(degrees(left.k)[0])
             if layer == 1:
@@ -365,12 +378,10 @@ class TransferredModel:
                     and self.is_zero(self.differential(result[2], False), True))
             return upper.gamma(self.triple(left), self.triple(right),
                                legal, pure, self.s, self.omega)
-        def build(layer):
+        def build(result, layer):
             value = left[layer] + right[layer] + result.cross(layer)
             return value if layer in (0, 3) else p.binary(value)
-        result = LazyState(left.k, build)
-        result.cross = lru_cache(None)(cross)
-        return result
+        return LazyState(left.k, build, cross)
 
     def kappa(self, k, data, upto=3):
         checked = self.check_state(k, data)
@@ -402,10 +413,10 @@ class TransferredModel:
     def reflect(self, state, upto=3):
         k = state.k
         native = self.zero(k)
-        gauge = LazyState(k - 1, lambda layer: p.zero(degrees(k - 1)[layer]))
+        gauge = LazyState(k - 1, lambda _, layer: p.zero(degrees(k - 1)[layer]))
         # This embedding reads native coordinates only after they have been
         # determined. Each cached layer depends only on earlier coordinates.
-        def build(layer):
+        def build(embedded, layer):
             signed = layer in (0, 3)
             value = self.lift(degrees(k)[layer], tuple(native[FIELDS[layer]]), signed)
             if layer:
@@ -442,7 +453,7 @@ class TransferredModel:
             answer = self.zero(k)
             for layer in range(upto + 1):
                 answer[FIELDS[layer]] = list(source[FIELDS[layer]])
-            return answer, LazyState(k - 1, lambda layer: p.zero(degrees(k - 1)[layer]))
+            return answer, LazyState(k - 1, lambda _, layer: p.zero(degrees(k - 1)[layer]))
         return self.reflect(self.bar_product(self.phi(k, left), self.phi(k, right)), upto)
 
     def act(self, k, gauge, canonical):
@@ -450,7 +461,7 @@ class TransferredModel:
         canonical = self.check_state(k, canonical)
         if not any(any(v) for v in gauge.values()):
             return ({f: list(canonical[f]) for f in FIELDS},
-                    LazyState(k - 1, lambda layer: p.zero(degrees(k - 1)[layer])))
+                    LazyState(k - 1, lambda _, layer: p.zero(degrees(k - 1)[layer])))
         boundary = self.bar_d(self.phi(k - 1, gauge))
         return self.reflect(self.bar_product(boundary, self.phi(k, canonical)))
 
@@ -514,8 +525,8 @@ class TransferredModel:
 
     def calculate(self, request):
         operation, k = request["operation"], request["degree"]
-        if k not in (1, 2, 3, 4, 5) or (k == 1 and operation not in ("d", "phi_values")):
-            raise ValueError("transferred states cover degrees 2 through 5; gauges include degree 1")
+        if k not in (0, 1, 2, 3, 4, 5) or (k == 0 and operation not in ("d", "phi_values")):
+            raise ValueError("transferred states cover degrees 1 through 5; gauges include degree 0")
         key = json.dumps(request, sort_keys=True, separators=(",", ":"))
         if key in self._answers:
             return json.loads(self._answers[key])

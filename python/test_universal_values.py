@@ -7,17 +7,18 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import extension_transfer  # noqa: E402,F401  (installs the worker's exact policy)
 import extension_acceleration as acceleration  # noqa: E402
+import universal_values as universal  # noqa: E402
 
 
 class BundledUniversalValues(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.data = json.loads(acceleration.BUNDLED.read_text())
+        cls.data = json.loads(universal.BUNDLED.read_text())
 
     def test_provenance_matches_the_formula_sources(self):
         # The worker ignores a file computed with other sources.
         self.assertEqual(self.data['schema'], 1)
-        self.assertEqual(self.data['provenance'], acceleration.source_provenance(),
+        self.assertEqual(self.data['provenance'], universal.source_provenance(),
                          'regenerate with python3 python/generate_universal_values.py')
 
     def test_entries_are_sorted_and_unique(self):
@@ -27,13 +28,13 @@ class BundledUniversalValues(unittest.TestCase):
             self.assertEqual(keys, sorted(set(keys)))
 
     def test_sampled_values_equal_a_fresh_evaluation(self):
-        classes = acceleration._key_classes()
+        classes = universal._key_classes()
         for name, entries in sorted(self.data['tables'].items()):
             function = acceleration._tables[name].function
-            values = [(key, acceleration._decode(value, classes)) for key, value in entries]
+            values = [(key, universal._decode(value, classes)) for key, value in entries]
             nonzero = [(key, value) for key, value in values if value != 0]
             for key, value in nonzero[::len(nonzero) // 3][:3]:
-                self.assertEqual(function(acceleration._decode(key, classes)), value)
+                self.assertEqual(function(universal._decode(key, classes)), value)
 
 
 if __name__ == '__main__':

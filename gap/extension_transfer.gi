@@ -360,8 +360,8 @@ BindGlobal("KOAHSS_ExtensionTransportPreflight",function(arg)
         degreeAudit,support,chain,term,simplex,image,lifted,entry,key,position,
         coefficients,keys,expected;
     transport:=arg[1]; k:=arg[2];
-    if not IsInt(k) or not k in [2..5] then
-        Error("extension transfer preflight supports package degrees 2..5");
+    if not IsInt(k) or not k in [1..5] then
+        Error("extension transfer preflight supports package degrees 1..5");
     fi;
     limits:=rec(maxSupport:=8192,maxTerms:=2000000);
     if Length(arg)=3 then
@@ -489,13 +489,12 @@ end);
 # With q=1-gf and u=q h q, the operator u boundary u has all SDR side
 # conditions. Intermediate chains retain their first vertices and group
 # actions; local coefficient frames are applied only at the RPC boundary.
-# Internal transport options. cells:=true forces the cell comparison,
-# labels:=true vertex labels without a multiplication table, and
-# nativeDegreeTwo:=true the native engine in degree two (testing only).
+# Internal transport options. cells:=true forces the cell comparison and
+# labels:=true vertex labels without a multiplication table (testing only).
 # maxSupport and maxTerms are the resource bounds of the sparse comparison
 # and of the normalized homotopy expansion.
 BindGlobal("KOAHSS_EXTENSION_TRANSPORT_OVERRIDE",rec(cells:=false,labels:=false,
-    nativeDegreeTwo:=false,maxSupport:=8192,maxTerms:=2000000));
+    maxSupport:=8192,maxTerms:=2000000));
 
 BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
     local audit,tr,R,group,elements,unit,engine,maximum,used,failure,
@@ -714,7 +713,7 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         transportNormalization:=transport.normalization,transportStats:=transport.stats,
         gaugeCompletenessAssumed:=true,sideConditionsByConstruction:=true,
         s:=ShallowCopy(backend.twists.s),omega:=ShallowCopy(backend.twists.omega));
-    model.supports:=degree->degree=k and degree in [2..5];
+    model.supports:=degree->degree=k and degree in [1..5];
     model.dimension:=function(n)
         if n<0 then return 0; fi;
         if n>k+2 then Error("transferred cochain degree exceeds model capacity"); fi;

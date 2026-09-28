@@ -5,7 +5,7 @@ evaluated through resolution comparison maps. Its page calculation covers rows `
 through E6 and physical cutoff `p+q+3 <= k <= 6`. E6 is terminal within
 this strip; it is not automatically the full ko E-infinity page. Other ko
 rows remain outside the implementation. The extension assembler and
-bounded production stacking adapter described below do not establish a
+native stacking engine described below do not establish a
 general abutment identification. Detailed results retain
 `certified_ko: false`.
 
@@ -19,8 +19,8 @@ do not change the row window or the calibrated page differentials. See
 the [extension API](extensions.md).
 
 A supplied integral HAP resolution can replace the group argument.
-Native states and solves on that resolution are the only higher extension
-mode in degrees 3–5; there is no model-selection option. The comparison
+Native states and solves on that resolution are the only extension
+mode in degrees 1–5; there is no model-selection option. The comparison
 (the group bar, or else the cell complex on the generators of R) must pass
 the strict retraction check, and the sparse homotopy is normalized.
 The calculation assumes gauge completeness: native gauge equivalence
@@ -38,7 +38,7 @@ basis transformations, and carries the filtration inclusions and
 quotients to subsequent stages. Equal and independent nonzero lower
 images remain distinguishable.
 
-For degrees 3–5, the production engine retains the marked E6
+For degrees 1–5, the production engine retains the marked E6
 representatives in the supplied resolution basis. It
 solves and retains immutable full `(A,B,C,D)` lifts for every generator,
 including free A generators. Binary B/C defining choices are changed when
@@ -69,16 +69,15 @@ formula is not implemented. The degree-six section of the complete-bar
 model serves only as a test reference and is not a runtime fallback. The
 E6 page calculation covers degrees up to six.
 
-The low-degree adapter handles order-two C-layer relations in
-degree 1 with arbitrary valid `omega`, and C/B-layer relations in degree 2
-with `omega=0`. Its phase restriction is bundled in
-[stacking-low-phase.json](../data/stacking-low-phase.json). The higher
-formulas are bundled with their [upstream provenance](../python/stacking_model/provenance.json);
+Degrees one and two use the same engine with the degree-one and
+degree-two formulas of [low_degree_stacking.md](low_degree_stacking.md),
+for arbitrary valid `s` and `omega`. The stacking formulas are bundled
+with their [upstream provenance](../python/stacking_model/provenance.json);
 runtime loading does not require the separate stacking research workspace.
 Helpers identical to the package kernel are imported from it, and the
 bundled hashes are not verified at runtime.
 
-Degrees -1 and 0 have only D. Unsupported queries, incomplete page data
+Degrees -1 and 0 have only D, so no relation is measured. Incomplete page data
 and exhausted resource bounds remain unresolved. Native transfer
 requires a comparison passing `fg=id` over the integral group ring; the
 cell comparison provides one for any resolution whose generators have
@@ -169,5 +168,5 @@ The universal R3 source data in [r3_source.json](../python/r3_source.json)
 record the hashes of the modules that produced them; these hashes are
 not checked when the data are loaded.
 
-Finite executable checks support the adapter and arithmetic. They do not
+Finite executable checks support the stacking engine and arithmetic. They do not
 replace the universal arguments or establish an all-degree theorem.

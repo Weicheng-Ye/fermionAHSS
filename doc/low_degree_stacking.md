@@ -104,11 +104,9 @@ integral on evaluation. The implementation is `a0_degree1`,
 
 ## Use in `koFull`
 
-Degree-two relations are first measured by the low-degree adapter of
-[extensions.md](extensions.md), whose bundled phase covers closed B and C
-at \(\omega=0\). When it leaves a relation unresolved, for example for
-nonzero \(\omega\), the degree is solved by the native engine of
-[resolution-extensions.md](resolution-extensions.md) with these formulas:
-states of degree two, gauges of degree one, the same comparison, zero test
-and gauge search as in degrees 3–5. The adapter's result is kept as
-`lowDegreeAttempt`.
+Degrees one and two are solved by the native engine of
+[resolution-extensions.md](resolution-extensions.md) with these formulas,
+for arbitrary \(s\) and \(\omega\): states of degree one and two,
+gauges of degree zero and one, and the same comparison, zero test and
+gauge search as in degrees 3–5. A degree-zero gauge is a single
+\(D\in C^1(X;\mathbf Z_s)\) with \(\mathfrak d_0(D)=(0,\delta_sD)\) by (A14).

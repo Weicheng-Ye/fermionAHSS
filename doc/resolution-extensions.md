@@ -29,13 +29,13 @@ required by the page calculation; through E6 the length requirement is
 `max(3,k+3)`. No resolution is reconstructed when R is supplied.
 
 Extension states, defining-cochain solves, gauge searches and integer
-matrices use R in package degrees 3–5, for finite and infinite groups and
+matrices use R in package degrees 1–5, for finite and infinite groups and
 any number of degree-zero generators. Nonlinear formulas are evaluated on
 simplices of a comparison complex, lazily through sparse comparison
 chains: the normalized group bar when it retracts onto R, and otherwise
 the cell complex described below. No complete-bar model
-is constructed for extension certification or fallback. Degrees -1 through
-2 use the low-degree adapter. Degree-six extensions are explicitly
+is constructed for extension certification or fallback. Degrees -1 and 0
+have only D and need no model. Degree-six extensions are explicitly
 unresolved because the native degree-six formula is not implemented.
 
 ## Completion and the gauge-completeness assumption

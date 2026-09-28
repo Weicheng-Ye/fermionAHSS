@@ -2,10 +2,12 @@
 
 The extension worker keeps two universal source functions in a persistent
 store (`UNIVERSAL` in
-[extension_acceleration.py](../python/extension_acceleration.py)): the
+[extension_acceleration.py](../python/extension_acceleration.py), stored by
+[universal_values.py](../python/universal_values.py)): the
 degree-five pair source `production_gamma4.source_value` of the D-layer
 stacking correction, and the degree-one primitive `low_phases.V1_pair` of
-[universal_helpers.md](universal_helpers.md) Section 5. Both are exact
+[universal_helpers.md](universal_helpers.md) Section 5. The page worker
+shares the second table. Both are exact
 rational functions of finitely many integer labels, and a computation can
 request them at labels of any size. This note answers whether they have a
 finite closed form. The pair source is **not** periodic in its labels

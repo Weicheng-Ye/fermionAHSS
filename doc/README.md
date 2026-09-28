@@ -70,7 +70,7 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [natural_words.gi](../gap/natural_words.gi) | Interval cuts, integral cup signs, and compiled chi evaluation |
 | [natural_secondary.gi](../gap/natural_secondary.gi) | Complete lower formulas and matched lift |
 | [natural_tertiary.gi](../gap/natural_tertiary.gi) | Defining systems, Python worker, phase projection, and exact boundary |
-| [worker.py](../python/worker.py) | Exact JSON line protocol, one process per GAP session, and face-equation audits |
+| [worker.py](../python/worker.py) | Exact JSON line protocol, one process per GAP session, face-equation audits, and the shared `V1` table |
 | [low_phases.py](../python/low_phases.py) | Degree-zero, -one, and -two phases |
 | [high_phase.py](../python/high_phase.py) | Degree-three phase |
 | [cochain_tools.py](../python/cochain_tools.py) | The single interval-cut engine: cup-i words, integral signs, coboundary, interval pullback and prism, Q |
@@ -79,11 +79,11 @@ the secondary epsilon and eta vectors and from the cochain helpers
 | [pages.gi](../gap/pages.gi) | Exact homology, surviving representatives, and page quotients |
 | [group_api.gi](../gap/group_api.gi) | `koAHSS` and `koAHSS_batch` for finite groups and supplied resolutions |
 | [extensions.gi](../gap/extensions.gi) | Marked abelian extension presentations, Smith transformations, `koFull` and `koFull_batch` |
-| [stacking_extensions.gi](../gap/stacking_extensions.gi) | Production low-degree `xtimes` relation measurements and exact lower-layer reduction |
 | [extension_lifts.gi](../gap/extension_lifts.gi) | Immutable full generator lifts, affine B/C defining choices, integral D solves, and exact flatness witnesses |
 | [extension_transfer.gi](../gap/extension_transfer.gi) | Native extension model, exact retraction preflight and sparse normalized transport |
 | [extension_transfer.py](../python/extension_transfer.py) | Lazy transferred curvature, products and gauge actions using the fixed formulas |
-| [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: structural zeros, identity-memoized builders, persistent universal values |
+| [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: structural zeros, identity-memoized builders, persistent universal values, unstored coboundaries, scalar multiples and chi |
+| [universal_values.py](../python/universal_values.py) | Store of universal values shared by the extension and page workers: bundled values, the cache file and its source hash |
 | [generate_universal_values.py](../python/generate_universal_values.py) | Recomputes the bundled universal values in [universal-values.json](../data/universal-values.json) for the current formula sources |
 | [extension_bar.gi](../gap/extension_bar.gi) | Bounded complete finite-bar model, used only as a reference by the tests |
 | [extension_relations.gi](../gap/extension_relations.gi) | Powers of fixed full lifts, common lower coordinates, and retained reduction carries |

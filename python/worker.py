@@ -30,8 +30,17 @@ CHAIN_CACHE_ENTRIES = install_chain_cache_limit(
 
 try:
     from . import phase_eval as pe
+    from . import low_phases, universal_values
 except ImportError:
     import phase_eval as pe
+    import low_phases
+    import universal_values
+
+# The universal V1 table shared with the koFull worker: shipped values and
+# the cache file first; values computed here are added to the cache file.
+low_phases.V1_pair = universal_values.UniversalTable('low_phases.V1_pair',
+                                                     low_phases.V1_pair)
+UNIVERSAL_STORE = universal_values.open_store({'low_phases.V1_pair': low_phases.V1_pair})
 
 
 def current_psi(A, b, s, omega):
@@ -146,6 +155,7 @@ def serve():
                 result=dict(status='error',type=type(error).__name__,reason=str(error))
             if isinstance(request,dict) and 'id' in request:
                 result['id']=request['id']
+            UNIVERSAL_STORE.flush()
             sys.stdout.write(json.dumps(result,separators=(',',':'))+'\n')
             sys.stdout.flush()
     except OSError:
@@ -168,4 +178,5 @@ if __name__=='__main__':
     except Exception as error:
         print(json.dumps(dict(status='error',type=type(error).__name__,reason=str(error))))
         sys.exit(1)
+    UNIVERSAL_STORE.flush()
     print(json.dumps(result,separators=(',',':')))

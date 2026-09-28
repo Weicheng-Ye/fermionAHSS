@@ -229,9 +229,9 @@ invariants `[2,3]`. Do not pair those public entries directly with the
 Smith basis.
 
 These expressions are formal integer combinations of the selected layer
-lifts. The production witnesses contain concrete cochain data on the
-adapter's supported domain. The abstract assembler does not reconstruct
-flat cochain representatives for an arbitrary supplied relation oracle.
+lifts. The production witnesses contain concrete cochain data. The
+abstract assembler does not reconstruct flat cochain representatives for
+an arbitrary supplied relation oracle.
 
 Each record in `filtration` retains its layer name, relation matrix,
 group and Smith data, together with:
@@ -289,7 +289,7 @@ vectors and inconsistent exact data are errors, not unresolved results.
 
 ## Complete flat representatives and gauge comparisons
 
-In degrees 3–5, the production engine uses the transferred four-cochain
+In degrees 1–5, the production engine uses the transferred four-cochain
 curvature and product in the retained resolution basis. The calibrated
 formulas are evaluated lazily through sparse bar transport. The leading
 E6 cochains keep their native coordinates.
@@ -392,31 +392,19 @@ imported from it; the bundled hashes are not verified at runtime.
 Loading the package does not require the separate research workspace.
 No expected classification table is consulted at runtime.
 
-## Low-degree adapter and resource limits
+## Low degrees and resource limits
 
-The group-bar adapter implements these relation measurements:
-
-| Package degree | Supported torsion query | Conditions |
-| --- | --- | --- |
-| 1 | C to D | Order-two C generator; arbitrary valid `s,omega`; integral upper lift and retained page projection must succeed |
-| 2 | C to D, B to C/D | Order-two quotient generator; `omega=0`; closed binary representatives and the implemented lower reduction |
-
-Each queried order-two generator uses one doubling with the selected
-`xtimes` formula. Lower-coordinate reduction is separate work and retains
-its carries and operation counts. The degree-one witness includes the
-upper integral primitive and bar-comparison homotopy correction. The
-degree-two phase is the exact 256-value restriction of the selected
-low-degree commutative stacking formula to closed B/C inputs at
-`omega=0`, bundled with provenance in
-[stacking-low-phase.json](../data/stacking-low-phase.json). No expected
-classification table is consulted at runtime.
-
-Degrees -1 and 0 require only D. When the adapter leaves a degree-two
-relation unresolved, for example for nonzero `omega`, the degree is solved
-by the native engine with the degree-two formulas of
-[low_degree_stacking.md](low_degree_stacking.md); the adapter's reason is
-kept as `lowDegreeAttempt`. The abstract assembler's
-generality does not remove a production cochain requirement.
+Degrees -1 and 0 have only the D layer: the group is that layer and no
+relation is measured. Degrees one and two use the native engine with the
+differentials and products of
+[low_degree_stacking.md](low_degree_stacking.md), for arbitrary valid
+`s` and `omega`. A degree-one state is `(C,D)` and its gauges are
+degree-zero states `(D)`; a degree-two state is `(B,C,D)` and its gauges
+are degree-one states. Flat lifts, relation measurements, gauge
+comparisons, the comparison complex and the zero test are those of degrees
+3–5. No expected classification table is consulted at runtime. The
+abstract assembler's generality does not remove a production cochain
+requirement.
 
 The native implementation has explicit resource bounds:
 
