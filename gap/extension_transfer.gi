@@ -702,7 +702,7 @@ end,[]);
 # evaluated by the unchanged calibrated formulas through sparse bar callbacks.
 BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
     local transport,elements,model,setup,matrices,executable,stream,cache,order,
-        readAnswer,request,n,sign,j,vector,fields,checkState;
+        readAnswer,request,n,sign,j,vector,fields,checkState,limited;
     transport:=KOAHSS_ExtensionNormalizedTransport(backend,k);
     if transport.status<>"computed" then return transport; fi;
     if LoadPackage("json")=fail then Error("koFull: transferred stacking requires GAP JSON"); fi;
@@ -714,6 +714,8 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         gaugeCompletenessAssumed:=true,sideConditionsByConstruction:=true,
         s:=ShallowCopy(backend.twists.s),omega:=ShallowCopy(backend.twists.omega));
     model.supports:=degree->degree=k and degree in [1..6];
+    # The stacking operations accept a last layer index (see below).
+    model.layerLimited:=true;
     model.dimension:=function(n)
         if n<0 then return 0; fi;
         if n>k+2 then Error("transferred cochain degree exceeds model capacity"); fi;
@@ -819,25 +821,52 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         od;
         return state;
     end;
-    model.d:=function(degree,state)
-        return checkState(degree+1,request(rec(operation:="d",degree:=degree,state:=state)).state);
+    # Every operation takes an optional last layer index ``upto`` (A=0 to
+    # D=3, default 3): the worker computes the layers through it and returns
+    # zeros above it, so a relation measured only down to its target layer
+    # never evaluates the D-layer stacking correction.
+    limited:=function(arg,position,requestRecord)
+        local upto;
+        upto:=3;
+        if Length(arg)>=position then
+            upto:=arg[position];
+            if not IsInt(upto) or upto<0 or upto>3 then Error("koFull: upto must be a layer index from zero through three"); fi;
+        fi;
+        if upto<3 then requestRecord.upto:=upto; fi;
+        return requestRecord;
     end;
-    model.xtimes:=function(degree,x,y)
-        return checkState(degree,request(rec(operation:="xtimes",degree:=degree,state:=x,other:=y)).state);
+    model.d:=function(arg)
+        local degree,state;
+        degree:=arg[1]; state:=arg[2];
+        return checkState(degree+1,request(limited(arg,3,rec(operation:="d",degree:=degree,state:=state))).state);
     end;
-    model.act:=function(degree,gauge,canonical)
-        return checkState(degree,request(rec(operation:="act",degree:=degree,state:=canonical,gauge:=gauge)).state);
+    model.xtimes:=function(arg)
+        local degree,x,y;
+        degree:=arg[1]; x:=arg[2]; y:=arg[3];
+        return checkState(degree,request(limited(arg,4,rec(operation:="xtimes",degree:=degree,state:=x,other:=y))).state);
     end;
-    model.divideLeft:=function(degree,left,total)
-        return checkState(degree,request(rec(operation:="divide_left",degree:=degree,state:=left,other:=total)).state);
+    model.act:=function(arg)
+        local degree,gauge,canonical;
+        degree:=arg[1]; gauge:=arg[2]; canonical:=arg[3];
+        return checkState(degree,request(limited(arg,4,rec(operation:="act",degree:=degree,state:=canonical,gauge:=gauge))).state);
     end;
-    model.transferCertificate:=function(degree,gauge,canonical,target)
-        if model.act(degree,gauge,canonical)<>target then Error("transferred gauge equality failed"); fi;
-        return rec(certificateLevel:="transfer-R",nativeEqualityVerified:=true,
+    model.divideLeft:=function(arg)
+        local degree,left,total;
+        degree:=arg[1]; left:=arg[2]; total:=arg[3];
+        return checkState(degree,request(limited(arg,4,rec(operation:="divide_left",degree:=degree,state:=left,other:=total))).state);
+    end;
+    model.transferCertificate:=function(arg)
+        local degree,gauge,canonical,target,upto,certificate;
+        degree:=arg[1]; gauge:=arg[2]; canonical:=arg[3]; target:=arg[4];
+        upto:=3; if Length(arg)>=5 then upto:=arg[5]; fi;
+        if model.act(degree,gauge,canonical,upto)<>target then Error("transferred gauge equality failed"); fi;
+        certificate:=rec(certificateLevel:="transfer-R",nativeEqualityVerified:=true,
             gaugeCompletenessAssumed:=true,
             gauge:=StructuralCopy(gauge),canonical:=StructuralCopy(canonical),target:=StructuralCopy(target),
             comparisonAudit:=transport.audit,homotopyNormalization:=transport.normalization,
             searchComplete:=false);
+        if upto<3 then certificate.comparedLayers:=fields{[1..upto+1]}; fi;
+        return certificate;
     end;
     model.debugRequest:=request;
     model.transportData:=transport.terms;

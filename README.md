@@ -235,7 +235,14 @@ its actual B, C and D defining cochains. It changes B or C choices when a
 later equation requires it, stores immutable full lifts in the resolution
 basis, and uses those same lifts for every subsequent relation.
 Stacking powers are identified by exact native gauge comparisons with the
-ordered product of the recorded lower generators.
+ordered product of the recorded lower generators, measured only through the
+target layer of each relation: the lowest layer of the lower presentation
+with a generator outside `m*H`, `m` the generator's order and `H` the lower
+group. The entries below it cannot change the extension class, are recorded
+as zero, and the witness lists the measured layers (`measuredLayers`,
+`truncatedBelow`) with the certificate (`sufficiency`); set
+`FERMIONAHSS_LAYERED_RELATIONS=0` to measure every relation completely (see
+[extensions.md](doc/extensions.md)).
 
 The native complete-state runtime covers degrees 1–6. Degrees -1 and 0 have
 only the D layer, so no relation is measured there. In degrees 4–6 the

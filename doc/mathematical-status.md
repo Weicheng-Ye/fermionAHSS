@@ -52,9 +52,15 @@ representatives differ from the reference model's by D-gauges while the
 stacking group on gauge classes is unchanged.
 
 Each measured relation must admit an exact native gauge comparison
-with its canonical lower product. The witness retains a complete native
-gauge tuple, verifies flatness of its action result, and checks the action
-equality component by component. Commutativity and associativity of
+with its canonical lower product in its measured layers. A relation is
+measured only through its target layer, the lowest layer of the lower
+presentation with a generator outside `m*H` (`m` the order of the
+generator, `H` the lower group): the components below it lie in `m*H` and
+cannot change the class of the extension in `Ext(Z/m,H)=H/mH`, which the
+recorded certificate exhibits, and they are left unmeasured. The witness
+retains a native gauge tuple, verifies flatness of its action result
+through the measured layers, and checks the action equality component by
+component there. Commutativity and associativity of
 stacking on gauge classes are assumed, so the measured relations determine
 the group; no finite multiplication table of normal forms is audited. Free
 quotients split in the intended abelian abutment category.

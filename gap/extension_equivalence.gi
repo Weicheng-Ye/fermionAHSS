@@ -12,7 +12,7 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
         verify,leadingEquation,search,stages,stageNumber,stage,diagnostics,
         stageChoices,stageAttempts,stageMaxChoices,stageMaxLeading,remaining,
         anyLimited,allExact,stageName,j,stageNames,requestedStages,preferred,
-        activeGenerators,kernelSource,seen,independent,transferred,applyGauge;
+        activeGenerators,kernelSource,seen,independent,transferred,applyGauge,upto;
     if not Length(arg) in [4,5] then
         Error("koFull: gauge comparison needs model, degree, target, canonical[, options]");
     fi;
@@ -33,8 +33,20 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
         Error("koFull: gauge comparison degree must be in zero through six");
     fi;
     if not IsRecord(options) or ForAny(RecNames(options),x->
-        not x in ["maxChoices","maxLeadingChoices","integerRadius","stages"]) then
-        Error("koFull: gauge comparison options are maxChoices, maxLeadingChoices, integerRadius, stages");
+        not x in ["maxChoices","maxLeadingChoices","integerRadius","stages","upto"]) then
+        Error("koFull: gauge comparison options are maxChoices, maxLeadingChoices, integerRadius, stages, upto");
+    fi;
+    # A layer-limited comparison reads the layers through the index upto only
+    # (A=0 to D=3); it needs the transferred model's layer-limited action.
+    upto:=3;
+    if IsBound(options.upto) then
+        upto:=options.upto;
+        if not IsInt(upto) or upto<0 or upto>3 then
+            Error("koFull: the compared layer index must be zero through three");
+        fi;
+        if upto<3 and not transferred then
+            Error("koFull: a layer-limited gauge comparison needs the transferred model");
+        fi;
     fi;
     stageNames:=["D","CD","BCD","ABCD"];
     requestedStages:=stageNames;
@@ -77,7 +89,8 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
     isZero:=state->ForAll(fields,f->ForAll(state.(f),x->x=0));
     applyGauge:=function(gauge)
         local boundary,product;
-        if transferred then product:=model.act(k,gauge,canonical);
+        if transferred and upto<3 then product:=model.act(k,gauge,canonical,upto);
+        elif transferred then product:=model.act(k,gauge,canonical);
         else
             boundary:=model.d(k-1,gauge); checkState(k,boundary);
             product:=model.xtimes(k,boundary,canonical);
@@ -85,9 +98,11 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
         checkState(k,product); return product;
     end;
     checkState(k,target); checkState(k,canonical);
-    initial:=model.d(k,target); checkState(k+1,initial);
+    if upto<3 then initial:=model.d(k,target,upto); else initial:=model.d(k,target); fi;
+    checkState(k+1,initial);
     if not isZero(initial) then Error("koFull: gauge comparison target is not flat"); fi;
-    initial:=model.d(k,canonical); checkState(k+1,initial);
+    if upto<3 then initial:=model.d(k,canonical,upto); else initial:=model.d(k,canonical); fi;
+    checkState(k+1,initial);
     if not isZero(initial) then Error("koFull: gauge comparison canonical product is not flat"); fi;
     zeroState:=model.zero(k-1); checkState(k-1,zeroState);
     if not isZero(zeroState) then Error("koFull: gauge model zero is not zero"); fi;
@@ -132,14 +147,20 @@ BindGlobal("KOAHSS_ExtensionGaugeCompare",function(arg)
             targetFlatnessVerified:=true,canonicalFlatnessVerified:=true,
             definingSystemWitness:=ShallowCopy(lift.witness));
         if transferred then
-            curvature:=model.d(k,product); checkState(k+1,curvature);
+            if upto<3 then curvature:=model.d(k,product,upto); else curvature:=model.d(k,product); fi;
+            checkState(k+1,curvature);
             if not isZero(curvature) then
                 Error("koFull: transferred gauge action produced a nonflat state");
             fi;
             answer.equation:="target = act(gauge, canonical)";
             answer.certificateLevel:="transfer-R"; answer.actionFlatnessVerified:=true;
+            if upto<3 then answer.comparedLayers:=fields{[1..upto+1]}; fi;
             if IsBound(model.transferCertificate) then
-                answer.transferCertificate:=model.transferCertificate(k,lift.state,canonical,target);
+                if upto<3 then
+                    answer.transferCertificate:=model.transferCertificate(k,lift.state,canonical,target,upto);
+                else
+                    answer.transferCertificate:=model.transferCertificate(k,lift.state,canonical,target);
+                fi;
             fi;
         else
             answer.boundary:=StructuralCopy(boundary);

@@ -464,23 +464,27 @@ class TransferredModel:
             return answer, LazyState(k - 1, lambda _, layer: p.zero(degrees(k - 1)[layer]))
         return self.reflect(self.bar_product(self.phi(k, left), self.phi(k, right)), upto)
 
-    def act(self, k, gauge, canonical):
+    def act(self, k, gauge, canonical, upto=3):
         gauge = self.check_state(k - 1, gauge)
         canonical = self.check_state(k, canonical)
         if not any(any(v) for v in gauge.values()):
-            return ({f: list(canonical[f]) for f in FIELDS},
-                    LazyState(k - 1, lambda _, layer: p.zero(degrees(k - 1)[layer])))
+            answer = self.zero(k)
+            for layer in range(upto + 1):
+                answer[FIELDS[layer]] = list(canonical[FIELDS[layer]])
+            return answer, LazyState(k - 1, lambda _, layer: p.zero(degrees(k - 1)[layer]))
         boundary = self.bar_d(self.phi(k - 1, gauge))
-        return self.reflect(self.bar_product(boundary, self.phi(k, canonical)))
+        return self.reflect(self.bar_product(boundary, self.phi(k, canonical)), upto)
 
-    def divide_left(self, k, left, total, verify=True):
+    def divide_left(self, k, left, total, verify=True, upto=3):
+        """The right factor with left * right = total through the layers up to ``upto``."""
         left = self.check_state(k, left)
         total = self.check_state(k, total)
+        required = 3 if upto == 3 else upto - 1
         if verify:
-            self.require_flat(k, left)
-            self.require_flat(k, total)
+            self.require_flat(k, left, required)
+            self.require_flat(k, total, required)
         right = self.zero(k)
-        for layer, f in enumerate(FIELDS):
+        for layer, f in enumerate(FIELDS[:upto + 1]):
             product, _ = self.product(k, left, right, upto=layer)
             if layer == 3 and not any(left["D"]):
                 # Before its D coordinate is set, right has the final A, B, C.
@@ -493,9 +497,9 @@ class TransferredModel:
             if layer in (1, 2):
                 right[f] = [v % 2 for v in right[f]]
         if verify:
-            self.require_flat(k, right)
-            product, _ = self.product(k, left, right)
-            if any(tuple(product[f]) != total[f] for f in FIELDS):
+            self.require_flat(k, right, required)
+            product, _ = self.product(k, left, right, upto)
+            if any(tuple(product[f]) != total[f] for f in FIELDS[:upto + 1]):
                 raise ArithmeticError("transferred left division failed its exact product equality")
         return right
 
@@ -511,9 +515,9 @@ class TransferredModel:
             if operation == "xtimes":
                 result, _ = self.product(k, x0, y0, upto)
             elif operation == "act":
-                result, _ = self.act(k, x0, y0)
+                result, _ = self.act(k, x0, y0, upto)
             else:
-                result = self.divide_left(k, x0, y0, verify=False)
+                result = self.divide_left(k, x0, y0, verify=False, upto=upto)
             self._cores[key] = tuple(tuple(result[f]) for f in FIELDS)
         answer = {f: list(v) for f, v in zip(FIELDS, self._cores[key])}
         if upto == 3:
@@ -538,28 +542,31 @@ class TransferredModel:
         key = json.dumps(request, sort_keys=True, separators=(",", ":"))
         if key in self._answers:
             return json.loads(self._answers[key])
+        # Layer-limited requests: ``upto`` is the last layer index computed
+        # (A=0 to D=3); the answer has zeros above it, and the inputs need to
+        # be flat only through the layer below it.
+        upto = request.get("upto", 3)
+        if type(upto) is not int or not 0 <= upto <= 3:
+            raise ValueError("upto must be a layer index from zero through three")
+        required = 3 if upto == 3 else upto - 1
         if operation == "d":
-            answer = {"state": self.kappa(k, request["state"])}
+            answer = {"state": self.kappa(k, request["state"], upto)}
         elif operation == "xtimes":
-            upto = request.get("upto", 3)
-            if type(upto) is not int or not 0 <= upto <= 3:
-                raise ValueError("upto must be a layer index from zero through three")
-            required = 3 if upto == 3 else upto - 1
             self.require_flat(k, request["state"], required)
             self.require_flat(k, request["other"], required)
             result = self.affine_core("xtimes", k, request["state"], request["other"], upto)
             answer = {"state": result}
         elif operation == "act":
-            self.require_flat(k, request["state"])
-            result = self.affine_core("act", k, request["gauge"], request["state"])
+            self.require_flat(k, request["state"], required)
+            result = self.affine_core("act", k, request["gauge"], request["state"], upto)
             answer = {"state": result}
         elif operation == "divide_left":
-            self.require_flat(k, request["state"])
-            self.require_flat(k, request["other"])
-            result = self.affine_core("divide_left", k, request["state"], request["other"])
-            self.require_flat(k, result)
-            product = self.affine_core("xtimes", k, request["state"], result)
-            if any(tuple(product[f]) != tuple(request["other"][f]) for f in FIELDS):
+            self.require_flat(k, request["state"], required)
+            self.require_flat(k, request["other"], required)
+            result = self.affine_core("divide_left", k, request["state"], request["other"], upto)
+            self.require_flat(k, result, required)
+            product = self.affine_core("xtimes", k, request["state"], result, upto)
+            if any(tuple(product[f]) != tuple(request["other"][f]) for f in FIELDS[:upto + 1]):
                 raise ArithmeticError("transferred left division failed its exact product equality")
             answer = {"state": result}
         elif operation == "phi_values":

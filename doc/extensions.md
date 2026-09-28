@@ -204,6 +204,37 @@ If `R_H` presents H and T has rows `t_i`, the enlarged presentation is
  R=\begin{pmatrix}R_H&0\\-T&\operatorname{diag}(m_i)\end{pmatrix}.
 \]
 
+The rows `t_i` need not be measured completely. The isomorphism type of
+the extension of a quotient generator `q` of order `m` by the lower group
+`H` is the class of `m\widetilde q` in `Ext(Z/m,H)=H/mH`. Call a lower
+generator `e` *free for `q`* when `e\notin mH`, that is, when its class in
+`H/mH` is nonzero (the integer system `m\,y+r\,R_H=e` has no solution).
+The **target layer** of the relation is the lowest layer of the lower
+presentation containing a free generator; every generator below it lies in
+`mH`, so the components of `t_i` in those layers cannot change the class,
+and the oracle measures the power only through the target layer
+(`KOAHSS_ExtensionTargetLayer`). The stacked power and the reductions are
+then layer-limited (`upto` in the model's `d`, `xtimes`, `act` and
+`divideLeft`), so the D-layer stacking correction is never evaluated when
+the target layer is B or C; the unmeasured entries of `t_i` are recorded as
+zero, and the witness carries `measuredLayers`, `truncatedBelow` and the
+certificate `sufficiency`, the explicit integer combinations exhibiting
+every lower generator below the target layer as an element of `mH` modulo
+the relations. When no lower generator is free, the class is zero and the
+relation `m\widetilde q=0` is recorded without any measurement; when a free
+generator lies in the D layer, the measurement is complete as before. If the
+layer-limited reduction fails to express a component through ordinary
+coboundaries, the complete measurement takes over. The environment variable
+`FERMIONAHSS_LAYERED_RELATIONS=0` disables the shortcut.
+
+For the Pin⁻ line of `C2` with `s` at degree six, the lower group of the A
+generator is `<b,c,d\mid 2b=c,2c=d,2d=0>\cong Z/8`: only `b` is free, the
+target layer is B, and the B layer of the square of the A generator is
+`alpha(A,A)`, so `Z/16` is determined without the universal pair source of
+`gamma_6`. With a lower group `Z/2\oplus Z/4` (`2b=0`, `2c=d`) both `b`
+and `c` are free and the target layer is C: `2a=b` gives `Z/4\oplus Z/4`
+while `2a=b+c` gives `Z/8\oplus Z/2`, which only the C component decides.
+
 Free quotient generators add columns but no power-relation rows and
 require no torsion query. A free quotient splits because the intended
 abutment category is that of abelian groups. The higher-degree engine

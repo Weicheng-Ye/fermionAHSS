@@ -480,6 +480,40 @@ class ExtensionTransferTests(unittest.TestCase):
                                                  bar.state(6, a_zero[0])))
             self.assertTrue(same_class(bar, 6, actual, expected), (actual, expected))
 
+    def test_layer_limited_operations_agree_with_their_full_layers(self):
+        # A layer-limited action, division and differential equal the full
+        # ones through the requested layer and are zero above it.
+        native, _, _ = c2_models(1, 1)
+        canonical = state([1], [0], [1], [-3])
+        gauge = state([0], [1], [0], [2])
+        full, _ = native.act(4, gauge, canonical)
+        for upto in (0, 1, 2):
+            partial, _ = native.act(4, gauge, canonical, upto)
+            for layer, f in enumerate("ABCD"):
+                self.assertEqual(partial[f], full[f] if layer <= upto else [0] * len(full[f]), (upto, f))
+        left = state([0], [1], [0], [7])
+        total = state([1], [1], [1], [-4])
+        quotient = native.divide_left(4, left, total)
+        for upto in (1, 2):
+            partial = native.divide_left(4, left, total, upto=upto)
+            for layer, f in enumerate("ABCD"):
+                self.assertEqual(partial[f], quotient[f] if layer <= upto else [0] * len(quotient[f]), (upto, f))
+        curvature = native.kappa(4, state([1], [1], [1], [5]))
+        limited = native.kappa(4, state([1], [1], [1], [5]), 1)
+        self.assertEqual(limited["A"], curvature["A"])
+        self.assertEqual(limited["B"], curvature["B"])
+        # Requests carry the layer index; the answers above it are zero.
+        request = dict(operation="act", degree=4, state=canonical, gauge=gauge, upto=1)
+        answer = native.calculate(request)["state"]
+        self.assertEqual({f: answer[f] for f in "AB"}, {f: full[f] for f in "AB"})
+        self.assertEqual(answer["D"], [0] * len(full["D"]))
+        answer = native.calculate(dict(operation="d", degree=4, state=state([1], [1], [1], [5]), upto=1))["state"]
+        self.assertEqual(answer["C"], [0] * len(answer["C"]))
+        answer = native.calculate(dict(operation="divide_left", degree=4, state=left, other=total, upto=2))["state"]
+        self.assertEqual({f: answer[f] for f in "ABC"}, {f: quotient[f] for f in "ABC"})
+        with self.assertRaises(ValueError):
+            native.calculate(dict(operation="act", degree=4, state=canonical, gauge=gauge, upto=4))
+
     def test_cached_left_division_restores_total_minus_left_d(self):
         native, _, _ = c2_models()
         left = state([0], [1], [0], [7])
