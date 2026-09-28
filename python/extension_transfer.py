@@ -22,7 +22,7 @@ acceleration.install()
 import off_shell_beta as off
 import stacking_lower as lower
 import all_cochain_upper as upper
-import extension_native_six as six
+import extension_native_upper as native
 from coherent_low_commutative import (DegreeOneCommutativeStacking,
                                      DegreeTwoCommutativeStacking)
 from a0_gamma import beta2
@@ -309,13 +309,11 @@ class TransferredModel:
             elif layer == 2:
                 value = off.current_f(off.LowerPair(state[0], state[1],
                     self.legal_pair(state)), self.s, self.omega)
-            elif k == 6:
-                # The cutoff degree: J_6 on the legal lower locus. Native
-                # curvature reaches this layer only after the lower layers
-                # vanish, so the section branch of the note is never needed.
-                value = six.g(self.triple(state, full=False), self.s, self.omega)
             else:
-                value = upper.g(self.triple(state, full=False), self.s, self.omega)
+                # Native curvature reaches this layer only after the lower
+                # layers vanish, so the degree-six section branch of the note
+                # is never needed.
+                value = native.g(k, self.triple(state, full=False), self.s, self.omega)
         else:
             raise ValueError("transferred nonlinear differential covers degrees 0 through 6")
         state.layers[key] = value
@@ -382,12 +380,9 @@ class TransferredModel:
                     legal, self.s, self.omega)
             pure = (self.is_zero(result[0], False) and self.is_zero(result[1], True)
                     and self.is_zero(self.differential(result[2], False), True))
-            if k == 6:
-                a_zero = self.is_zero(left[0], False) and self.is_zero(right[0], False)
-                return six.gamma(self.triple(left), self.triple(right),
-                                 legal, pure, a_zero, self.s, self.omega)
-            return upper.gamma(self.triple(left), self.triple(right),
-                               legal, pure, self.s, self.omega)
+            a_zero = k < 6 or (self.is_zero(left[0], False) and self.is_zero(right[0], False))
+            return native.gamma(k, self.triple(left), self.triple(right),
+                                legal, pure, a_zero, self.s, self.omega)
         def build(result, layer):
             value = left[layer] + right[layer] + result.cross(layer)
             return value if layer in (0, 3) else p.binary(value)
@@ -601,7 +596,7 @@ def serve():
             else:
                 answer = model.calculate(request)
         except Exception as exc:
-            unresolved = isinstance(exc, (TransferResourceLimit, six.NativeDegreeSixLimit))
+            unresolved = isinstance(exc, (TransferResourceLimit, native.NativeDegreeSixLimit))
             answer = {"status": "unresolved" if unresolved else "error",
                       "exception": type(exc).__name__, "reason": str(exc)}
         # GAP may stop the worker right after the answer; store values first.

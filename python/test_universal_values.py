@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import extension_transfer  # noqa: E402,F401  (installs the worker's exact policy)
 import extension_acceleration as acceleration  # noqa: E402
 import universal_values as universal  # noqa: E402
+import universal_sources  # noqa: E402
 
 
 class BundledUniversalValues(unittest.TestCase):
@@ -22,7 +23,8 @@ class BundledUniversalValues(unittest.TestCase):
                          'regenerate with python3 python/generate_universal_values.py')
 
     def test_entries_are_sorted_and_unique(self):
-        self.assertEqual(sorted(self.data['tables']), sorted(acceleration._tables))
+        self.assertEqual(sorted(self.data['tables']),
+                         sorted(set(acceleration._tables) - universal_sources.UNBUNDLED))
         for entries in self.data['tables'].values():
             keys = [json.dumps(key, sort_keys=True) for key, _ in entries]
             self.assertEqual(keys, sorted(set(keys)))
@@ -30,11 +32,11 @@ class BundledUniversalValues(unittest.TestCase):
     def test_sampled_values_equal_a_fresh_evaluation(self):
         classes = universal._key_classes()
         for name, entries in sorted(self.data['tables'].items()):
-            function = acceleration._tables[name].function
+            table = acceleration._tables[name]
             values = [(key, universal._decode(value, classes)) for key, value in entries]
             nonzero = [(key, value) for key, value in values if value != 0]
             for key, value in nonzero[::max(1, len(nonzero) // 3)][:3]:
-                self.assertEqual(function(universal._decode(key, classes)), value)
+                self.assertEqual(table.recompute(universal._decode(key, classes)), value)
 
 
 if __name__ == '__main__':

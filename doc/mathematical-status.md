@@ -45,7 +45,11 @@ including free A generators. Binary B/C defining choices are changed when
 needed to solve later equations, and D is solved integrally. The actual
 nonlinear differential verifies flatness of each complete tuple. The
 selected `xtimes` then measures powers of those same tuples; lower
-reductions reuse the recorded B/C/D basis and all integral carries.
+reductions reuse the recorded B/C/D basis and all integral carries. In
+degrees 4–6 the native D-layer product omits the pure-C normalization of
+the production correction, an integral coboundary, so its D
+representatives differ from the reference model's by D-gauges while the
+stacking group on gauge classes is unchanged.
 
 Each measured relation must admit an exact native gauge comparison
 with its canonical lower product. The witness retains a complete native

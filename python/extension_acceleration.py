@@ -17,9 +17,10 @@ evaluator.
    kept across processes by the store of universal_values.py, keyed by the
    hashes of every formula source. Values shipped in
    data/universal-values.json for the same sources are loaded first. The
-   tables cover the degree-four pair source and V1, and for degree six the
-   pair source of production_gamma6, the V3 source of the A-only phase and
-   the n=3 legal-beta source with its primitive.
+   tables cover the pair sources of degrees four to six, V1, V2, the V3
+   source of the A-only phase and the n=3 legal-beta source with its
+   primitive, and, through universal_sources.py, the theta values of the
+   degree-three source and the theta-pair sources.
 4. Unstored values: coboundaries, scalar multiples and chi, whose values
    are almost never requested twice for the same simplex, evaluate each
    request instead of keeping a memo table.
@@ -31,14 +32,14 @@ evaluator.
    table, and the chain operators of the universal contractions keep
    bounded caches, as in the page worker. The theta values of the
    degree-three source and of the theta-pair sources are kept per universal
-   simplex within the process.
+   simplex under compact string keys.
 
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
-from array import array
 from collections import OrderedDict
 import contextlib
 import functools
+import gc
 import importlib
 import sys
 import types
@@ -46,6 +47,7 @@ import types
 import cochain_tools
 import phase_eval
 import runtime_cache
+import universal_sources
 from universal_values import UniversalTable, open_store
 
 _installed = False
@@ -210,7 +212,7 @@ MEMOIZED = {
     'production_gamma6_comparison': ('comparison_gauge', 'carry', 'C_transport', 'phase_theta'),
     'v3_pair_shared': ('legal_beta', 'primitive', 'source_pair'),
     'high_phase': ('corrections',),
-    'extension_native_six': ('g', 'gamma'),
+    'extension_native_upper': ('g', 'gamma', 'legal_gamma'),
 }
 # Enough for the terms shared by consecutive products; larger tables only
 # retain memory (measured on the degree-four and degree-six workers).
@@ -225,7 +227,8 @@ UNIVERSAL = (('production_gamma4', 'source_value'), ('low_phases', 'V1_pair'),
 # Universal source values of a memoized method on the module's cached
 # constructor instance: (module, constructor, method). The table is set on
 # that instance, in front of the memoized class method.
-UNIVERSAL_METHODS = (('production_gamma6', 'constructor', 'source_value'),)
+UNIVERSAL_METHODS = (('production_gamma5', 'constructor', 'source_value'),
+                     ('production_gamma6', 'constructor', 'source_value'))
 
 
 _store = None
@@ -253,9 +256,6 @@ UNIVERSAL_BUILDERS = (('r3_source', 'phi'), ('low_phases', 'source_phase1'),
                       ('phase_eval', 'phase2'), ('low_phases', 'odd_base_normalization'),
                       ('low_phases', 'odd_raw'))
 _universal_depth = 0
-# Universal values kept within the process only: too many and too large to
-# ship or to rewrite into the cache file after every request.
-_local_tables = {}
 # Registered universal source simplices are never released by phase_eval.
 # Between two requests, once more than this many are registered, every
 # registration cache and memo table that could hold a registration id is
@@ -264,54 +264,6 @@ _local_tables = {}
 SOURCE_RECYCLE_THRESHOLD = 16384
 _identity_memos = []
 _registration_caches = []
-
-
-class _LocalTable:
-    """Universal values of one function, kept in the process under compact keys.
-
-    ``compact`` maps a key to an exact, injective bytes encoding; the key
-    objects themselves (large nested dataclasses) are not retained.
-    """
-    def __init__(self, name, function, compact):
-        self.name = name
-        self.function = function
-        self.compact = compact
-        self.values = {}
-
-    def __call__(self, key):
-        short = self.compact(key)
-        try:
-            return self.values[short]
-        except KeyError:
-            pass
-        answer = self.function(key)
-        self.values[short] = answer
-        return answer
-
-
-def _ints(values):
-    return array('i', values).tobytes()
-
-
-def _compact_pair(pair):
-    """A degree-three source pair: skew U2 rows and a binary omega diagonal."""
-    diag, omega = pair
-    flat = []
-    for row in diag.rows:
-        n = len(row.matrix)
-        flat.append(row.sigma)
-        flat.extend(row.matrix[i][j] for i in range(n) for j in range(i + 1, n))
-    for sign, line in omega.rows:
-        flat.append(sign)
-        flat.extend(line)
-    return (len(diag.rows), _ints(flat))
-
-
-def _compact_tensor(key):
-    """A theta-pair key: class name, degree and a binary tensor simplex."""
-    name, m, ((b, bp), (sign, w)) = key
-    return (name, m, b.q, bytes(b.values), bytes(bp.values),
-            bytes(row[0] for row in sign.rows), w.q, bytes(w.values))
 
 
 @contextlib.contextmanager
@@ -402,42 +354,16 @@ def recycle_sources():
         memo.table.clear()
     for cache in _registration_caches:
         cache.cache_clear()
-    import r3_source
-    r3_source.clear_source_memos()
+    # Every cochain memo table that could hold a registration id. Cochains of
+    # the unstored kinds evaluate without a table and have nothing to clear.
+    for obj in gc.get_objects():
+        if isinstance(obj, phase_eval.Cochain):
+            clear = getattr(obj.evaluate, 'cache_clear', None)
+            if clear is not None:
+                clear()
+    phase_eval.SOURCES.clear()
+    phase_eval.SOURCE_KEYS.clear()
     return True
-
-
-def _install_local_tables(modules):
-    """Per-simplex universal values kept in the process, with bounded memos."""
-    # The theta values of the degree-three source, one per registered pair.
-    # Every V3 evaluation sums them through r3_source.evaluate_r.
-    r3 = modules['r3_source']
-    original_evaluate_r = r3.evaluate_r
-    phi_values = _local_tables['r3_source.phi_value'] = _LocalTable(
-        'r3_source.phi_value', _in_universal(lambda pair: r3.phi()(r3.from_diags(pair))),
-        _compact_pair)
-
-    @functools.wraps(original_evaluate_r)
-    def evaluate_r(cochain, chain):
-        if cochain is r3.phi():
-            return sum(c * phi_values(pair) for pair, c in chain.items())
-        return original_evaluate_r(cochain, chain)
-    _rebind(original_evaluate_r, evaluate_r)
-    # The theta-pair sources of a0_high_gamma: one value per class, degree and
-    # universal tensor simplex, shared by every instance.
-    a0 = modules['a0_high_gamma']
-    original = a0.HigherA0Stacking.evaluate
-    raw = getattr(original, '__wrapped__', original)
-    instances = {}
-    pair_values = _local_tables['a0_high_gamma.HigherA0Stacking.evaluate'] = _LocalTable(
-        'a0_high_gamma.HigherA0Stacking.evaluate',
-        _in_universal(lambda key: raw(instances[key[:2]], key[2])), _compact_tensor)
-
-    def evaluate(self, simplex):
-        key = (type(self).__qualname__, self.m, simplex)
-        instances.setdefault(key[:2], self)
-        return pair_values(key)
-    a0.HigherA0Stacking.evaluate = evaluate
 
 
 def install():
@@ -490,12 +416,15 @@ def install():
         original = getattr(modules[module_name], name)
         _registration_caches.append(original)
         _rebind(original, _in_universal(original))
+    # The tables shared with the page worker, and the theta-pair sources.
+    universal_sources.install_theta_values(_tables, _in_universal)
+    universal_sources.install_v2_values(_tables, _in_universal)
+    universal_sources.install_theta_pair_values(_tables, _in_universal)
     for module_name, name in (('r3_source', 'from_diags'), ('phase_eval', 'from_diags'),
                               ('low_phases', 'from_pair1'), ('odd_comparison', 'from_pair')):
         cache = getattr(importlib.import_module(module_name), name)
         if hasattr(cache, 'cache_clear'):
             _registration_caches.append(cache)
-    _install_local_tables(modules)
     # 4. Unstored values of the cochains constructed from now on.
     _rebind(_original_memoize, _memoize)
     _installed = True

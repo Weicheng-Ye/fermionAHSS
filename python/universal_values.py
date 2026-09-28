@@ -2,11 +2,13 @@
 
 A universal function depends only on its key, never on the group, the
 resolution or the process. Its values are shipped in
-data/universal-values.json and kept in a cache file of the cache directory,
-both keyed by the hash of every formula source; a file with another hash is
-ignored. The koFull worker keeps the tables listed in
-extension_acceleration.py (the degree-four and degree-six pair sources, V1,
-V3 and the n=3 legal-beta source), the page worker low_phases.V1_pair.
+data/universal-values.json and kept in the cache directory, in one
+append-only file of JSON lines per table under a directory named by the hash
+of every formula source; files with another hash are ignored. The koFull
+worker keeps the tables listed in extension_acceleration.py and
+universal_sources.py (the pair sources of degrees four to six, V1, V2, V3,
+the theta values of the degree-three source and the theta-pair sources), the
+page worker V1, V2 and the theta values.
 
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
@@ -19,18 +21,17 @@ import json
 import os
 from pathlib import Path
 import sys
-import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 # Frozen dataclasses that occur in universal keys; nothing else is decoded.
 KEY_CLASSES = (('chain_models', 'Diag'), ('r1_pair_chain', 'Borel'),
                ('r1_pair_chain_signed', 'Borel'), ('r3_chain', 'Diag3'),
                ('r3_chain', 'U2'), ('r3_pair_chain', 'Diag3'), ('r3_pair_chain', 'U2'),
-               ('a0_high_gamma', 'KB'))
+               ('r2_pair_chain', 'Diag2'), ('r2_pair_chain', 'U1'), ('a0_high_gamma', 'KB'))
 # Runtime and test modules do not determine universal values.
 _NOT_SOURCES = {'extension_transfer.py', 'extension_worker.py',
-                'extension_degree_six.py', 'extension_native_six.py',
-                'extension_acceleration.py',
+                'extension_degree_six.py', 'extension_native_upper.py',
+                'extension_acceleration.py', 'universal_sources.py',
                 'worker.py', 'runtime_cache.py', 'generate_universal_values.py',
                 'universal_values.py'}
 # Values computed with the current sources and shipped with the package; see
@@ -132,23 +133,63 @@ class UniversalTable:
         self.pending[key] = answer
         return answer
 
+    def recompute(self, key):
+        """Evaluate the function afresh on a stored key, bypassing the table."""
+        return self.function(key)
+
+
+class CompactTable(UniversalTable):
+    """A table whose stored keys are exact, invertible string encodings.
+
+    ``compact`` maps a key object to its string and ``expand`` inverts it;
+    the key objects themselves are not retained. A string key is accepted
+    directly, so persisted keys need no decoding.
+    """
+    def __init__(self, name, function, compact, expand):
+        super().__init__(name, function)
+        self.compact = compact
+        self.expand = expand
+
+    def __call__(self, key):
+        short = key if isinstance(key, str) else self.compact(key)
+        try:
+            return self.values[short]
+        except KeyError:
+            pass
+        answer = self.function(self.expand(short) if isinstance(key, str) else key)
+        self.values[short] = answer
+        self.pending[short] = answer
+        return answer
+
+    def recompute(self, key):
+        return self.function(self.expand(key) if isinstance(key, str) else key)
+
 
 class UniversalStore:
+    """One append-only file of JSON lines per table, under the provenance directory."""
     def __init__(self, directory, provenance, tables):
-        self.path = (None if directory is None else
-                     directory / f'universal-values-{provenance[:16]}.json')
+        self.directory = (None if directory is None else
+                          directory / f'universal-values-{provenance[:16]}')
         self.provenance = provenance
         self.tables = tables
         self.classes = _key_classes()
 
-    def _read(self):
+    def _table_path(self, name):
+        return self.directory / (name + '.jsonl')
+
+    def _read_lines(self, path):
         try:
-            data = json.loads(self.path.read_text())
-        except (OSError, ValueError):
-            return {}
-        if data.get('schema') != 1 or data.get('provenance') != self.provenance:
-            return {}
-        return data.get('tables', {})
+            text = path.read_text()
+        except OSError:
+            return []
+        entries = []
+        for line in text.splitlines():
+            try:
+                key, value = json.loads(line)
+            except ValueError:
+                continue
+            entries.append((key, value))
+        return entries
 
     def _insert(self, tables):
         for name, entries in tables.items():
@@ -163,8 +204,12 @@ class UniversalStore:
                     continue
 
     def load(self):
-        if self.path is not None:
-            self._insert(self._read())
+        if self.directory is None:
+            return
+        for name in self.tables:
+            path = self._table_path(name)
+            if path.exists():
+                self._insert({name: self._read_lines(path)})
 
     def load_bundled(self, path):
         """Add shipped values; they are never written to the cache file."""
@@ -176,36 +221,32 @@ class UniversalStore:
             self._insert(data.get('tables', {}))
 
     def flush(self):
-        """Merge new values into the cache file; failures only skip persistence.
+        """Append new values to the tables' files; failures only skip persistence.
 
-        Tables of other workers found in the file are written back unchanged.
+        Appending whole lines keeps the cost proportional to the new values;
+        a key appended twice by two processes is read once, the first value
+        winning, and a torn line is skipped when read.
         """
-        if self.path is None or not any(t.pending for t in self.tables.values()):
+        if self.directory is None or not any(t.pending for t in self.tables.values()):
             return
         try:
-            stored = self._read()
+            self.directory.mkdir(parents=True, exist_ok=True)
             for name, table in self.tables.items():
-                entries = stored.setdefault(name, [])
-                known = {json.dumps(key, sort_keys=True) for key, _ in entries}
+                if not table.pending:
+                    continue
+                lines = []
                 for key, value in table.pending.items():
                     try:
                         encoded = _encode(key, self.classes)
                         answer = _encode(value, self.classes)
                     except _Unsupported:
                         continue
-                    text = json.dumps(encoded, sort_keys=True)
-                    if text not in known:
-                        known.add(text)
-                        entries.append([encoded, answer])
-            self.path.parent.mkdir(parents=True, exist_ok=True)
-            handle, temporary = tempfile.mkstemp(dir=self.path.parent,
-                                                 prefix='.universal-', suffix='.tmp')
-            with os.fdopen(handle, 'w') as out:
-                json.dump(dict(schema=1, provenance=self.provenance, tables=stored), out,
-                          separators=(',', ':'))
-            os.replace(temporary, self.path)
+                    lines.append(json.dumps([encoded, answer], separators=(',', ':')))
+                if lines:
+                    with open(self._table_path(name), 'a') as out:
+                        out.write('\n'.join(lines) + '\n')
         except OSError:
-            self.path = None
+            self.directory = None
             return
         for table in self.tables.values():
             table.pending.clear()

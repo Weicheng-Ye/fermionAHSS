@@ -30,17 +30,23 @@ CHAIN_CACHE_ENTRIES = install_chain_cache_limit(
 
 try:
     from . import phase_eval as pe
-    from . import low_phases, universal_values
+    from . import low_phases, universal_values, universal_sources
 except ImportError:
     import phase_eval as pe
     import low_phases
     import universal_values
+    import universal_sources
 
-# The universal V1 table shared with the koFull worker: shipped values and
-# the cache file first; values computed here are added to the cache file.
+# The universal tables shared with the koFull worker: V1, V2 and the theta
+# values of the degree-three source. Shipped values and the store are loaded
+# first; values computed here are appended to the store.
+UNIVERSAL_TABLES = {}
 low_phases.V1_pair = universal_values.UniversalTable('low_phases.V1_pair',
                                                      low_phases.V1_pair)
-UNIVERSAL_STORE = universal_values.open_store({'low_phases.V1_pair': low_phases.V1_pair})
+UNIVERSAL_TABLES[low_phases.V1_pair.name] = low_phases.V1_pair
+universal_sources.install_v2_values(UNIVERSAL_TABLES)
+universal_sources.install_theta_values(UNIVERSAL_TABLES)
+UNIVERSAL_STORE = universal_values.open_store(UNIVERSAL_TABLES)
 
 
 def current_psi(A, b, s, omega):

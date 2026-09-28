@@ -1,12 +1,13 @@
 # Growth and periodicity of the universal source values
 
-The extension worker keeps two universal source functions in a persistent
+The extension worker keeps its universal source functions in a persistent
 store (`UNIVERSAL` in
-[extension_acceleration.py](../python/extension_acceleration.py), stored by
-[universal_values.py](../python/universal_values.py)): the
-degree-five pair source `production_gamma4.source_value` of the D-layer
-stacking correction, and the degree-one primitive `low_phases.V1_pair` of
-[universal_helpers.md](universal_helpers.md) Section 5. The page worker
+[extension_acceleration.py](../python/extension_acceleration.py) and
+[universal_sources.py](../python/universal_sources.py), stored by
+[universal_values.py](../python/universal_values.py)). Sections 1–8 treat
+the degree-five pair source `production_gamma4.source_value` of the D-layer
+stacking correction and the degree-one primitive `low_phases.V1_pair` of
+[universal_helpers.md](universal_helpers.md) Section 5; the page worker
 shares the second table. Both are exact
 rational functions of finitely many integer labels, and a computation can
 request them at labels of any size. This note answers whether they have a
@@ -14,10 +15,14 @@ finite closed form. The pair source is **not** periodic in its labels
 modulo any integer, because it contains the non-additive part of `V_1`;
 `V_1` grows linearly in the labels, exactly affinely on residue classes
 modulo four; and both functions are determined by finite data through an
-explicit closed form of the degree-one contraction. Notation follows
+explicit closed form of the degree-one contraction. Section 9 treats the
+degree-two and degree-three primitives `V_2` and `V_3`: their theta source
+depends on its integer labels only modulo four, which gives the exact
+reduced key of the stored theta values, while the pair values themselves
+grow quasi-polynomially and are not periodic. Notation follows
 [conventions.md](conventions.md) and the helper reference; the statements
 marked as proved follow from the implemented definitions, the others are
-finite exact checks recorded in Section 8.
+finite exact checks recorded in Sections 8 and 9.
 
 ## 1. The two functions
 
@@ -466,3 +471,127 @@ keys. The scripts are not bundled.
 The numerical rows support but do not replace the proofs of Theorems 1
 and 2 and Proposition 3; the period of `beta` beyond the checked ranges
 is not established.
+
+
+## 9. The degree-two and degree-three sources `V_2` and `V_3`
+
+The remaining universal sources of the extension worker are the degree-two
+primitive `low_phases.V2_pair` of Section 6 of
+[universal_helpers.md](universal_helpers.md) and the degree-three primitive
+`closed_a_upper._high_source_value` of its Section 7 (the closure
+`source_value` of `high_phase.build_phase` computes the same function). A
+key is a pair of diagonal simplices: for `V_2` the signed rows `(sigma_i, M_i)`
+of a `6 x 6` integer matrix whose lower triangle is
+`M_ji = -(-1)^{s_ij} M_ij`, together with the binary background `W`; for
+`V_3` seven rows `(sigma_r, Z_r)` with `Z_r` a skew `7 x 7` integer matrix,
+together with `W`. The independent integer labels are the strict upper
+triangles. The value is
+
+\[
+V_n=\sum_{T}c_T\,\phi_n\bigl(r(T)\bigr)+\sum_b e_f(b)\,F_{\rm tot}(\text{pair})[b],
+\qquad \phi_n=\Theta_{n+2}(p,k),
+\]
+
+the first sum over the terms `T` of `Htot(pair)` (`source_primitive.Htot`,
+`r3_chain.Htot`) and `r` the reconstruction `from_diags`, which reads only
+the strict upper triangles, as signed rectangular sums.
+
+**Theorem 4 (pointwise period of the theta source).** On a registered
+simplex, every cochain of `phase_eval.source_splitting`, `source` and
+`theta(p,k,s,omega)` depends on the integer cochain `A` only through
+`A mod 4`: `a = A mod 2` and `t = ((A - a)/2) mod 2` are the two binary
+digits of `A mod 4`; `B, e, C_B, u, v, w, p, F_A, q_int` and, inside `Theta`,
+`B, e, C_B, H, q_int, Z` are functions of `a`; `g, L_A, k_0, k` and `E(k)`
+are functions of `(a, t)`. Every line of the three functions is an
+interval-cut word, a coboundary, a mod-two reduction, an exact division, the
+finite `chi` formula or a scaling applied to cochains already listed, so its
+value on a face is a function of the values of its inputs on faces of that
+face, and the claim follows by induction along the list. The modulus four is
+exact: changing one upper label by two (which changes `A` by two on some
+faces and keeps `A mod 2`) changes `Theta_{n+2}(p,k)` on the top face of
+registered simplices for `n = 1, 2, 3`. Consequently the theta value of a
+chain term is a function of `(sigma, upper labels mod 4, W)`.
+
+**Theorem 5 (structure of the chains).** Every simplex produced by the chain
+operators has labels that are Z-linear forms in the independent labels with
+coefficients in `{0, ±1, ±2}` (pullbacks along vertex maps are signed sums
+over rectangles; shuffle products and the maps `G` place entries without
+adding), unit edges, or expansion indices: `chain_models._unit_raw` replaces
+the last edge `L` of a letter by the `|L| - [L>0]` letters with
+second-to-last edge `i in {1,...,L-1}` (`L > 0`) or `{-|L|,...,-1}`
+(`L < 0`) and last edge `1`, and the normalized unit homotopy `_unit_h`
+equals `_unit_raw`. Coefficients are `±2^k` times products of the labels of
+projected letters (`_atom_p`, `unit_p`); the letters of one bar word are the
+rows of the strictly upper rectangle `rows [0,p) x columns [p,n)` cut into
+disjoint column blocks, so every independent label occurs in at most one
+letter and every coefficient is multilinear. Terms dropped by a degeneracy
+test evaluate to zero under `phi_n`, so the value does not depend on the
+vanishing of a block sum.
+
+**Theorem 6 (quasi-polynomial growth).** Let `E` be the independent labels
+of a `V_2` key. The `F_tot` part is a multilinear polynomial in `E` (degree
+at most one in each label), valid for all labels. On each cell of the sign
+arrangement of the finitely many last-edge forms `L_k(E)` of the expanded
+letters, the `H_tot` part is
+
+\[
+\sum_{S}c_S(E\bmod 4)\prod_{e\in S}e ,
+\]
+
+a quasi-polynomial of degree at most one in each label whose coefficients
+are functions of the residues modulo four; a single expansion contributes
+`(Phi/4) L_k(E) + g(L_k mod 4)` with `Phi` the sum of the theta values over
+one period of the index. Along one label `m` with the others fixed,
+`V_2(m) = alpha m + beta(m mod 4)` between consecutive walls `L_k(E) = 0`
+(all of which satisfy `|m| <= 2 sum |other labels|`), with a slope `alpha`
+independent of the residue class and an affine function of the other
+labels. For `V_3` the same statements hold provided the side condition
+`unit_p ∘ _unit_raw = 0` of the nested contraction `r3_chain.unit_h`, which
+is checked but not proved; without it the degree in a label is at most two.
+
+Neither source is periodic modulo any integer. Instances (exact rationals):
+
+* `V_2` with `sigma = (1,1,0,1,0,0)`, `M_02 = M_35 = 1`,
+  `W_05 = W_12 = W_24 = 1` and `M_24 = m`:
+  `V_2(m) = -(17/8) m + (0, 13/8, 1/2, 13/8)_{m mod 4}` for `m` in `[-8, 8]`;
+  with `M_35 = 1, 5, 9` the slope in `M_24` is `-17/8, -41/8, -65/8`, that
+  is, `V_2` contains `-(3/4) M_24 M_35`.
+* `V_3` with `sigma = (1,0,1,0,0,1,0)`, `Z_0[1][3] = 1`, `Z_1[3][5] = -1`,
+  `Z_2[4][6] = 1`, `W_01 = W_24 = W_56 = 1` and `Z_0[2][4] = m`:
+  `V_3(m) = (5/4) m + (1/4, -17/8, 1/4, -9/8)_{m mod 4}` for `m` in
+  `[-6, 6]`, of which `(3/8) m` is the `F_tot` part
+  (`Ftot = -m [u_2] ⊗ [x_1]`, `e_f = -3/8`); the chain has `123` terms at
+  `m = 0` and `1941 + 672(|m|-1)` otherwise.
+
+**Finite data.** As for the degree-four pair source, a store keyed by raw
+pairs is unbounded, and reducing a pair modulo any integer before a lookup
+is wrong: the bilinear coefficients and the residue-dependent intercepts
+coexist, so no decomposition `P(labels) + Q(labels mod M)` with `P`
+independent of the residues exists either. Two exact finite descriptions
+exist: the coefficient tables `c_S` of Theorem 6 (not tabulated), and the
+term-level table of Theorem 4, `phi_n` keyed by
+`(sigma, upper labels mod 4, W)`. The workers keep the latter for `V_3`:
+`universal_sources.py` stores the theta value of every term of a
+degree-three chain under that reduced key (`r3_source.phi_value`), shared
+by the page and extension workers through the store and kept out of the
+bundled values, while the pair values `V_2` and `V_3` themselves are stored
+under their raw keys. Along the `V_3` instance above the thirteen chains
+have 11 547 distinct raw term keys and 4 961 reduced ones, and the reduced
+set is complete after the fourth value. The `C2` keys of the actual
+computations are the multiples `a P_1` of one dense pair (all sigmas one,
+105 labels `±1`) for `s = 1`; `Htot(P_1)` has 35 263 terms with labels in
+`{-1,0,1}`, so the term table of `C2` alone has tens of thousands of
+entries, while its reduced table for all `a` is the finite union over
+`a = 0, 1, 2, 3`.
+
+**Finite checks.** Theorem 4: 60 (`n=2`), 29 (`n=3`) and 40 (`n=1`) random
+keys with one label shifted by four (all unchanged) and by two (`Theta`
+changed in 29, 3 and 12 cases). Theorem 5: `_unit_h = _unit_raw` on 300
+random atoms and the term count `|L| - [L>0]`; `r3_chain.unit_h = _unit_raw`
+on 68 letters; all labels of `Htot` in `{c m + d}` along three positions;
+`phi_n = 0` on ten degenerate terms. Theorem 6: 24 `V_2` series of 17 values
+and 24 random `V_2` keys with 16 values each satisfy the residue-class
+affine law on both sides of zero (three nonzero slopes `-17/8, 1/2, 3/8`,
+all others periodic with period 1, 2 or 4), the `F_tot` parts are exactly
+linear in 32 series and bilinear on 9 two-label grids; the `V_3` series
+above satisfies the law at all 13 values. The scripts are not bundled.

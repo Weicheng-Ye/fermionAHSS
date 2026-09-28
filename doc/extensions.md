@@ -292,7 +292,17 @@ vectors and inconsistent exact data are errors, not unresolved results.
 In degrees 1–6, the production engine uses the transferred four-cochain
 curvature and product in the retained resolution basis. The calibrated
 formulas are evaluated lazily through sparse bar transport. The leading
-E6 cochains keep their native coordinates.
+E6 cochains keep their native coordinates. In degrees 4–6 the D-layer
+product of two lower-legal states is `closed_ab_upper.gamma` with the
+half-lift carry of the C residuals and the K rephasing, without the pure-C
+normalization of the production correction: that normalization is
+\(\delta_s\) of a phase correction with an explicit integral primitive
+(`pure_c_normalization.integer_phase_correction`), hence an integral
+coboundary, and a D-gauge with that primitive carries one product to the
+other. The stacking group on gauge classes is unchanged, the second phase
+evaluation at A=B=0 is saved, and native D representatives differ from the
+finite-section reference model's by D-coboundaries, which the D stage of
+the gauge comparison absorbs.
 All independent generators of D, C, B and A receive a full flat lift,
 including free generators and generators over a zero lower group.
 

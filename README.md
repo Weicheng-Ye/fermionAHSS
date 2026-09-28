@@ -238,7 +238,11 @@ Stacking powers are identified by exact native gauge comparisons with the
 ordered product of the recorded lower generators.
 
 The native complete-state runtime covers degrees 1–6. Degrees -1 and 0 have
-only the D layer, so no relation is measured there. Degree six is the
+only the D layer, so no relation is measured there. In degrees 4–6 the
+D-layer product omits the pure-C normalization of the production
+correction, an integral coboundary, so measured D representatives differ
+from the complete-bar reference model's by D-gauges while the group on gauge
+classes is the same (see [extensions.md](doc/extensions.md)). Degree six is the
 cutoff of the all-cochain differential: its D-layer terms, the correction
 `J_6` and the legal stacking correction `gamma_6`, are evaluated on the
 legal lower locus, which is the only locus the native engine reaches; see
@@ -395,12 +399,19 @@ between requests once it grows large.
 
 Universal values depend only on their key. Both workers keep them through
 the store of [universal_values.py](python/universal_values.py): the
-extension worker for the pair sources of degrees four and six, the `V1` and
-`V3` sources and the degree-six legal-beta source, the page worker for the
-same `V1` table. The store is a file under `$XDG_CACHE_HOME/fermionAHSS`
-(default `~/.cache/fermionAHSS`) keyed by the hashes of all formula sources;
-set `FERMIONAHSS_CACHE_DIR` to choose another directory, or to an empty
-string to disable it. A stale or unreadable store is ignored. The values
+extension worker for the pair sources of degrees four to six, `V1`, `V2`,
+`V3`, the degree-six legal-beta source, the theta values of the
+degree-three source and the theta-pair sources; the page worker for `V1`,
+`V2` and the same theta values, so a source evaluated for a page
+differential is not evaluated again for an extension. The store is a
+directory under `$XDG_CACHE_HOME/fermionAHSS` (default
+`~/.cache/fermionAHSS`) named by the hashes of all formula sources, with one
+append-only file of JSON lines per table; set `FERMIONAHSS_CACHE_DIR` to
+choose another directory, or to an empty string to disable it. A stale or
+unreadable store is ignored. The theta values of the degree-three source
+are stored per chain term under a key that keeps the integer labels modulo
+four, which is exact ([universal_value_growth.md](doc/universal_value_growth.md)
+Theorem 4); that table stays in the store and is never bundled. The values
 that the C2 and Z4 examples need ship in
 [data/universal-values.json](data/universal-values.json) and are loaded
 before the store when their recorded hashes match the sources; set
