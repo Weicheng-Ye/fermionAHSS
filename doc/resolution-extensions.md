@@ -177,6 +177,7 @@ can have rank one in each degree even when the complete bar is too large.
 The calibrated per-simplex formulas remain costly. No complete-bar size limit applies, but the native engine
 has its own search and transport bounds.
 
-The portable [resolution example](../examples/resolution_extensions.g)
-exercises C2, signed C4 and C8 extensions on supplied resolutions. All
-results retain `certified_ko=false` and the five-row scope.
+The [signed C4 example](../examples/c4_signed.g) solves every degree from
+-1 to 6 on a supplied resolution, and the [suspension example](../examples/suspension.g)
+does the same for an infinite group on a product resolution. All results
+retain `certified_ko=false` and the five-row scope.
