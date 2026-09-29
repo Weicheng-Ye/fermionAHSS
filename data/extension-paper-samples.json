@@ -1,13 +1,18 @@
 {
-  "schema_version": 1,
-  "reference_checked_date": "2026-09-25",
+  "schema_version": 2,
   "conventions": {
     "paper_spatial_dimension": "d=p+q+2",
     "package_degree": "k=p+q+3=d+1",
     "full_result_index": "k+2=d+3",
-    "invariants": "[] is zero; [0] is Z; positive entries are cyclic torsion orders",
-    "twist_coordinates": "CyclicGroup(2), standard HAP cyclic resolution with one basis element in each degree; [1] is the nonzero binary cocycle",
-    "scope": "Full stacking groups, including intrinsic invertible phases; not products of E6 layers",
+    "invariants": "[] is zero; [0] is Z; positive entries are cyclic torsion orders, in GAP's order",
+    "quantity": {
+      "full group": "the abelian invariants of the stacking group of the whole E6 line of the degree",
+      "group of the E6 layers with p >= 1": "the abelian invariants of the stacking group of the E6 layers with p >= 1, that is without the layer at p=0 (Kitaev at k=2, p+ip at k=3): the filtration stage of koFull below that layer; for k >= 4 no layer has p=0 and it is the full group",
+      "E6 layers": "the E6 cells of the line, one invariant list per layer; null marks a cell the paper leaves blank"
+    },
+    "twist_coordinates": "s and omega are binary cocycle vectors in the basis of the resolution that group_expression constructs (a group is resolved by ResolutionFiniteGroup of length cutoff+3); 0 is the zero cocycle",
+    "group_expression": "a GAP expression for the bosonic quotient group, or for its integral HAP resolution; SGC_ResolutionSpaceGroup needs the SpaceGroupCohomology package",
+    "scope": "Full stacking groups, including intrinsic invertible phases, unless the quantity says otherwise; not products of E6 layers",
     "certified_ko": false
   },
   "sources": {
@@ -19,13 +24,37 @@
       "comparison_kind": "fermionic invertible phases",
       "note": "Tables III and VI exclude intrinsic Kitaev and p+ip phases in dimensions one and two; Table VII includes them."
     },
+    "wang_gu_2020_table_iii": {
+      "arxiv_id": "1811.00536v3",
+      "url": "https://arxiv.org/abs/1811.00536v3",
+      "full_text_url": "https://arxiv.org/html/1811.00536v3",
+      "location": "Table III, printed page 8; cyclic carry cocycle in equation (E2), printed page 64; quaternion cocycle in equation (E26), printed page 69",
+      "comparison_kind": "fermionic SPT phases of finite unitary groups in dimensions one to three, without the intrinsic Kitaev and p+ip layers",
+      "note": "The rows 2, 3 and 12 are families; the cases instantiate them. The bosonic quotient is G_f/Z2^f, and omega is the extension class of G_f: zero for the split products, the cyclic carry u_m for Z_{2m}^f, x^2 for Z4^Tf and x^2+xy+y^2 for Q8^f."
+    },
+    "ren_ning_qi_wang_gu_2024": {
+      "arxiv_id": "2310.19058",
+      "url": "https://arxiv.org/abs/2310.19058",
+      "full_text_url": "https://arxiv.org/pdf/2310.19058",
+      "location": "Tables I-IV (wallpaper groups); equation (6.2) for the time-reversal twists",
+      "comparison_kind": "stacking groups of the MC (1,-1), CF (2,-2) and B (4,-4) layers of 2+1D crystalline fermionic SPT phases, package degree 3",
+      "note": "Table I: spin-1/2 (s=w1, omega=0). Table II: spinless (s=w1, omega=w2+w1^2). Table III: spin-1/2 with time reversal (s=w1+t, omega=t^2+w1 t). Table IV: spinless with time reversal (s=w1+t, omega=w2+w1^2+w1 t). The p+ip layer (0,0) is not part of the tables, and p1 is omitted from Tables III and IV."
+    },
     "zhang_ning_qi_gu_2024": {
       "arxiv_id": "2204.13558v2",
       "url": "https://arxiv.org/abs/2204.13558v2",
       "full_text_url": "https://arxiv.org/pdf/2204.13558",
       "location": "Table I, printed page 4; Section V, printed page 47; Supplement S-3.1-S-3.2, printed page 54",
-      "comparison_kind": "three-dimensional crystalline topological superconductors",
-      "note": "Reflection becomes antiunitary internal symmetry and spinless/spin-1/2 are exchanged by the stated crystalline equivalence. Table II concerns charge-conserving insulators and is not used."
+      "comparison_kind": "three-dimensional crystalline topological superconductors, package degree 4",
+      "note": "The point groups act on space by the integral matrices of group_expression; s is the determinant character, omega is zero for spin-1/2 and w2 of the spatial representation for spinless fermions. Reflection becomes antiunitary internal symmetry and spinless/spin-1/2 are exchanged by the stated crystalline equivalence. Table II concerns charge-conserving insulators and is not used."
+    },
+    "spacegroups_2512": {
+      "arxiv_id": "2512.25069",
+      "url": "https://arxiv.org/abs/2512.25069",
+      "full_text_url": "https://arxiv.org/pdf/2512.25069",
+      "location": "Tables I and II, PDF pages 6-7; twists on printed page 24",
+      "comparison_kind": "E6 layers of the spin-1/2 electronic case of the 230 space groups, package degree 4",
+      "note": "Only the layers p+ip (1,0), Kitaev (2,-1), complex fermion (3,-2) and bosonic (5,-4) are tabulated, with s=w1 and omega=0; extensions between them are not determined. SG210, SG219 and SG228 have unreported cells."
     }
   },
   "cases": [
@@ -37,6 +66,7 @@
       "s": 0,
       "omega": 0,
       "cutoff": 4,
+      "quantity": "full group",
       "expected_by_package_degree": {
         "1": [
           2,
@@ -63,6 +93,7 @@
         1
       ],
       "cutoff": 4,
+      "quantity": "full group",
       "expected_by_package_degree": {
         "1": [
           4
@@ -84,6 +115,7 @@
       ],
       "omega": 0,
       "cutoff": 4,
+      "quantity": "full group",
       "expected_by_package_degree": {
         "1": [
           2
@@ -107,6 +139,7 @@
         1
       ],
       "cutoff": 4,
+      "quantity": "full group",
       "expected_by_package_degree": {
         "1": [],
         "2": [
@@ -121,10 +154,163 @@
       }
     },
     {
-      "id": "crystalline-Cs-spinless",
+      "id": "wang-gu-iii-row3-Z4",
+      "source": "wang_gu_2020_table_iii",
+      "fermionic_symmetry": "Z2^f x Z4",
+      "group_expression": "DirectProduct(CyclicGroup(IsPcGroup,4))",
+      "s": 0,
+      "omega": 0,
+      "cutoff": 4,
+      "quantity": "group of the E6 layers with p >= 1",
+      "expected_by_package_degree": {
+        "2": [
+          2
+        ],
+        "3": [
+          2,
+          8
+        ],
+        "4": []
+      }
+    },
+    {
+      "id": "wang-gu-iii-row5-Z2xZ4",
+      "source": "wang_gu_2020_table_iii",
+      "fermionic_symmetry": "Z2^f x Z2 x Z4",
+      "group_expression": "DirectProduct(CyclicGroup(IsPcGroup,2),CyclicGroup(IsPcGroup,4))",
+      "s": 0,
+      "omega": 0,
+      "cutoff": 4,
+      "quantity": "group of the E6 layers with p >= 1",
+      "expected_by_package_degree": {
+        "2": [
+          2,
+          2,
+          2
+        ],
+        "3": [
+          2,
+          2,
+          2,
+          8,
+          8
+        ],
+        "4": [
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "id": "wang-gu-iii-row13-Z2xZ2",
+      "source": "wang_gu_2020_table_iii",
+      "fermionic_symmetry": "Z4^f x Z2",
+      "group_expression": "DirectProduct(CyclicGroup(IsPcGroup,2),CyclicGroup(IsPcGroup,2))",
+      "s": 0,
+      "omega": [
+        1,
+        0,
+        0
+      ],
+      "cutoff": 4,
+      "quantity": "group of the E6 layers with p >= 1",
+      "expected_by_package_degree": {
+        "2": [
+          2
+        ],
+        "3": [
+          4
+        ],
+        "4": [
+          2
+        ]
+      }
+    },
+    {
+      "id": "wang-gu-iii-row9-Z2xZ2xZ2",
+      "source": "wang_gu_2020_table_iii",
+      "fermionic_symmetry": "Z2^f x Z2 x Z2 x Z2",
+      "group_expression": "DirectProduct(CyclicGroup(IsPcGroup,2),CyclicGroup(IsPcGroup,2),CyclicGroup(IsPcGroup,2))",
+      "s": 0,
+      "omega": 0,
+      "cutoff": 4,
+      "quantity": "group of the E6 layers with p >= 1",
+      "expected_by_package_degree": {
+        "2": [
+          2,
+          2,
+          2,
+          2
+        ],
+        "3": [
+          2,
+          4,
+          4,
+          4,
+          8,
+          8,
+          8
+        ],
+        "4": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "id": "ren-ning-qi-wang-gu-table-I-p2",
+      "source": "ren_ning_qi_wang_gu_2024",
+      "fermionic_symmetry": "wallpaper group p2 x Z2^f, spin-1/2 (s=w1, omega=0)",
+      "group_expression": "SGC_ResolutionSpaceGroup(SpaceGroupOnRightBBNWZ(2,2),6)",
+      "s": 0,
+      "omega": 0,
+      "cutoff": 3,
+      "quantity": "group of the E6 layers with p >= 1",
+      "expected_by_package_degree": {
+        "3": [
+          4,
+          8,
+          8,
+          8
+        ]
+      }
+    },
+    {
+      "id": "ren-ning-qi-wang-gu-table-II-p4",
+      "source": "ren_ning_qi_wang_gu_2024",
+      "fermionic_symmetry": "wallpaper group p4 x Z2^f, spinless (s=w1, omega=w2+w1^2)",
+      "group_expression": "SGC_ResolutionSpaceGroup(SpaceGroupOnRightBBNWZ(2,10),6)",
+      "s": 0,
+      "omega": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0
+      ],
+      "cutoff": 3,
+      "quantity": "group of the E6 layers with p >= 1",
+      "expected_by_package_degree": {
+        "3": [
+          2,
+          2,
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "id": "zhang-ning-qi-gu-Cs-spinless",
       "source": "zhang_ning_qi_gu_2024",
-      "crystalline_symmetry": "Cs=C1h reflection, spinless",
-      "group_expression": "CyclicGroup(2)",
+      "fermionic_symmetry": "point group Cs, spinless",
+      "group_expression": "Range(IsomorphismPcGroup(Group([[[1,0,0],[0,1,0],[0,0,-1]]],IdentityMat(3))))",
       "s": [
         1
       ],
@@ -132,59 +318,135 @@
         1
       ],
       "cutoff": 4,
-      "paper_spatial_dimension": 3,
+      "quantity": "full group",
       "expected_by_package_degree": {
         "4": [
           16
         ]
-      },
-      "reuse_case": "wang-gu-C2-antiunitary-nonsplit"
+      }
     },
     {
-      "id": "crystalline-Cs-spin-half",
+      "id": "zhang-ning-qi-gu-Cs-spin-half",
       "source": "zhang_ning_qi_gu_2024",
-      "crystalline_symmetry": "Cs=C1h reflection, spin-1/2",
-      "group_expression": "CyclicGroup(2)",
+      "fermionic_symmetry": "point group Cs, spin-1/2",
+      "group_expression": "Range(IsomorphismPcGroup(Group([[[1,0,0],[0,1,0],[0,0,-1]]],IdentityMat(3))))",
       "s": [
         1
       ],
       "omega": 0,
       "cutoff": 4,
-      "paper_spatial_dimension": 3,
+      "quantity": "full group",
       "expected_by_package_degree": {
         "4": []
-      },
-      "reuse_case": "wang-gu-C2-antiunitary-split"
+      }
     },
     {
-      "id": "crystalline-C2-spinless",
+      "id": "zhang-ning-qi-gu-S4-spin-half",
       "source": "zhang_ning_qi_gu_2024",
-      "crystalline_symmetry": "C2 rotation, spinless",
-      "group_expression": "CyclicGroup(2)",
-      "s": 0,
-      "omega": [
+      "fermionic_symmetry": "point group S4, spin-1/2",
+      "group_expression": "Range(IsomorphismPcGroup(Group([[[0,-1,0],[1,0,0],[0,0,-1]]],IdentityMat(3))))",
+      "s": [
         1
       ],
+      "omega": 0,
       "cutoff": 4,
-      "paper_spatial_dimension": 3,
+      "quantity": "full group",
       "expected_by_package_degree": {
-        "4": []
-      },
-      "reuse_case": "wang-gu-C2-unitary-nonsplit"
+        "4": [
+          2,
+          2
+        ]
+      }
     },
     {
-      "id": "crystalline-C2-spin-half",
+      "id": "zhang-ning-qi-gu-D2-spin-half",
       "source": "zhang_ning_qi_gu_2024",
-      "crystalline_symmetry": "C2 rotation, spin-1/2",
-      "group_expression": "CyclicGroup(2)",
+      "fermionic_symmetry": "point group D2, spin-1/2",
+      "group_expression": "Range(IsomorphismPcGroup(Group([[[-1,0,0],[0,-1,0],[0,0,1]],[[1,0,0],[0,-1,0],[0,0,-1]]],IdentityMat(3))))",
       "s": 0,
       "omega": 0,
       "cutoff": 4,
-      "paper_spatial_dimension": 3,
+      "quantity": "full group",
       "expected_by_package_degree": {
-        "4": []
-      },
-      "reuse_case": "wang-gu-C2-unitary-split"
+        "4": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "id": "space-group-002-P-1-spin-half",
+      "source": "spacegroups_2512",
+      "fermionic_symmetry": "space group 2 P-1 x Z2^f, spin-1/2 electrons (s=w1, omega=0)",
+      "group_expression": "SGC_ResolutionSpaceGroup(SpaceGroupOnRightBBNWZ(3,2),7)",
+      "s": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      "omega": 0,
+      "cutoff": 4,
+      "quantity": "E6 layers",
+      "expected_by_package_degree": {
+        "4": {
+          "p+ip (1,0)": [
+            0,
+            0,
+            0
+          ],
+          "Kitaev (2,-1)": [],
+          "complex fermion (3,-2)": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "bosonic (5,-4)": [
+            2
+          ]
+        }
+      }
+    },
+    {
+      "id": "space-group-007-Pc-spin-half",
+      "source": "spacegroups_2512",
+      "fermionic_symmetry": "space group 7 Pc x Z2^f, spin-1/2 electrons (s=w1, omega=0)",
+      "group_expression": "SGC_ResolutionSpaceGroup(SpaceGroupOnRightBBNWZ(3,7),7)",
+      "s": [
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "omega": 0,
+      "cutoff": 4,
+      "quantity": "E6 layers",
+      "expected_by_package_degree": {
+        "4": {
+          "p+ip (1,0)": [
+            0
+          ],
+          "Kitaev (2,-1)": [
+            2,
+            2,
+            2
+          ],
+          "complex fermion (3,-2)": [
+            2
+          ],
+          "bosonic (5,-4)": []
+        }
+      }
     }
   ],
   "source_conflicts_not_tested": [
@@ -201,8 +463,7 @@
       "body_invariants": [
         4
       ],
-      "comparison_status": "not-run",
-      "note": "The body describes a nontrivial extension to Z4; no single expected group is selected for this conflicting source entry."
+      "note": "The body describes a nontrivial extension to Z4; the case zhang-ning-qi-gu-S4-spin-half records the printed Table I value."
     }
   ]
 }
