@@ -6,7 +6,7 @@ gap> Assert(0,KOAHSS_RelationPrime(9)=3 and KOAHSS_RelationPrime(8)=2 and KOAHSS
 gap> Assert(0,KOAHSS_RelationPrime(6)=fail and KOAHSS_RelationPrime(0)=fail and KOAHSS_RelationPrime(1)=fail);
 gap> Assert(0,KOAHSS_ExtensionRelationModel(5,"A",3).model="three-local");
 gap> Assert(0,KOAHSS_ExtensionRelationModel(5,"A",9).model="three-local");
-gap> Assert(0,KOAHSS_ExtensionRelationModel(6,"A",3).model="complete");
+gap> Assert(0,KOAHSS_ExtensionRelationModel(6,"A",3).model="three-local");
 gap> Assert(0,KOAHSS_ExtensionRelationModel(4,"A",3).model="split");
 gap> Assert(0,KOAHSS_ExtensionRelationModel(5,"A",5).model="split" and KOAHSS_ExtensionRelationModel(6,"A",25).model="split");
 gap> Assert(0,KOAHSS_ExtensionRelationModel(5,"A",4).model="complete" and KOAHSS_ExtensionRelationModel(5,"A",0).model="complete");

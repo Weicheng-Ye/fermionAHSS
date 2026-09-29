@@ -297,22 +297,55 @@ its generator (`KOAHSS_ExtensionRelationModel`):
        \pmod{3^aH_D},
   \]
 
-  whose last term is a Bockstein class and is computed, not dropped. The
-  model (`python/extension_three_local.py`, requests with `prime=3` on the
-  same worker process, `model.primeLocal(3)` in GAP) evaluates `\gamma` on
-  the resolution through the comparison lift and projection of the
-  transferred model, so associativity and commutativity hold up to signed
-  D-coboundaries as in the complete model; the flat lifts of three-primary A
-  generators are `(A,0,0,0)`, the power is reduced in the A layer by
-  coboundaries and same-model lifts, in the D layer by the marked D lifts,
-  the binary layers are absent, and the relation keeps its exact gauge
-  comparison (`witness.model="three-local"`, `witness.prime=3`). If the
-  three-local reduction fails to express the D residual through ordinary
-  coboundaries, the complete measurement with a complete lift takes over.
-  In package degree six the reduced power of a degree-three class is the
-  nineteen-term cyclic-diagonal formula, whose polarization and coboundary
-  primitives are not implemented; three-primary relations of degree six stay
-  on the complete path.
+  whose last term is a Bockstein class and is computed, not dropped.
+- **k = 6 (|A| = 3):** `P^1_s\rho_3A` is the nineteen-term cyclic-diagonal
+  formula (`mod3_power.reduced_power_terms`, the evaluation of
+  `a\otimes a\otimes a` on `D_2`), and the model uses the potential
+  `\Omega(A)=\tfrac23\,L(P^1_s\rho_3A)` itself, `L` the 0,1,2 lift. The
+  curvature of a cocycle is `J(A)=\delta_s\Omega(A)=2\beta_3P^1_s\rho_3A`,
+  the three-primary d5 term, so the flat lift `(A,0,0,D)` solves
+  `\delta_sD=-J(A)`, which is possible exactly when the class survives to
+  E6. The stacking correction and the gauge boundary use the two natural
+  primitives of the reduced power modulo three that the cyclic diagonals
+  provide (`mod3_power.cross_effect_primitive`,
+  `mod3_power.coboundary_primitive`):
+
+  \[
+   \gamma(A,A')=\tfrac23\bigl[L(P^1a)+L(P^1a')-L(P^1(a+a'))+\delta_sL(\varphi(a,a'))\bigr],
+   \qquad D_u=-\tfrac23\bigl[L(P^1\rho_3\delta_su)-\delta_sL(\chi(u))\bigr],
+  \]
+
+  where `\varphi(a,a')` is the sum of the mixed words
+  `a\otimes a\otimes a'+a\otimes a'\otimes a'` evaluated on
+  `(\rho^2+2\rho)D_3`, and `\chi(u)` is `u\otimes\delta u\otimes\delta u` on
+  `D_2` minus `u\otimes\delta u\otimes u-u\otimes u\otimes\delta u` on `D_1`
+  plus `u\otimes u\otimes u` on `D_0`. The first is a primitive of the cross
+  effect because the six mixed words are the norm `N=1+\rho+\rho^2` of the
+  two words on `D_2`, `N=(\rho-1)(\rho^2+2\rho)` modulo three and
+  `(\rho-1)D_2=dD_3+D_3d` on cocycle tensors; the second is a primitive of
+  `P^1(\delta u)` because `(\delta u)^{\otimes3}` is the tensor coboundary of
+  `u\otimes\delta u\otimes\delta u`, `dD_2-D_2d=ND_1`, the norm of that
+  tensor is three times itself plus the tensor coboundary of
+  `u\otimes\delta u\otimes u-u\otimes u\otimes\delta u`, and `(\rho-1)` of
+  the latter is the tensor coboundary of `u^{\otimes3}` modulo three, whose
+  value on `D_0` is a coboundary. Both brackets are divisible by three, which
+  the model checks on every value; the boundary state of a gauge `(u,w)` is
+  `(\delta_su,\delta_sw+D_u)`, and a gauge acts by the product with its
+  boundary state. Associativity and commutativity hold up to signed
+  D-coboundaries.
+
+The model (`python/extension_three_local.py`, requests with `prime=3` on the
+same worker process, `model.primeLocal(3)` in GAP) evaluates `\gamma` on
+the resolution through the comparison lift and projection of the
+transferred model, so associativity and commutativity hold up to signed
+D-coboundaries as in the complete model; the flat lifts of three-primary A
+generators are solved in the two-layer model (`(A,0,0,0)` in degree five,
+`(A,0,0,D)` in degree six), the power is reduced in the A layer by
+coboundaries and same-model lifts, in the D layer by the marked D lifts,
+the binary layers are absent, and the relation keeps its exact gauge
+comparison (`witness.model="three-local"`, `witness.prime=3`). If the
+three-local reduction fails to express the D residual through ordinary
+coboundaries, the complete measurement with a complete lift takes over.
 
 Lifts of one prime's model never enter a measurement of another model: the
 A-layer rows of a reduction are the same-model lifts, the coordinates of the

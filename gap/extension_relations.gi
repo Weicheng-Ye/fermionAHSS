@@ -235,18 +235,18 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
         return kernelCache.(key);
     end;
     lift:=KOAHSS_ExtensionLiftSolver(backend,k,layers,model);
-    # The two-layer model of the prime three (degree five) shares the worker
-    # of the complete model; see doc/extensions.md, "Localization at the primes".
+    # The two-layer model of the prime three (degrees five and six) shares the
+    # worker of the complete model; see doc/extensions.md, "Localization at the primes".
     local3:=fail;
-    if IsBound(model.primeLocal) and k=5 and not IsBound(layers.A.status)
+    if IsBound(model.primeLocal) and k in [5,6] and not IsBound(layers.A.status)
         and ForAny(layers.A.orders,o->KOAHSS_ExtensionRelationModel(k,"A",o).model="three-local") then
         local3:=model.primeLocal(3);
         local3.gaugeKernelRepresentatives:=model.gaugeKernelRepresentatives;
     fi;
     # Prepare even free generators and generators over a zero lower group.
     # They can be needed in later comparisons, despite requiring no power row.
-    # Odd-primary A generators get the flat lift (A,0,0,0) of their prime's
-    # own model, in which the marked closed cochain has no curvature.
+    # Odd-primary A generators get the flat lift of their prime's own model:
+    # (A,0,0,D) in the three-local model, (A,0,0,0) at the split primes.
     for name in ["D","C","B","A"] do
         layer:=layers.(name);
         if not IsBound(layer.fullLifts) then layer.fullLifts:=[]; fi;
@@ -260,19 +260,28 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
                     elif value.status<>"computed" then
                         layer.status:="unresolved"; layer.reason:=value.reason; break;
                     fi;
+                elif kind.model="three-local" then
+                    # The flat lift (A,0,0,D) of the two-layer model: D solves
+                    # delta_s D = -J(A), zero in degree five.
+                    leading:=local3.lift(layer.p,layer.cochains[i],true);
+                    value:=KOAHSS_ExtensionFlatLift(local3,k,name,leading);
+                    if value.status<>"computed" then
+                        layer.status:="unresolved";
+                        layer.reason:=Concatenation("three-local flat lift: ",String(value.reason)); break;
+                    fi;
+                    value:=ShallowCopy(value); value.model:=kind.model; value.prime:=kind.prime;
+                    MakeImmutable(value); layer.fullLifts[i]:=value;
                 else
+                    # Split primes: the marked closed cochain is the lift.
                     leading:=model.lift(layer.p,layer.cochains[i],true);
                     state:=StructuralCopy(model.zero(k)); state.(name):=leading;
-                    if kind.model="three-local" then curvature:=local3.d(k,state);
-                    else curvature:=rec(A:=model.coboundary(layer.p,leading,true)); fi;
-                    if ForAny(RecNames(curvature),f->ForAny(curvature.(f),x->x<>0)) then
+                    if ForAny(model.coboundary(layer.p,leading,true),x->x<>0) then
                         Error("koFull: the marked E6 representative is not closed: ",name," ",i);
                     fi;
                     value:=rec(status:="computed",state:=state,model:=kind.model,prime:=kind.prime,
                         witness:=rec(leadingLayer:=name,leadingCochain:=ShallowCopy(leading),
-                            definingEquations:=[],flatnessVerified:=true,differentialEvaluations:=1,
+                            definingEquations:=[],flatnessVerified:=true,differentialEvaluations:=0,
                             modelId:="prime-split"));
-                    if kind.model="three-local" then value.witness.modelId:=local3.modelId; fi;
                     MakeImmutable(value); layer.fullLifts[i]:=value;
                 fi;
             od;

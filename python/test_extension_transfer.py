@@ -629,6 +629,69 @@ class ExtensionTransferTests(unittest.TestCase):
             self.assertEqual(Fraction(gamma(simplex)) - Fraction(polarization(simplex)),
                              Fraction(2, 3) * Fraction(p.ds(xi, s)(simplex)))
 
+    def test_degree_six_three_local_primitives(self):
+        # The natural primitives of the degree-three reduced power modulo three,
+        # for the untwisted and a twisted sign system: delta phi is the cross
+        # effect of P^1 on cocycles, delta chi is P^1 of a coboundary, and the
+        # brackets of the degree-six stacking correction and gauge boundary are
+        # divisible by three.
+        from fractions import Fraction
+        from itertools import combinations
+        import mod3_power as m
+        tools = random_cochains(2026, 8)
+        for sign in (0, 1):
+            s, _ = tools["twists"](sign, 0)
+            for trial in range(2):
+                a = m.signed_coboundary(tools["integral"](2), s)
+                ap = m.signed_coboundary(tools["integral"](2), s)
+                u = tools["integral"](2)
+                phi = m.cross_effect_primitive(a, ap, s)
+                dphi = m.signed_coboundary(phi, s)
+                chi = m.coboundary_primitive(u, s)
+                dchi = m.signed_coboundary(chi, s)
+                du = m.signed_coboundary(u, s)
+                power_du = m.reduced_power_1(du, s)
+                powers = [m.reduced_power_1(x, s) for x in (a, ap, a + ap)]
+                for z in combinations(range(9), 8):
+                    cross = (powers[2](z) - powers[0](z) - powers[1](z)) % 3
+                    self.assertEqual(dphi(z) % 3, cross)
+                    self.assertEqual(Fraction(2 * (powers[0](z) + powers[1](z) - powers[2](z) + dphi(z)), 3).denominator, 1)
+                    self.assertEqual(dchi(z) % 3, power_du(z))
+                    self.assertEqual(Fraction(2 * (power_du(z) - dchi(z)), 3).denominator, 1)
+        self.assertEqual(len(m.cyclic_diagonal(3, 6)), 448)
+        self.assertEqual(len(m.diagonal_terms(3, 6, (3, 3, 3), rotation=(0, 2, 1))), 48)
+
+    def test_degree_six_three_local_operations_on_the_twisted_c2_setup(self):
+        # On the sign-twisted C2 resolution A=[1] is a degree-three cocycle;
+        # products, division, gauge boundaries and actions of the degree-six
+        # two-layer model are flat and consistent, and the requests reach it.
+        native, bar, _ = c2_models(sign=1, top=8)
+        local = native.three_local
+        flat = lambda k, data: not any(any(v) for v in local.kappa(k, data).values())
+        A = state([1], [0], [0], [3])
+        self.assertTrue(flat(6, A))
+        product = local.product(6, A, A)
+        self.assertEqual(product["A"], [2])
+        self.assertTrue(flat(6, product))
+        self.assertEqual(local.divide_left(6, A, product), A)
+        gauge = state([1], [0], [0], [1])
+        boundary = local.boundary(6, gauge)
+        self.assertEqual(boundary["A"], native.coboundary(2, [1], True))
+        self.assertTrue(flat(6, boundary))
+        acted = local.act(6, gauge, A)
+        self.assertTrue(flat(6, acted))
+        self.assertEqual(acted, local.product(6, boundary, A))
+        self.assertEqual(native.calculate(dict(operation="d", degree=5, state=gauge, prime=3,
+            role="gauge"))["state"], boundary)
+        self.assertEqual(native.calculate(dict(operation="xtimes", degree=6, state=A, other=A,
+            prime=3))["state"], product)
+        self.assertEqual(native.calculate(dict(operation="act", degree=6, state=A, gauge=gauge,
+            prime=3))["state"], acted)
+        self.assertEqual(native.calculate(dict(operation="divide_left", degree=6, state=A,
+            other=product, prime=3))["state"], A)
+        self.assertEqual(native.calculate(dict(operation="d", degree=6, state=product,
+            prime=3))["state"], native.zero(7))
+
 
 if __name__ == "__main__":
     unittest.main()

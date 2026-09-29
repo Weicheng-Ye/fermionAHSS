@@ -1,4 +1,4 @@
-# Opt-in degree-six comparison; not part of TestPackage (about five minutes):
+# Opt-in degree-six comparison; not part of TestPackage (about six minutes):
 # gap -q --quitonbreak -c 'LoadPackage("fermionAHSS"); Assert(0,Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_degree_six.tst"),rec(compareFunction:="uptowhitespace"))); QUIT;'
 gap> # Degree six on the one-cell C2 bar, whose comparison is an isomorphism:
 gap> # the native model and the complete-bar section model agree on states
@@ -27,3 +27,13 @@ gap> Assert(0,transferModel.divideLeft(6,transferB,transferSquare)=transferB);
 gap> transferGauge:=transferModel.zero(5);; transferGauge.C:=[1];; transferGauge.D:=[2];;
 gap> Assert(0,transferSameClass(transferModel.act(6,transferGauge,transferC),transferBar.xtimes(6,transferBar.d(5,transferGauge),transferC)));
 gap> transferModel.close();; transferBar.close();;
+gap> # The three-local model in degree six, checked by suspension: the
+gap> # degree-six window of Z/3 x Z is the suspension of the degree-five
+gap> # window of Z/3 (A=Z/3 at (3,0), D=Z/3 at (7,-4)), so the group is Z/9.
+gap> susR:=ResolutionDirectProduct(ResolutionFiniteGroup(CyclicGroup(3),9),ResolutionAbelianGroup([0],9));;
+gap> susFull:=koFull(susR,0,0,6);;
+gap> Assert(0,susFull.invariants=[9]);
+gap> susA:=First(susFull.degreeResult.extensionVectors,v->v.layer="A");;
+gap> Assert(0,susA.result.witness.model="three-local" and susA.result.witness.prime=3);
+gap> Assert(0,susA.result.witness.measuredLayers=["D"] and susA.result.lowerCoordinates[1] mod 3<>0);
+gap> Assert(0,susFull.degreeResult.layers.A.fullLifts[1].model="three-local");

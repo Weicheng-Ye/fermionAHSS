@@ -27,13 +27,30 @@ delta_s u and the local flat lift (A, 0),
     x_D = 2 * 3^(a-1) A cup A cup A + (2/3) delta_s [sum_j Xi(jA, A) - u cup delta_s u cup delta_s u]
 
 modulo 3^a H_D; the last term is a Bockstein class and is computed, not
-dropped. Only degree five is supported: in input degrees zero and one P^1
-vanishes (the tower splits), and in input degree three the primitives of
-the nineteen-term reduced power are not implemented.
+dropped.
+
+In package degree six the input degree of A is three, where P^1_s rho_3 A
+is the nineteen-term cyclic-diagonal formula of mod3_power, and the model
+uses the potential Omega(A) = (2/3) lift(P^1_s rho_3 A) itself: the
+curvature of a cocycle is J(A) = delta_s Omega(A) = 2 beta_3 P^1_s rho_3 A
+(the three-primary d5 term), the stacking correction is
+
+    gamma(A, A') = (2/3) [lift P^1(a) + lift P^1(a') - lift P^1(a+a') + delta_s lift phi(a,a')],
+
+with phi the natural cross-effect primitive of the reduced power
+(mod3_power.cross_effect_primitive: the mixed words on (rho^2 + 2 rho) D_3),
+and the boundary state of a gauge (u, w) is (delta_s u, delta_s w + D_u) with
+
+    D_u = -(2/3) [lift P^1(delta_s u) - delta_s lift chi(u)],
+
+chi the coboundary primitive (mod3_power.coboundary_primitive). Both brackets
+are divisible by three, which the model verifies on every value. In input
+degrees zero and one P^1 vanishes and the tower splits.
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
 from extension_worker import api, BoundedCache
 from low_phases import transported
+import mod3_power
 
 p = api.p
 FIELDS = "ABCD"
@@ -52,7 +69,7 @@ class ThreeLocalModel:
         self._gammas = BoundedCache(512)
 
     def supports(self, k):
-        return k == 5
+        return k in (5, 6)
 
     def check_state(self, k, data):
         state = self.model.check_state(k, data)
@@ -67,10 +84,26 @@ class ThreeLocalModel:
         s = self.model.s
         return transported(transported(x, y, s), z, s)
 
+    def _third(self, cochain, label):
+        """(2/3) of an integral cochain whose values are divisible by three."""
+        def value(simplex):
+            numerator = cochain(simplex)
+            if numerator % 3:
+                raise ArithmeticError(f"{label}: {numerator} is not divisible by three")
+            return 2 * (numerator // 3)
+        return p.Cochain(cochain.degree, value, label)
+
+    def _gamma_six(self, A, Ap):
+        s = self.model.s
+        power = lambda x: mod3_power.reduced_power_1(x, s)
+        primitive = mod3_power.signed_coboundary(mod3_power.cross_effect_primitive(A, Ap, s), s)
+        total = power(A) + power(Ap) - power(A + Ap) + primitive
+        return self._third(total, "three-local stacking correction of degree six")
+
     def gamma(self, k, a, b):
-        """The D layer of the product of the flat states (a, 0) and (b, 0)."""
+        """The D layer of the product of the flat states (a, D) and (b, D')."""
         if not self.supports(k):
-            raise ValueError("the three-local stacking correction is implemented in degree five only")
+            raise ValueError("the three-local stacking correction is implemented in degrees five and six")
         a, b = tuple(a), tuple(b)
         if not any(a) or not any(b):
             return [0] * self.model.dimension(k + 1)
@@ -79,20 +112,49 @@ class ThreeLocalModel:
             n = degrees(k)[0]
             A = self.model.lift(n, a, True)
             Ap = self.model.lift(n, b, True)
-            correction = p.scale(self._word(A, A, Ap) + self._word(A, Ap, Ap), -2)
+            if k == 5:
+                correction = p.scale(self._word(A, A, Ap) + self._word(A, Ap, Ap), -2)
+            else:
+                correction = self._gamma_six(A, Ap)
             self._gammas[key] = tuple(self.model.project(correction, True))
         return list(self._gammas[key])
 
+    def curvature_term(self, k, a):
+        """J(A) = 2 beta_3 P^1_s rho_3 A projected to the resolution; zero in degree five."""
+        a = tuple(a)
+        if k == 5 or not any(a):
+            return [0] * self.model.dimension(k + 2)
+        A = self.model.lift(degrees(k)[0], a, True)
+        return self.model.project(mod3_power.tertiary_three_primary(A, self.model.s), True)
+
+    def boundary(self, k, gauge):
+        """The boundary state (delta_s u, 0, 0, delta_s w + D_u) of a gauge of degree k-1."""
+        gauge = self.check_state(k - 1, gauge)
+        state = self.zero(k)
+        state["A"] = self.model.coboundary(degrees(k - 1)[0], gauge["A"], True)
+        state["D"] = self.model.coboundary(degrees(k - 1)[3], gauge["D"], True)
+        if k == 6 and any(gauge["A"]):
+            s = self.model.s
+            u = self.model.lift(degrees(k - 1)[0], gauge["A"], True)
+            du = mod3_power.signed_coboundary(u, s)
+            total = mod3_power.reduced_power_1(du, s) - mod3_power.signed_coboundary(
+                mod3_power.coboundary_primitive(u, s), s)
+            correction = self.model.project(self._third(total, "three-local gauge boundary of degree six"), True)
+            state["D"] = [x - c for x, c in zip(state["D"], correction)]
+        return state
+
     def kappa(self, k, data, upto=3):
-        """The curvature (delta_s A, 0, 0, delta_s D), stopping at the first nonzero layer."""
+        """The curvature (delta_s A, 0, 0, delta_s D + J(A)), stopping at the first nonzero layer."""
         state = self.check_state(k, data)
         answer = self.zero(k + 1)
         if not self.supports(k):
-            raise ValueError("the three-local model covers degree five only")
+            raise ValueError("the three-local model covers degrees five and six")
         for layer in range(upto + 1):
             f = FIELDS[layer]
             if layer in (0, 3):
                 answer[f] = self.model.coboundary(degrees(k)[layer], state[f], True)
+            if layer == 3:
+                answer[f] = [x + j for x, j in zip(answer[f], self.curvature_term(k, state["A"]))]
             if any(answer[f]):
                 break
         return answer
@@ -111,12 +173,8 @@ class ThreeLocalModel:
         return answer
 
     def act(self, k, gauge, canonical, upto=3):
-        gauge = self.check_state(k - 1, gauge)
         canonical = self.check_state(k, canonical)
-        boundary = self.zero(k)
-        boundary["A"] = self.model.coboundary(degrees(k - 1)[0], gauge["A"], True)
-        boundary["D"] = self.model.coboundary(degrees(k - 1)[3], gauge["D"], True)
-        return self.product(k, boundary, canonical, upto)
+        return self.product(k, self.boundary(k, gauge), canonical, upto)
 
     def divide_left(self, k, left, total, upto=3):
         left, total = self.check_state(k, left), self.check_state(k, total)
@@ -132,24 +190,24 @@ class ThreeLocalModel:
         if request.get("prime") != PRIME:
             raise ValueError("the transferred model localizes at the prime three only")
         if operation != "d" and not self.supports(k):
-            raise ValueError("three-local stacking operations cover degree five only")
+            raise ValueError("three-local stacking operations cover degrees five and six")
         upto = request.get("upto", 3)
         if type(upto) is not int or not 0 <= upto <= 3:
             raise ValueError("upto must be a layer index from zero through three")
         required = 3 if upto == 3 else upto - 1
         if operation == "d":
-            if k not in (4, 5):
-                raise ValueError("three-local curvature covers degree-five states and their gauges")
-            if k == 4:
-                # A gauge of a degree-five state: P^1 vanishes in input degree
-                # one, so its boundary state is (delta_s u, 0, 0, delta_s w).
-                state = self.check_state(k, request["state"])
-                answer = self.zero(k + 1)
-                for layer in (0, 3):
-                    if layer <= upto:
-                        answer[FIELDS[layer]] = self.model.coboundary(
-                            degrees(k)[layer], state[FIELDS[layer]], True)
+            # A gauge of the degree k+1 states (role "gauge", or degree four,
+            # which is a gauge degree only) has the boundary state
+            # (delta_s u, 0, 0, delta_s w + D_u); a state has its curvature.
+            if request.get("role") == "gauge" or k == 4:
+                if k not in (4, 5):
+                    raise ValueError("three-local gauges have degree four or five")
+                answer = self.boundary(k + 1, request["state"])
+                for layer in range(upto + 1, 4):
+                    answer[FIELDS[layer]] = [0] * len(answer[FIELDS[layer]])
                 return {"state": answer}
+            if not self.supports(k):
+                raise ValueError("three-local curvature covers the states of degrees five and six")
             return {"state": self.kappa(k, request["state"], upto)}
         if operation == "xtimes":
             self.require_flat(k, request["state"], required)

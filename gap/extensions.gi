@@ -197,10 +197,10 @@ end);
 
 # The stacking model measuring the relation of a generator of the given order
 # in the layer name of package degree k: "complete" (the transferred model),
-# "three-local" (the two-layer model of the prime three in degree five) or
-# "split" (no k-invariant of ko links the rows q=0 and q=-4 at the prime: the
-# primes at least five in every degree, and the prime three below degree
-# five, where P^1 vanishes). Only A generators have odd-primary relations.
+# "three-local" (the two-layer model of the prime three in degrees five and
+# six) or "split" (no k-invariant of ko links the rows q=0 and q=-4 at the
+# prime: the primes at least five in every degree, and the prime three below
+# degree five, where P^1 vanishes). Only A generators have odd-primary relations.
 BindGlobal("KOAHSS_ExtensionRelationModel",function(k,name,order)
     local prime;
     prime:=KOAHSS_RelationPrime(order);
@@ -208,8 +208,7 @@ BindGlobal("KOAHSS_ExtensionRelationModel",function(k,name,order)
         return rec(model:="complete",prime:=prime);
     fi;
     if prime>=5 or k<=4 then return rec(model:="split",prime:=prime); fi;
-    if k=5 then return rec(model:="three-local",prime:=prime); fi;
-    return rec(model:="complete",prime:=prime);
+    return rec(model:="three-local",prime:=prime);
 end);
 
 BindGlobal("KOAHSS_ExtensionSplitResponse",function(order,prime,lower)

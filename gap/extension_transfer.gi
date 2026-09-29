@@ -880,7 +880,7 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         local3:=rec(status:="computed",modelId:=Concatenation(model.modelId,"/three-local"),
             maxDegree:=k,localPrime:=prime,certificateLevel:="transfer-R",
             gaugeCompletenessAssumed:=true,layerLimited:=true,
-            s:=model.s,omega:=model.omega,supports:=degree->degree=k and k=5,
+            s:=model.s,omega:=model.omega,supports:=degree->degree=k and k in [5,6],
             dimension:=model.dimension,coboundary:=model.coboundary,matrix:=model.matrix,
             lift:=model.lift,project:=model.project,zero:=model.zero);
         local3.d:=function(arg)

@@ -249,11 +249,13 @@ generators have prime-power order). Two-primary relations use the complete
 model. At the primes five and above the rows `q=0` and `q=-4` lie in
 different Adams summands of `ko`, so the relation is `m*g=0` without a
 measurement (`witness.model="split"`), and a degree whose relations all
-split builds no stacking model. Three-primary relations of degree five use
-the two-layer three-local model of the coefficient-two phase, whose stacking
-correction is the polynomial `-2(AAA'+AA'A')` in transported cup products
-(`witness.model="three-local"`); three-primary relations of degree six stay
-on the complete path. The per-prime summary is `degreeResult.primes`, and
+split builds no stacking model. Three-primary relations of degrees five and
+six use the two-layer three-local model of the coefficient-two phase
+`(2/3) lift(P^1_s rho_3 A)`: in degree five its stacking correction is the
+polynomial `-2(AAA'+AA'A')` in transported cup products, in degree six the
+polarization of the nineteen-term reduced power corrected by its natural
+cross-effect primitive, with the gauge boundaries from the coboundary
+primitive (`witness.model="three-local"`). The per-prime summary is `degreeResult.primes`, and
 `FERMIONAHSS_PRIME_LOCAL=0` restores the complete measurement everywhere
 (see [extensions.md](doc/extensions.md), "Localization at the primes").
 

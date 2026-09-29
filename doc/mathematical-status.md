@@ -80,8 +80,12 @@ comparison in that model. It reproduces the representation-ring values
 `Z/9` for `Z/3`, `Z/3+Z/27` for `Z/9`, and `Z/9` for the sign-twisted
 `S_3`, `Z/6` and `A_4`, where the complete four-layer formulas raise a
 non-integrality error on the three-torsion generator. Three-primary
-relations of degree six, whose reduced power is the nineteen-term formula,
-stay on the complete path (refused for two nonzero A layers), and
+relations of degree six use the same two-layer model with the nineteen-term
+reduced power: the curvature `2 beta_3 P^1_s rho_3 A` is the three-primary
+d5 term, and the stacking correction and gauge boundary use the natural
+cross-effect and coboundary primitives of `P^1` modulo three built from the
+third and lower cyclic diagonals; both are verified exactly on random
+cochains, and the model checks the divisibility by three of every value.
 `FERMIONAHSS_PRIME_LOCAL=0` restores the complete measurement at every
 prime. See [extensions](extensions.md), "Localization at the primes".
 

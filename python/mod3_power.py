@@ -33,6 +33,18 @@ The accompanying tests check the integral diagonal identities, simplicial
 degeneracies, P^1(uv)=uv^3 on BC3, the positive Bockstein, right suspension,
 and nonzero sign transport.  No floating arithmetic or external dependency
 is used.
+
+The three-local stacking model of package degree six (extension_three_local)
+needs two natural primitives of the degree-three reduced power modulo three,
+both built from the same cyclic diagonals: cross_effect_primitive, with
+coboundary P^1(a+a') - P^1(a) - P^1(a') for cocycles a, a', is the sum of the
+mixed words a x a x a' and a x a' x a' on (rho^2 + 2 rho) D3, because the
+norm 1 + rho + rho^2 equals (rho - 1)(rho^2 + 2 rho) modulo three and
+(rho - 1) D2 = d D3 + D3 d; coboundary_primitive, with coboundary
+P^1(delta_s u) for a degree-two u, is (u x du x du) on D2 minus
+(u x du x u - u x u x du) on D1 plus (u x u x u) on D0, from the tensor
+coboundary du x du x du = delta(u x du x du) and the identity
+d D2 - D2 d = N D1.
 """
 
 from collections import defaultdict
@@ -89,10 +101,11 @@ def cyclic_diagonal(index, dimension):
     """Return immutable (triple of faces, integer coefficient) terms of Di.
 
     This internal finite constructor is also exposed for identity audits.
-    It supports only the bounds required by the degree-three operation.
+    It supports only the bounds required by the degree-three operation and
+    by the three-local stacking primitives of degree six (index three).
     """
-    if index not in (0, 1, 2) or not 0 <= dimension <= 8:
-        raise ValueError("cyclic diagonal supports indices 0..2 and dimensions 0..8")
+    if index not in (0, 1, 2, 3) or not 0 <= dimension <= 9:
+        raise ValueError("cyclic diagonal supports indices 0..3 and dimensions 0..9")
     if index == 0:
         return tuple(
             ((tuple(range(left + 1)), tuple(range(left, right + 1)),
@@ -131,6 +144,115 @@ def reduced_power_terms(input_degree):
         for factors, coefficient in cyclic_diagonal(index, input_degree + 4)
         if all(len(face) == input_degree + 1 for face in factors)
     )
+
+
+def _rotation_polynomial(chain, coefficients):
+    """sum_j coefficients[j] rho^j applied to a tensor chain (rho = _rotate)."""
+    result = defaultdict(int)
+    current = dict(chain)
+    for j, coefficient in enumerate(coefficients):
+        if coefficient:
+            for term, value in current.items():
+                _add(result, term, coefficient * value)
+        if j + 1 < len(coefficients):
+            current = _rotate(current)
+    return result
+
+
+def _triple_terms(chain, degrees):
+    """The terms of a tensor chain whose three faces have the given dimensions."""
+    return tuple((factors, coefficient) for factors, coefficient in sorted(chain.items())
+                 if tuple(len(face) - 1 for face in factors) == tuple(degrees))
+
+
+@lru_cache(None)
+def diagonal_terms(index, dimension, degrees, rotation=None):
+    """Terms of (sum_j rotation[j] rho^j) D_index on a simplex of the dimension.
+
+    Only the terms whose faces have the given dimensions are kept; a tensor
+    cochain of homogeneous factors of those degrees vanishes on the others.
+    """
+    chain = dict(cyclic_diagonal(index, dimension))
+    if rotation is not None:
+        chain = _rotation_polynomial(chain, rotation)
+    return _triple_terms(chain, degrees)
+
+
+def triple_evaluation(terms, factors, dimension, s, name=""):
+    """The mod-three cochain sigma -> sum coefficient * x(f1) y(f2) z(f3).
+
+    Every factor is transported from its face's first vertex to the first
+    vertex of the simplex, as in reduced_power_1; the factor cochains are
+    reduced modulo three and the result lies in 0, 1, 2.
+    """
+    factors = tuple(factors)
+    if len(factors) != 3 or s.degree != 1:
+        raise ValueError("a triple evaluation needs three factors and a degree-one sign")
+
+    def evaluate(simplex):
+        if len(simplex) != dimension + 1:
+            raise ValueError("simplex dimension does not match the triple evaluation")
+        result = 0
+        for faces, coefficient in terms:
+            value = coefficient
+            for cochain, face in zip(factors, faces):
+                value *= cochain(tuple(simplex[j] for j in face)) % 3
+                if not value:
+                    break
+                if face[0]:
+                    value *= _sign(s, (simplex[0], simplex[face[0]]))
+            result += value
+        return result % 3
+
+    return Cochain(dimension, evaluate, name)
+
+
+def cross_effect_primitive(a, ap, s):
+    """phi with delta_s phi = P^1_s(a+a') - P^1_s(a) - P^1_s(a') modulo three.
+
+    a and a' are degree-three cocycles modulo three (integral inputs are
+    reduced). The six mixed tensor words of the cross effect are the norm
+    N = 1 + rho + rho^2 of a tensor a tensor a' and a tensor a' tensor a'
+    evaluated on D_2; modulo three N = (rho - 1)(rho^2 + 2 rho), and
+    (rho - 1) D_2 = d D_3 + D_3 d, so on cocycle tensors the cross effect
+    is the coboundary of the same words evaluated on (rho^2 + 2 rho) D_3.
+    """
+    if a.degree != 3 or ap.degree != 3:
+        raise ValueError("the cross-effect primitive is defined in input degree three")
+    terms = diagonal_terms(3, 6, (3, 3, 3), rotation=(0, 2, 1))
+    first = triple_evaluation(terms, (a, a, ap), 6, s)
+    second = triple_evaluation(terms, (a, ap, ap), 6, s)
+    return Cochain(6, lambda simplex: (first(simplex) + second(simplex)) % 3,
+                   "P1_cross_effect_primitive")
+
+
+def coboundary_primitive(u, s):
+    """chi with delta_s chi = P^1_s(delta_s u) modulo three, for a degree-two u.
+
+    With S = u tensor du tensor du, Z = u tensor du tensor u - u tensor u tensor du
+    and U = u tensor u tensor u (du = delta_s u): the cube of du is the
+    tensor coboundary of S, so P^1(du) = delta(S on D_2) + S on N D_1; the
+    norm of S is 3 S + tensor coboundary of Z, (Z on d D_1) = Z on
+    (rho - 1) D_0 - delta(Z on D_1), and (rho - 1) Z = U's tensor
+    coboundary modulo three, whose value on D_0 is delta(U on D_0).
+    """
+    if u.degree != 2:
+        raise ValueError("the coboundary primitive is defined for degree-two cochains")
+    du = signed_coboundary(u, s)
+    s_terms = diagonal_terms(2, 6, (2, 3, 3))
+    z_first = diagonal_terms(1, 6, (2, 3, 2))
+    z_second = diagonal_terms(1, 6, (2, 2, 3))
+    u_terms = diagonal_terms(0, 6, (2, 2, 2))
+    parts = (triple_evaluation(s_terms, (u, du, du), 6, s),
+             triple_evaluation(z_first, (u, du, u), 6, s),
+             triple_evaluation(z_second, (u, u, du), 6, s),
+             triple_evaluation(u_terms, (u, u, u), 6, s))
+
+    def evaluate(simplex):
+        first, second, third, fourth = (part(simplex) for part in parts)
+        return (first - second + third + fourth) % 3
+
+    return Cochain(6, evaluate, "P1_coboundary_primitive")
 
 
 def _sign(s, edge):
