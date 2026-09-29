@@ -4,10 +4,13 @@
 # class after the lower defining equations have been solved.
 # Copyright (c) 2026 koAHSS contributors. Distributed under the MIT license.
 
+# options.upto (a layer index, A=0 to D=3, default 3) solves the defining
+# equations only through that layer, with the layer-limited differential of a
+# transferred model; the layers below it stay zero.
 BindGlobal("KOAHSS_ExtensionFlatLift",function(arg)
     local model,degree,leadingName,leading,options,maxChoices,fields,degrees,
         leadingIndex,state,matrices,matrix,checkState,evaluate,zeroCurvature,
-        choices,exhausted,solution,lastFailure,search,initial;
+        choices,exhausted,solution,lastFailure,search,initial,upto;
     if not Length(arg) in [4,5] then
         Error("koFull: flat lift needs model, degree, layer, cochain[, options]");
     fi;
@@ -24,17 +27,22 @@ BindGlobal("KOAHSS_ExtensionFlatLift",function(arg)
         or not IsString(leadingName) or not leadingName in ["A","B","C","D"] then
         Error("koFull: invalid degree or leading layer for a flat lift");
     fi;
-    if not IsRecord(options) or ForAny(RecNames(options),n->n<>"maxChoices") then
-        Error("koFull: flat lift options accept only maxChoices");
+    if not IsRecord(options) or ForAny(RecNames(options),n->not n in ["maxChoices","upto"]) then
+        Error("koFull: flat lift options accept only maxChoices and upto");
     fi;
     maxChoices:=4096;
     if IsBound(options.maxChoices) then maxChoices:=options.maxChoices; fi;
     if not IsInt(maxChoices) or maxChoices<1 then
         Error("koFull: maxChoices must be a positive integer");
     fi;
+    upto:=3;
+    if IsBound(options.upto) then upto:=options.upto; fi;
     fields:=["A","B","C","D"];
     degrees:=[degree-3,degree-2,degree-1,degree+1];
     leadingIndex:=Position(fields,leadingName);
+    if not IsInt(upto) or upto<leadingIndex-1 or upto>3 then
+        Error("koFull: a flat lift is solved through a layer index from its own layer through three");
+    fi;
     if degrees[leadingIndex]<0 then
         Error("koFull: a generator cannot occupy an absent negative-degree layer");
     fi;
@@ -88,7 +96,9 @@ BindGlobal("KOAHSS_ExtensionFlatLift",function(arg)
         local answer;
         if choices>=maxChoices then exhausted:=true; return fail; fi;
         choices:=choices+1;
-        answer:=model.d(degree,value); checkState(degree+1,answer);
+        if upto<3 then answer:=model.d(degree,value,upto);
+        else answer:=model.d(degree,value); fi;
+        checkState(degree+1,answer);
         return answer;
     end;
     zeroCurvature:=value->ForAll(fields,f->ForAll(value.(f),x->x=0));
@@ -99,7 +109,7 @@ BindGlobal("KOAHSS_ExtensionFlatLift",function(arg)
     search:=function(index,value,curvature,witnesses)
         local name,n,rhs,family,j,chosen,child,childCurvature,entry,walk;
         if solution<>fail or exhausted then return; fi;
-        if index=5 then
+        if index=upto+2 then
             if not zeroCurvature(curvature) then
                 Error("koFull: flat-lift solve left nonzero curvature");
             fi;
@@ -108,6 +118,7 @@ BindGlobal("KOAHSS_ExtensionFlatLift",function(arg)
                     leadingCochain:=ShallowCopy(leading),
                     definingEquations:=StructuralCopy(witnesses),
                     curvature:=StructuralCopy(curvature),flatnessVerified:=true));
+            if upto<3 then solution.witness.solvedThrough:=fields[upto+1]; fi;
             return;
         fi;
         name:=fields[index]; n:=degrees[index];

@@ -5,9 +5,9 @@ bar formulas on a supplied resolution through a comparison with the
 normalized group bar resolution. This note records the identities it
 relies on and their limits. The group bar need not retract onto a
 resolution, even one with a single degree-zero generator, so the
-comparison is checked, and the cell comparison of
+retraction is tested on R, and the cell comparison of
 [resolution extensions](resolution-extensions.md#the-cell-comparison)
-replaces it when the check fails. Flatness
+replaces the group bar when the test fails. Flatness
 and reflection hold only under stated hypotheses, and the restricted
 product identity does not imply completeness of transferred gauges. Both
 limits have concrete counterexamples below; the native model therefore
@@ -46,16 +46,25 @@ The code constructs \(g(u_1)\) by coning \(g(\partial u_1)=0\), so
 resolution explicitly and verifies \(\Pi\Lambda(0,1)=(0,0)\).
 
 A check of \(\Pi\Lambda=1\) with just trivial and sign coefficients
-is weaker than a check over \(\mathbf ZG\). The preflight checks
-\(fg=1\) on every group-ring basis generator in the requested degrees.
-A failed check requires a different comparison; normalizing H alone
-cannot repair it. The group bar also fails whenever R has several
-degree-zero generators, since \(f\) sends every vertex to the first one.
-The cell comparison changes g and f instead: it cones over a modified
-contraction K with \(K(\partial e_j)=e_j\), or over private vertices,
-so that \(fg=1\) holds by construction. In the example above \(u_1\)
-has zero boundary, so neither construction applies and the degree stays
-unresolved.
+is weaker than a check over \(\mathbf ZG\). For the group bar,
+\(fg=1\) over \(\mathbf ZG\) is decided on R: \(g(e_j)\) is the cone at
+the identity over \(g(\partial e_j)\), and f of such a cone over a
+normalized cycle c is \(h(fc)\), so \(fg(e_j)=h(\partial e_j)\) once
+\(fg=1\) below the degree of \(e_j\). The group bar therefore retracts
+through the requested degrees exactly when R has one degree-zero
+generator and \(h(\partial e_j)=e_j\) for every basis element \(e_j\)
+of positive degree among them; in the example above
+\(h(\partial u_1)=0\). The model
+also checks \(fg(e_j)=e_j\) over \(\mathbf ZG\) on each chain
+\(g(e_j)\) when it first uses it, and the preflight below checks every
+basis element. A failed check requires a different comparison;
+normalizing H alone cannot repair it. The group bar also fails whenever R
+has several degree-zero generators, since \(f\) sends every vertex to the
+first one. The cell comparison changes g and f instead: it cones over a
+modified contraction K with \(K(\partial e_j)=e_j\), or over private
+vertices, so that \(fg=1\) holds by construction. In the example above
+\(u_1\) has zero boundary, so neither construction applies: the model is
+refused, and a degree with a relation to measure stays unresolved.
 
 If \(fg=1\) does hold, the usual side-condition construction is available
 algebraically. Set \(q=1-gf\), \(u=qhq\), and \(h'=u\partial u\).
@@ -68,8 +77,9 @@ Then \(\partial u+u\partial=q\), \(qu=uq=u\), \(fu=ug=0\), and
 For example, \(\partial u\partial=\partial q\) proves the first
 identity, while \(\partial u^2=u^2\partial\) gives
 \(u\partial u^2\partial u=0\). The HAP homotopy h itself need not satisfy
-the side conditions; the native model uses \(h'\). The preflight checks
-only \(fg=1\) and reports `sideConditionsVerified=false`.
+the side conditions; the native model uses \(h'\). The retraction test,
+the verification of each chain and the preflight check only \(fg=1\); the
+audit records of the last two report `sideConditionsVerified=false`.
 
 ## Flatness and reflection are conditional, not completeness
 
@@ -173,7 +183,17 @@ globally branched stacking model.
 
 ## Preflight
 
-The internal diagnostic can be run without any nonlinear stacking call:
+The native model verifies each comparison chain \(g(e_j)\) when it first
+uses it (`KOAHSS_ExtensionTransportVerifier`): the chain must fit the term
+budget and the support budget of its degree, counted over the chains
+verified in that degree, and satisfy \(fg(e_j)=e_j\) over \(\mathbf ZG\);
+a refusal is final. The record of these checks is `model.transportAudit`
+(`status="checking"`, `mode="on first use"`, the comparison `selection`,
+and per degree the chains checked so far). The preflight is the complete
+audit: the same verification of every basis element through k+2, of the
+group bar of a backend (`KOAHSS_ExtensionTransferPreflight`) or of any
+comparison record (`KOAHSS_ExtensionTransportPreflight`). It is an
+internal diagnostic and can be run without any nonlinear stacking call:
 
 ```gap
 R := ResolutionFiniteGroup(CyclicGroup(4),8);;

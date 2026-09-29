@@ -90,8 +90,9 @@ A completed result has `invariants`, an abelian invariant list; an
 unresolved one has `status="unresolved"` and a `reason`, never an assumed
 zero. `full.degreeResult` retains the group, the measured relation vectors
 with their witnesses, one joint integer presentation, Smith transformations,
-the cyclic/free basis, the filtration maps and the per-prime summary
-`primes`. Relations with the same nonzero lower image are distinguished
+the cyclic/free basis, the filtration maps, the per-prime summary `primes`
+and, per prime, its generators and primary invariants `primeParts`.
+Relations with the same nonzero lower image are distinguished
 from relations with independent lower images.
 
 `koFull_batch` solves every degree from -1 to `k` with one E6 calculation:
@@ -248,16 +249,22 @@ and transferred to the supplied resolution; their explicit forms are in the
 [formula sheet](doc/README.md#formula-sheet).
 
 `koFull` assembles the E6 layers `A=(k-3,0)`, `B=(k-2,-1)`, `C=(k-1,-2)`
-and `D=(k+1,-4)` of a degree, from D upward, in the native stacking model
-on the supplied resolution: it solves a flat cochain lift of every layer
-generator, measures the stacking power of the lift in the lower group by an
-exact gauge comparison, and reduces the joint integer presentation to Smith
-form. Each relation is measured only through its target layer, the lowest
-layer of the lower presentation with a generator outside `m*H`, and it is
-measured at the prime of its generator's order: two-primary relations in
-the complete model, three-primary ones (degrees five and six) in the
-two-layer three-local model, relations at the primes five and above split
-without a measurement. Degrees -1 and 0 have only the D layer. The
+and `D=(k+1,-4)` of a degree in the native stacking model on the supplied
+resolution. It groups the layer generators by the prime of their order and
+records, prime by prime and from D upward, the relation `m*g=t` of each
+generator `g` of finite order `m` in the lower group `H`. The row `t` is
+zero without a measurement when the relation splits at its prime (the
+primes five and above, and three below degree five), when `H` has no
+generator of that prime and no free generator, or when no lower generator
+lies outside `m*H`. Otherwise a flat cochain lift of `g` is stacked `m`
+times and compared with a product of lower generators by an exact gauge,
+only through the target layer, the lowest layer of the lower presentation
+with a generator outside `m*H`, and in the model of the prime: the
+complete model for two-primary relations, the two-layer three-local model
+for three-primary ones (degrees five and six). The rows of all primes form
+one integer presentation, reduced to Smith form. The stacking model, the
+flat lifts and the comparison chains are built only when a relation is
+measured. Degrees -1 and 0 have only the D layer. The
 degree-six correction of two states with nonzero A layers is refused unless
 `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` is set, because its universal pair
 source nests the deepest contraction; the target-layer measurement makes
@@ -286,8 +293,8 @@ hash matches the formula sources.
 | --- | --- |
 | `FERMIONAHSS_CACHE_DIR` | Directory of the universal-value store (default `$XDG_CACHE_HOME/fermionAHSS` or `~/.cache/fermionAHSS`); empty disables it |
 | `FERMIONAHSS_BUNDLED_VALUES=0` | Ignore the bundled universal values |
-| `FERMIONAHSS_LAYERED_RELATIONS=0` | Measure every relation through the D layer instead of its target layer |
-| `FERMIONAHSS_PRIME_LOCAL=0` | Measure every relation in the complete model, whatever its prime |
+| `FERMIONAHSS_LAYERED_RELATIONS=0` | Measure relations through the D layer instead of their target layer |
+| `FERMIONAHSS_PRIME_LOCAL=0` | Do not localize at the primes: relations of every prime use the complete model and keep every coordinate of their rows |
 | `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` | Evaluate the degree-six correction of two nonzero A layers (hours to days) |
 | `KOAHSS_COCHAIN_CACHE_ENTRIES`, `KOAHSS_CHAIN_CACHE_ENTRIES` | Memo-table bounds of the page worker (default 256; zero disables) |
 

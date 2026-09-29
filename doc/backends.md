@@ -7,9 +7,9 @@ The high-level wrappers `koAHSS(group,s,omega,k[,n])` and
 groups. Their first argument can also be an explicit integral HAP
 resolution: `koAHSS_batch(R,s,omega,k[,n][,options])` preserves R and its
 twist basis. `koFull` and `koFull_batch` accept the same explicit-resolution
-first argument and use native extension searches in degrees 1–6,
-assuming gauge completeness. They have no model-selection option or
-complete-bar certification fallback; see
+first argument and use native extension searches in degrees 1–6 for the
+relations that need a measurement, assuming gauge completeness. They have
+no model-selection option or complete-bar certification fallback; see
 [native extension searches](resolution-extensions.md).
 For an explicitly constructed integral HAP resolution, use:
 
@@ -25,10 +25,12 @@ degree-zero generators are supported when each has augmentation one and
 the contraction is anchored at the first generator at the identity.
 An explicit resolution may model an infinite group if HAP supplies the
 required integral data; the finite-group convenience wrapper does not
-construct such a resolution. Native higher extensions use the group bar when it retracts onto R and
-otherwise the cell comparison of [resolution extensions](resolution-extensions.md),
-for finite and infinite groups alike; they require generators with
-primitive boundaries and the checked strict retraction identity.
+construct such a resolution. Native higher extensions use the group bar
+when a test on R shows that it retracts onto R and otherwise the cell
+comparison of [resolution extensions](resolution-extensions.md), for finite
+and infinite groups alike; they require generators with primitive
+boundaries and the strict retraction identity, which is checked on each
+comparison chain when it is first used.
 
 The factory installs matching primary, secondary, and final tertiary
 conventions. It always compares with the normalized homogeneous group-bar

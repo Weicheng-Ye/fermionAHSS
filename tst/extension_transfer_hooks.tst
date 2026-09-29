@@ -71,15 +71,15 @@ gap> transferRefusedFull:=koFull_batch(transferLargeFull.ahss);;
 gap> Assert(0,transferRefusedFull.degreeResults[5].status="unresolved" and transferRefusedFull.degreeResults[5].pendingLayer="model-setup");
 gap> Assert(0,transferRefusedFull.degreeResults[5].reason="controlled native setup refusal" and transferRefusalCloses=3);
 gap> Assert(0,not IsBound(transferRefusedFull.degreeResults[5].transferAttempt));
-gap> # Degree six requests the native model like degrees 1-5; with at most one
-gap> # nonzero layer a refused model still leaves no relation to measure.
+gap> # A degree with no relation to measure never requests the native model,
+gap> # here in degrees 1-6 of a zero line.
 gap> transferZeroGroup:=AbelianGroup(IsPcpGroup,[]);;
 gap> transferZeroCell:=rec(group:=transferZeroGroup,lift:=x->x);;
 gap> transferZeroAHSS:=rec(kind:="koAHSSResult",computedThrough:=6,maxDegree:=6,pages:=rec(pageNumbers:=[6]),_context:=rec(getCell:=function(page,p,q) return transferZeroCell; end,backend:=rec(cohomologyData:=function(p,q) return rec(represent:=x->[]); end)));;
 gap> transferSixFull:=koFull_batch(transferZeroAHSS);;
-gap> Assert(0,transferRefusalCloses=9);
+gap> Assert(0,transferRefusalCloses=3);
 gap> Assert(0,ForAll(transferSixFull.degreeResults{[3..8]},r->r.status="computed" and r.invariants=[] and r.singleLayer));
-gap> Assert(0,transferSixFull.degreeResults[8].degree=6 and transferSixFull.degreeResults[8].modelSetupReason="controlled native setup refusal");
+gap> Assert(0,ForAll(transferSixFull.degreeResults{[3..8]},r->r.certificateLevel="direct-sum" and not IsBound(r.modelId)));
 gap> KOAHSS_ExtensionTransferredModel:=transferSavedFactory;;
 gap> MakeReadOnlyGlobal("KOAHSS_ExtensionTransferredModel");
 gap> KOAHSS_ExtensionBarModel:=transferSavedBarFactory;;

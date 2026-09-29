@@ -247,10 +247,10 @@ The E6 layers of degree \(j\) are
 A_j=E_6^{j-3,0},\qquad B_j=E_6^{j-2,-1},\qquad C_j=E_6^{j-1,-2},\qquad D_j=E_6^{j+1,-4},
 \]
 
-assembled from D upward. Every generator \(q\) of order \(m\) of the next
-layer is represented by a flat lift \(\widetilde q\), its power is measured
-in the lower group \(H\), \(m\widetilde q=t\in H\), and the group is the
-cokernel of the presentation
+assembled from D upward. A generator \(q\) of order \(m\) of the next layer
+has the relation \(m\widetilde q=t\) in the lower group \(H\), measured on
+the power of a flat lift \(\widetilde q\), and the group is the cokernel of
+the presentation
 
 \[
 R=\begin{pmatrix}R_H&0\\-T&\operatorname{diag}(m_i)\end{pmatrix}.
@@ -260,12 +260,24 @@ Only the class of \(t\) in \(\operatorname{Ext}(\mathbf Z/m,H)=H/mH\)
 matters: a lower generator \(e\notin mH\) is free for \(q\), and the
 relation is measured only through its **target layer**, the lowest layer
 with a free generator; the components below it are recorded as zero with
-the certificate that exhibits them as multiples ([extensions.md](extensions.md)).
+the certificate that exhibits them as multiples, and a relation without a
+free lower generator is \(t=0\), with no lift and no measurement
+([extensions.md](extensions.md)).
 
 ### Localization at the primes
 
-The layer generators have prime-power order, so each relation belongs to
-one prime and is measured in the model of that prime:
+The layer generators have prime-power or infinite order, and the binary
+layers B and C are two-groups, so a relation of an odd prime belongs to A.
+The generators are grouped by prime when the layers are read, and the
+relations of each prime are recorded from D upward; a free generator is a
+lower generator of every prime. A row keeps only its coordinates on the
+generators of its prime and the free generators: the ones it drops lie on
+D generators of order prime to \(m\), which vanish after localization at
+the prime (a relation of an odd prime has no B or C coordinate), so the
+rows of all primes present the group. A relation whose lower group has no
+generator of its prime and no free generator is \(t=0\) without a
+measurement, since then \(mH=H\). Each other relation follows the model of
+its prime:
 
 - at \(p\ge5\) the rows `q=0` and `q=-4` lie in different Adams summands of
   `ko`; the relation is \(m\widetilde q=0\) without a measurement;

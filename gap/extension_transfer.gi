@@ -16,11 +16,11 @@
 # psi_j(x) = pi_j(x) h(e_j), pi_j(boundary e_j) = 1. Vertices are lists
 # [group element, type]; chains and conventions match KOAHSS_NaturalBarTransport.
 BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
-    local identity,length,m0,typeData,privateOf,split,chains,keys,M,snf,X,Nplus,i,
+    local identity,length,m0,typeData,privateOf,split,built,ensure,shiftOf,
         coordinates,liftOf,globalContraction,eltsIndex,synced,
         sync,index,reduceR,reduceBar,actR,actBar,degenerate,anchor,key,hChain,
         boundaryChain,functional,prepare,contraction,fCache,gCache,hCache,f,g,homotopy,
-        character,vertexCharacter,characterCache,base,n,j,total,result,failure;
+        character,vertexCharacter,characterCache,base,n,j,coefficients,result;
     identity:=One(R!.group);
     length:=ValueGlobal("EvaluateProperty")(R,"length");
     if not IsInt(length) or length<maxDegree then
@@ -119,35 +119,48 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         return reduceR(answer);
     end;
     # typeData[t]=[degree, generator]: degree zero for the vertex orbits of
-    # R0, positive for the private vertices of a non-split degree.
-    typeData:=List([1..m0],j->[0,j]); privateOf:=[]; split:=[];
-    for n in [1..maxDegree] do
-        chains:=List([1..R!.dimension(n)],j->boundaryChain(n,[[j,identity,1]]));
-        keys:=Set(Concatenation(List(chains,c->List(c,t->t{[1,2]}))));
-        X:=fail;
-        if IsEmpty(chains) then X:=[];
-        elif not IsEmpty(keys) then
-            M:=List(chains,c->List(keys,k0->Sum(Filtered(c,t->t{[1,2]}=k0),t->t[3])));
-            snf:=SmithNormalFormIntegerMatTransforms(M);
-            if snf.rank=Length(M) and ForAll([1..snf.rank],i->AbsInt(snf.normal[i][i])=1) then
-                Nplus:=NullMat(Length(keys),Length(M));
-                for i in [1..snf.rank] do Nplus[i][i]:=snf.normal[i][i]; od;
-                X:=snf.coltrans*Nplus*snf.rowtrans;
-                if M*X<>IdentityMat(Length(M)) then Error("cell transport right inverse failed"); fi;
+    # R0, positive for the private vertices of a non-split degree. A degree is
+    # built when first used, after every lower degree, so the type indices,
+    # chains and values are those of building all degrees at once.
+    typeData:=List([1..m0],j->[0,j]); privateOf:=[]; split:=[]; built:=0;
+    ensure:=function(degree)
+        local n,chains,keys,M,snf,X,Nplus,i,j;
+        if degree>maxDegree then Error("cell transport degree exceeds its capacity"); fi;
+        while built<degree do
+            n:=built+1;
+            chains:=List([1..R!.dimension(n)],j->boundaryChain(n,[[j,identity,1]]));
+            keys:=Set(Concatenation(List(chains,c->List(c,t->t{[1,2]}))));
+            X:=fail;
+            if IsEmpty(chains) then X:=[];
+            elif not IsEmpty(keys) then
+                M:=List(chains,c->List(keys,k0->Sum(Filtered(c,t->t{[1,2]}=k0),t->t[3])));
+                snf:=SmithNormalFormIntegerMatTransforms(M);
+                if snf.rank=Length(M) and ForAll([1..snf.rank],i->AbsInt(snf.normal[i][i])=1) then
+                    Nplus:=NullMat(Length(keys),Length(M));
+                    for i in [1..snf.rank] do Nplus[i][i]:=snf.normal[i][i]; od;
+                    X:=snf.coltrans*Nplus*snf.rowtrans;
+                    if M*X<>IdentityMat(Length(M)) then Error("cell transport right inverse failed"); fi;
+                fi;
             fi;
+            if X<>fail then
+                split[n]:=rec(keys:=keys,inverse:=X,lift:=[],chains:=chains,shift:=[]);
+            else
+                privateOf[n]:=[];
+                for j in [1..R!.dimension(n)] do
+                    Add(typeData,[n,j]); privateOf[n][j]:=Length(typeData);
+                od;
+            fi;
+            built:=n;
+        od;
+    end;
+    # c_j = e_j - h(boundary e_j) = boundary h(e_j).
+    shiftOf:=function(n,j)
+        if not IsBound(split[n].shift[j]) then
+            split[n].shift[j]:=reduceR(Concatenation([[j,identity,1]],
+                List(hChain(n-1,split[n].chains[j]),t->[t[1],t[2],-t[3]])));
         fi;
-        if X<>fail then
-            # c_j = e_j - h(boundary e_j) = boundary h(e_j).
-            split[n]:=rec(keys:=keys,inverse:=X,lift:=[],
-                shift:=List([1..Length(chains)],j->reduceR(Concatenation([[j,identity,1]],
-                    List(hChain(n-1,chains[j]),t->[t[1],t[2],-t[3]])))));
-        else
-            privateOf[n]:=[];
-            for j in [1..R!.dimension(n)] do
-                Add(typeData,[n,j]); privateOf[n][j]:=Length(typeData);
-            od;
-        fi;
-    od;
+        return split[n].shift[j];
+    end;
     coordinates:=function(data,chain)
         local vector,t,i;
         vector:=List(data.keys,k0->0);
@@ -167,12 +180,13 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
     # K on an R chain of degree n-1, as an R chain of degree n.
     globalContraction:=function(n,chain)
         local answer,v,j;
+        ensure(n);
         answer:=hChain(n-1,chain);
         if IsBound(split[n]) then
             v:=coordinates(split[n],chain);
             for j in [1..Length(v)] do
                 if v[j]<>0 then
-                    Append(answer,List(split[n].shift[j],t->[t[1],t[2],v[j]*t[3]]));
+                    Append(answer,List(shiftOf(n,j),t->[t[1],t[2],v[j]*t[3]]));
                 fi;
             od;
         fi;
@@ -273,6 +287,7 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         if not IsBound(gCache[n+1][j]) then
             if n=0 then answer:=[[1,[[identity,j]]]];
             else
+                ensure(n);
                 rhs:=[];
                 for t in R!.boundary(n,j) do
                     Append(rhs,actBar(g(n-1,AbsInt(t[1])),R!.elts[t[2]],SignInt(t[1])));
@@ -335,30 +350,135 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         character:=character,vertexCharacter:=vertexCharacter,
         normalizeSimplex:=anchor,actVertex:=function(element,v) return [element*v[1],v[2]]; end,
         vertexGroup:=v->v[1],baseVertex:=base,
-        convention:="normalized-homogeneous-bar-local-cochains",
-        comparison:="cells",vertexTypes:=Length(typeData));
+        convention:="normalized-homogeneous-bar-local-cochains",comparison:="cells");
     # Refuse up front if some generator needs a private contraction that
     # does not exist; later requests would otherwise fail during a product.
+    # The contraction is missing exactly for a boundary that is zero or whose
+    # coefficients have gcd other than 1, and such a boundary has no right
+    # inverse, so its degree is private: no degree needs to be built here.
     for n in [1..maxDegree] do
-        if IsBound(privateOf[n]) then
-            for j in [1..R!.dimension(n)] do
-                failure:=prepare(privateOf[n][j]);
-                if failure.status<>"computed" then
-                    return rec(status:="unresolved",code:="non-primitive-boundary",
-                        reason:=failure.reason);
-                fi;
-            od;
-        fi;
+        for j in [1..R!.dimension(n)] do
+            coefficients:=List(boundaryChain(n,[[j,identity,1]]),t->t[3]);
+            if IsEmpty(coefficients) or Gcd(coefficients)<>1 then
+                return rec(status:="unresolved",code:="non-primitive-boundary",
+                    reason:=Concatenation("the boundary of resolution generator ",String(j),
+                        " in degree ",String(n)," is not primitive"));
+            fi;
+        od;
     od;
-    result.privateDegrees:=Filtered([1..maxDegree],n->IsBound(privateOf[n]));
     return result;
 end);
 
-# The same audit for any comparison record (group bar or cells).
+# The sparse comparison audited one resolution basis element at a time, for
+# any comparison record (group bar or cells). verify(n,j) returns the chain
+# g(e_j) of the basis element j of R_n (0<=n<=k+2) once its g and f terms fit
+# the term budget, its simplices fit the support budget of degree n (counted
+# over the union of the chains verified in that degree) and f g(e_j)=e_j.
+# Otherwise it returns the refusal record, which is final: every later call
+# returns it. The audit counts only the basis elements verified so far.
+BindGlobal("KOAHSS_ExtensionTransportVerifier",function(transport,k,limits)
+    local R,unit,audit,verified,supports,refusal,refuse,eltsIndex,synced,sync,position,verify;
+    R:=transport.resolution; unit:=One(R!.group);
+    audit:=rec(status:="unresolved",kind:="transfer-preflight",packageDegree:=k,
+        checkedThrough:=-1,requestedThrough:=k+2,transferReady:=false,
+        chainRetractionVerified:=false,sideConditionsVerified:=false,
+        nonlinearIdentitiesVerified:=false,limits:=limits,
+        degrees:=List([0..k+2],n->rec(degree:=n,dimension:=R!.dimension(n),uniqueSupport:=0,
+            gTerms:=0,comparisonTerms:=0,basesChecked:=0)),
+        gTerms:=0,comparisonTerms:=0,processedTerms:=0,comparison:="group-bar");
+    if IsBound(transport.comparison) then audit.comparison:=transport.comparison; fi;
+    verified:=List([0..k+2],n->[]); supports:=List([0..k+2],n->NewDictionary([],true));
+    refusal:=fail;
+    refuse:=function(code,reason)
+        audit.status:="unresolved"; audit.code:=code; audit.reason:=reason;
+        refusal:=rec(status:="unresolved",code:=code,reason:=reason,failure:=audit.failure);
+        return refusal;
+    end;
+    # The first position in R!.elts, as Position returns it; the contraction
+    # of R may append elements.
+    eltsIndex:=NewDictionary(unit,true); synced:=0;
+    sync:=function()
+        while synced<Length(R!.elts) do
+            synced:=synced+1;
+            if LookupDictionary(eltsIndex,R!.elts[synced])=fail then
+                AddDictionary(eltsIndex,R!.elts[synced],synced);
+            fi;
+        od;
+    end;
+    position:=function(element) sync(); return LookupDictionary(eltsIndex,element); end;
+    verify:=function(n,j)
+        local degreeAudit,chain,coefficients,keys,term,simplex,lifted,entry,p,key,image,expected;
+        if refusal<>fail then return refusal; fi;
+        if not IsInt(n) or n<0 or n>k+2 or not IsInt(j) or j<1 or j>R!.dimension(n) then
+            Error("extension transfer verification outside the audited resolution degrees");
+        fi;
+        if IsBound(verified[n+1][j]) then return transport.g(n,j); fi;
+        degreeAudit:=audit.degrees[n+1];
+        # The comparison constructs a chain before its size is available.
+        # These limits bound accepted/processed support, not construction
+        # time or the peak memory of a single pre-existing transport call.
+        chain:=transport.g(n,j);
+        if audit.processedTerms+Length(chain)>limits.maxTerms then
+            audit.failure:=rec(degree:=n,basis:=j,stage:="g");
+            return refuse("term-budget","sparse comparison exceeds the term budget");
+        fi;
+        audit.processedTerms:=audit.processedTerms+Length(chain);
+        audit.gTerms:=audit.gTerms+Length(chain);
+        degreeAudit.gTerms:=degreeAudit.gTerms+Length(chain);
+        coefficients:=NewDictionary([],true); keys:=[];
+        for term in chain do
+            simplex:=transport.normalizeSimplex(term[2]);
+            if LookupDictionary(supports[n+1],simplex)=fail then
+                if degreeAudit.uniqueSupport>=limits.maxSupport then
+                    audit.failure:=rec(degree:=n,basis:=j,stage:="support");
+                    return refuse("support-budget","sparse comparison exceeds the per-degree support budget");
+                fi;
+                AddDictionary(supports[n+1],Immutable(simplex),true);
+                degreeAudit.uniqueSupport:=degreeAudit.uniqueSupport+1;
+            fi;
+            # f accepts the original homogeneous simplex and therefore
+            # retains its group action. Normalization is only for counting.
+            lifted:=transport.f(term[2]);
+            if audit.processedTerms+Length(lifted)>limits.maxTerms then
+                audit.failure:=rec(degree:=n,basis:=j,stage:="f");
+                return refuse("term-budget","sparse comparison exceeds the term budget");
+            fi;
+            audit.processedTerms:=audit.processedTerms+Length(lifted);
+            audit.comparisonTerms:=audit.comparisonTerms+Length(lifted);
+            degreeAudit.comparisonTerms:=degreeAudit.comparisonTerms+Length(lifted);
+            for entry in lifted do
+                p:=position(entry[2]);
+                if p=fail then
+                    Error("bar comparison returned an unindexed resolution group element");
+                fi;
+                key:=[entry[1],p];
+                image:=LookupDictionary(coefficients,key);
+                if image=fail then image:=0; Add(keys,key); fi;
+                AddDictionary(coefficients,key,image+term[1]*entry[3]);
+            od;
+        od;
+        Sort(keys);
+        image:=List(Filtered(keys,key->LookupDictionary(coefficients,key)<>0),
+            key->[key[1],key[2],LookupDictionary(coefficients,key)]);
+        expected:=[[j,position(unit),1]];
+        if image<>expected then
+            audit.failure:=rec(degree:=n,basis:=j,image:=image,expected:=expected,
+                coordinateConvention:="[basis,R.elts-index,integer-coefficient]");
+            return refuse("chain-retraction-failed",
+                "f composed with g is not the identity on this integral group-ring basis");
+        fi;
+        verified[n+1][j]:=true;
+        degreeAudit.basesChecked:=degreeAudit.basesChecked+1;
+        return chain;
+    end;
+    return rec(verify:=verify,audit:=audit);
+end);
+
+# The complete audit of a comparison record through degree k+2, every basis
+# element in turn. The extension model itself verifies a basis element only
+# when it first uses its chain (KOAHSS_ExtensionTransportVerifier).
 BindGlobal("KOAHSS_ExtensionTransportPreflight",function(arg)
-    local k,limits,name,audit,refuse,transport,R,length,unit,n,j,
-        degreeAudit,support,chain,term,simplex,image,lifted,entry,key,position,
-        coefficients,keys,expected;
+    local k,limits,name,audit,refuse,transport,R,length,verifier,n,j;
     transport:=arg[1]; k:=arg[2];
     if not IsInt(k) or not k in [1..6] then
         Error("extension transfer preflight supports package degrees 1..6");
@@ -402,72 +522,52 @@ BindGlobal("KOAHSS_ExtensionTransportPreflight",function(arg)
         return refuse("resolution-length",
             "preflight needs degrees through k+2 plus one spare HAP contraction degree");
     fi;
-    unit:=One(R!.group);
+    verifier:=KOAHSS_ExtensionTransportVerifier(transport,k,limits);
+    audit:=verifier.audit;
     for n in [0..k+2] do
-        degreeAudit:=rec(degree:=n,dimension:=R!.dimension(n),uniqueSupport:=0,
-            gTerms:=0,comparisonTerms:=0,basesChecked:=0);
-        Add(audit.degrees,degreeAudit); support:=NewDictionary([],true);
-        for j in [1..degreeAudit.dimension] do
-            # The comparison constructs a chain before its size is available.
-            # These limits bound accepted/processed support, not construction
-            # time or the peak memory of a single pre-existing transport call.
-            chain:=transport.g(n,j);
-            if audit.processedTerms+Length(chain)>limits.maxTerms then
-                audit.failure:=rec(degree:=n,basis:=j,stage:="g");
-                return refuse("term-budget","sparse comparison exceeds the term budget");
-            fi;
-            audit.processedTerms:=audit.processedTerms+Length(chain);
-            audit.gTerms:=audit.gTerms+Length(chain);
-            degreeAudit.gTerms:=degreeAudit.gTerms+Length(chain);
-            coefficients:=NewDictionary([],true); keys:=[];
-            for term in chain do
-                simplex:=transport.normalizeSimplex(term[2]);
-                if LookupDictionary(support,simplex)=fail then
-                    if degreeAudit.uniqueSupport>=limits.maxSupport then
-                        audit.failure:=rec(degree:=n,basis:=j,stage:="support");
-                        return refuse("support-budget","sparse comparison exceeds the per-degree support budget");
-                    fi;
-                    AddDictionary(support,Immutable(simplex),true);
-                    degreeAudit.uniqueSupport:=degreeAudit.uniqueSupport+1;
-                fi;
-                # f accepts the original homogeneous simplex and therefore
-                # retains its group action. Normalization is only for counting.
-                lifted:=transport.f(term[2]);
-                if audit.processedTerms+Length(lifted)>limits.maxTerms then
-                    audit.failure:=rec(degree:=n,basis:=j,stage:="f");
-                    return refuse("term-budget","sparse comparison exceeds the term budget");
-                fi;
-                audit.processedTerms:=audit.processedTerms+Length(lifted);
-                audit.comparisonTerms:=audit.comparisonTerms+Length(lifted);
-                degreeAudit.comparisonTerms:=degreeAudit.comparisonTerms+Length(lifted);
-                for entry in lifted do
-                    position:=Position(R!.elts,entry[2]);
-                    if position=fail then
-                        Error("bar comparison returned an unindexed resolution group element");
-                    fi;
-                    key:=[entry[1],position];
-                    image:=LookupDictionary(coefficients,key);
-                    if image=fail then image:=0; Add(keys,key); fi;
-                    AddDictionary(coefficients,key,image+term[1]*entry[3]);
-                od;
-            od;
-            Sort(keys);
-            image:=List(Filtered(keys,key->LookupDictionary(coefficients,key)<>0),
-                key->[key[1],key[2],LookupDictionary(coefficients,key)]);
-            expected:=[[j,Position(R!.elts,unit),1]];
-            if image<>expected then
-                audit.failure:=rec(degree:=n,basis:=j,image:=image,expected:=expected,
-                    coordinateConvention:="[basis,R.elts-index,integer-coefficient]");
-                return refuse("chain-retraction-failed",
-                    "f composed with g is not the identity on this integral group-ring basis");
-            fi;
-            degreeAudit.basesChecked:=degreeAudit.basesChecked+1;
+        for j in [1..R!.dimension(n)] do
+            if IsRecord(verifier.verify(n,j)) then return audit; fi;
         od;
         audit.checkedThrough:=n;
     od;
     audit.status:="checked"; audit.chainRetractionVerified:=true;
     audit.reason:="the bounded group-ring retraction audit passed; nonlinear transfer needs separate identities and certificates";
     return audit;
+end);
+
+# Whether the fixed group-bar comparison is a retraction through degree
+# maxDegree, i.e. f g(e_j)=e_j for every basis element, decided on R alone.
+# g(e_j) is the cone at the identity over the cycle g(boundary e_j), and f of
+# such a cone over a normalized cycle c is h(f c). Hence f g(e_j)=h(boundary
+# e_j) once f g is the identity below degree n, and in degree 0 f g sends
+# every generator to the first one. The first failure is the one that the
+# audit of all chains (KOAHSS_ExtensionTransportPreflight) reports.
+BindGlobal("KOAHSS_ExtensionGroupBarRetraction",function(R,maxDegree)
+    local unit,n,j,image,t,c,sorted,answer,term;
+    unit:=One(R!.group);
+    if R!.dimension(0)<>1 then return rec(retracts:=false,degree:=0,basis:=2); fi;
+    for n in [1..maxDegree] do
+        for j in [1..R!.dimension(n)] do
+            image:=[];
+            for t in R!.boundary(n,j) do
+                for c in R!.homotopy(n-1,[AbsInt(t[1]),t[2]]) do
+                    Add(image,[AbsInt(c[1]),R!.elts[c[2]],SignInt(t[1])*SignInt(c[1])]);
+                od;
+            od;
+            sorted:=ShallowCopy(image);
+            Sort(sorted,function(a,b) return a{[1,2]}<b{[1,2]}; end);
+            answer:=[];
+            for term in sorted do
+                if not IsEmpty(answer) and Last(answer){[1,2]}=term{[1,2]} then
+                    Last(answer)[3]:=Last(answer)[3]+term[3];
+                else Add(answer,ShallowCopy(term)); fi;
+            od;
+            if Filtered(answer,term->term[3]<>0)<>[[j,unit,1]] then
+                return rec(retracts:=false,degree:=n,basis:=j);
+            fi;
+        od;
+    od;
+    return rec(retracts:=true,degree:=maxDegree);
 end);
 
 BindGlobal("KOAHSS_ExtensionTransferPreflight",function(arg)
@@ -497,28 +597,60 @@ BindGlobal("KOAHSS_EXTENSION_TRANSPORT_OVERRIDE",rec(cells:=false,labels:=false,
     maxSupport:=8192,maxTerms:=2000000));
 
 BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
-    local audit,tr,R,group,elements,unit,engine,maximum,used,failure,
-        reduce,append,act,projectComplement,rawHomotopy,boundary,u,normalizedH,
-        cache,order,retained,encode,decode,terms,override,cells,actVertex,
+    local bar,override,limits,length,selection,cells,verifier,audit,tr,R,group,elements,unit,
+        engine,maximum,used,failure,reduce,append,act,projectComplement,rawHomotopy,boundary,u,
+        normalizedH,cache,order,retained,encode,decode,terms,actVertex,
         vertexCharacter,vertexGroup,vertexList,labels,label,tableMode,i;
-    override:=KOAHSS_EXTENSION_TRANSPORT_OVERRIDE;
-    audit:=KOAHSS_ExtensionTransferPreflight(backend,k,
-        rec(maxSupport:=override.maxSupport,maxTerms:=override.maxTerms));
-    # The group bar retracts onto R only for one degree-zero generator and a
-    # normalized contraction. Otherwise compare with the cell complex, on
-    # which f g = 1 holds by construction.
-    if (audit.status<>"checked" and IsBound(audit.code) and audit.code="chain-retraction-failed")
-       or (override.cells and audit.status="checked") then
-        cells:=KOAHSS_ExtensionCellTransport(backend.naturalBar().resolution,k+2);
-        if cells.status<>"computed" then return cells; fi;
-        audit:=KOAHSS_ExtensionTransportPreflight(cells,k,
-            rec(maxSupport:=override.maxSupport,maxTerms:=override.maxTerms));
-        tr:=cells;
-    else
-        tr:=backend.naturalBar();
+    if not IsInt(k) or not k in [1..6] then
+        Error("extension transfer preflight supports package degrees 1..6");
     fi;
-    if audit.status<>"checked" then return audit; fi;
-    R:=tr.resolution; group:=R!.group; unit:=One(group);
+    override:=KOAHSS_EXTENSION_TRANSPORT_OVERRIDE;
+    limits:=rec(maxSupport:=override.maxSupport,maxTerms:=override.maxTerms);
+    if not IsRecord(backend) or not IsBound(backend.naturalBar) or
+       not IsFunction(backend.naturalBar) then
+        return rec(status:="unresolved",kind:="transfer-preflight",code:="missing-bar-transport",
+            reason:="transfer preflight requires the fixed normalized group-bar comparison");
+    fi;
+    bar:=backend.naturalBar();
+    if not IsRecord(bar) or not IsBound(bar.resolution) or
+       not IsBound(bar.convention) or
+       bar.convention<>"normalized-homogeneous-bar-local-cochains" or
+       not IsBound(bar.f) or not IsFunction(bar.f) or
+       not IsBound(bar.g) or not IsFunction(bar.g) or
+       not IsBound(bar.normalizeSimplex) or not IsFunction(bar.normalizeSimplex) then
+        return rec(status:="unresolved",kind:="transfer-preflight",code:="missing-bar-transport",
+            reason:="transfer preflight requires the fixed normalized group-bar comparison");
+    fi;
+    R:=bar.resolution;
+    length:=ValueGlobal("EvaluateProperty")(R,"length");
+    # HAP may leave the last contraction level incomplete even when the
+    # corresponding boundary module is present. Keep one spare degree.
+    if not IsInt(length) or length<k+3 then
+        return rec(status:="unresolved",kind:="transfer-preflight",code:="resolution-length",
+            reason:="preflight needs degrees through k+2 plus one spare HAP contraction degree",
+            availableThrough:=length);
+    fi;
+    # The group bar retracts onto R only for one degree-zero generator and a
+    # normalized contraction, which is decided on R without building any
+    # chain. Otherwise compare with the cell complex, on which f g = 1 holds
+    # by construction.
+    if override.cells then selection:=rec(retracts:=false,method:="override");
+    else
+        selection:=KOAHSS_ExtensionGroupBarRetraction(R,k+2);
+        selection.method:="retraction test on R";
+    fi;
+    if selection.retracts then tr:=bar;
+    else
+        cells:=KOAHSS_ExtensionCellTransport(R,k+2);
+        if cells.status<>"computed" then return cells; fi;
+        tr:=cells;
+    fi;
+    # A chain g(e_j) is built, checked against the budgets and checked for
+    # f g(e_j)=e_j when it is first used, and kept.
+    verifier:=KOAHSS_ExtensionTransportVerifier(tr,k,limits);
+    audit:=verifier.audit; audit.status:="checking"; audit.mode:="on first use";
+    audit.selection:=selection;
+    group:=R!.group; unit:=One(group);
     actVertex:=function(element,v) return element*v; end;
     vertexCharacter:=tr.character; vertexGroup:=v->v;
     if IsBound(tr.actVertex) then actVertex:=tr.actVertex; fi;
@@ -550,7 +682,7 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
     end;
     engine:=rec(status:="computed",audit:=audit,elements:=vertexList,tableMode:=tableMode,
         comparison:=audit.comparison,vertexLabel:=label,
-        maxDegree:=k+2,stats:=rec(hRequests:=0,hCacheHits:=0,maxExpansionTerms:=0));
+        maxDegree:=k+2,stats:=rec(hRequests:=0,hCacheHits:=0,maxExpansionTerms:=0,gRequests:=0));
     maximum:=override.maxTerms; cache:=NewDictionary("",true); order:=[]; retained:=0;
     used:=0; failure:=fail;
     append:=function(target,source,coefficient)
@@ -582,15 +714,18 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
         return List(chain,t->[t[1],List(t[2],v->actVertex(g,v))]);
     end;
     projectComplement:=function(chain)
-        local answer,t,v;
+        local answer,t,v,image;
         if chain=fail then return fail; fi;
         answer:=[];
         if not append(answer,chain,1) then return fail; fi;
         for t in chain do
             for v in tr.f(t[2]) do
-                if not append(answer,act(tr.g(Length(t[2])-1,v[1]),v[2]),-t[1]*v[3]) then
+                image:=verifier.verify(Length(t[2])-1,v[1]);
+                if IsRecord(image) then
+                    failure:=rec(status:="unresolved",code:=image.code,reason:=image.reason);
                     return fail;
                 fi;
+                if not append(answer,act(image,v[2]),-t[1]*v[3]) then return fail; fi;
             od;
         od;
         return reduce(answer);
@@ -679,13 +814,27 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
         return rec(status:="computed",terms:=answer);
     end;
     engine.terms:=terms;
+    # The comparison chain of one basis element (basis is 0-based), verified
+    # and encoded when the worker first needs it.
+    engine.chain:=function(n,basis)
+        local chain;
+        if not IsInt(n) or n<0 or n>engine.maxDegree or not IsInt(basis)
+           or basis<0 or basis>=R!.dimension(n) then
+            Error("comparison chain request outside the resolution basis");
+        fi;
+        engine.stats.gRequests:=engine.stats.gRequests+1;
+        chain:=verifier.verify(n,basis+1);
+        if IsRecord(chain) then
+            return rec(status:="unresolved",code:=chain.code,reason:=chain.reason);
+        fi;
+        return rec(status:="computed",terms:=encode(chain));
+    end;
     engine.homotopy:=function(simplex)
         local answer;
         answer:=normalizedH(tr.normalizeSimplex(simplex));
         if answer=fail then return fail; fi;
         return act(answer,vertexGroup(simplex[1]));
     end;
-    engine.g:=List([0..k+2],n->List([1..R!.dimension(n)],j->encode(tr.g(n,j))));
     engine.normalization:="q h q boundary q h q, q=1-gf";
     return engine;
 end);
@@ -756,7 +905,7 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         maxDegree:=k+2,ranks:=List([0..k+2],model.dimension),
         ordinary:=List([0..k+1],n->model.matrix(n,false)),
         signed:=List([0..k+1],n->model.matrix(n,true)),
-        s:=model.s,omega:=model.omega,g:=transport.g);
+        s:=model.s,omega:=model.omega,gMode:="lazy");
     if transport.tableMode then
         setup.vertexMode:="table"; setup.elements:=Length(elements);
         setup.multiplication:=List(elements,g->List(elements,h->transport.vertexLabel(g*h)));
@@ -779,10 +928,20 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
             fi;
             answer:=JsonStringToGap(line);
             if IsBound(answer.operation) and answer.operation="transport" then
-                if not IsBound(answer.vertices) or not IsBound(answer.kind) then
+                if not IsBound(answer.kind) then
                     model.close(); Error("malformed sparse transport callback");
                 fi;
-                response:=transport.terms(answer.kind,answer.vertices);
+                if answer.kind="g" then
+                    if not IsBound(answer.degree) or not IsBound(answer.basis) then
+                        model.close(); Error("malformed sparse transport callback");
+                    fi;
+                    response:=transport.chain(answer.degree,answer.basis);
+                else
+                    if not IsBound(answer.vertices) then
+                        model.close(); Error("malformed sparse transport callback");
+                    fi;
+                    response:=transport.terms(answer.kind,answer.vertices);
+                fi;
                 WriteLine(stream,GapToJsonString(response));
             else return answer; fi;
         od;
@@ -863,7 +1022,7 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         certificate:=rec(certificateLevel:="transfer-R",nativeEqualityVerified:=true,
             gaugeCompletenessAssumed:=true,
             gauge:=StructuralCopy(gauge),canonical:=StructuralCopy(canonical),target:=StructuralCopy(target),
-            comparisonAudit:=transport.audit,homotopyNormalization:=transport.normalization,
+            comparisonAudit:=StructuralCopy(transport.audit),homotopyNormalization:=transport.normalization,
             searchComplete:=false);
         if upto<3 then certificate.comparedLayers:=fields{[1..upto+1]}; fi;
         return certificate;
@@ -915,7 +1074,7 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
             certificate:=rec(certificateLevel:="transfer-R",nativeEqualityVerified:=true,
                 gaugeCompletenessAssumed:=true,localPrime:=prime,
                 gauge:=StructuralCopy(gauge),canonical:=StructuralCopy(canonical),target:=StructuralCopy(target),
-                comparisonAudit:=transport.audit,homotopyNormalization:=transport.normalization,
+                comparisonAudit:=StructuralCopy(transport.audit),homotopyNormalization:=transport.normalization,
                 searchComplete:=false);
             if upto<3 then certificate.comparedLayers:=fields{[1..upto+1]}; fi;
             return certificate;

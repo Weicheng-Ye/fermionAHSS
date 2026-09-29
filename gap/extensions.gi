@@ -223,39 +223,6 @@ BindGlobal("KOAHSS_ExtensionSplitResponse",function(order,prime,lower)
                 "; the relation is ",String(order),"*g=0")));
 end);
 
-# The relation oracle of a degree in which every measured relation splits.
-BindGlobal("KOAHSS_ExtensionSplitOracle",function(k)
-    return function(layer,index,order,lower)
-        local kind;
-        kind:=KOAHSS_ExtensionRelationModel(k,layer.name,order);
-        if kind.model<>"split" then
-            Error("koFull: the split oracle received a relation that needs a stacking model");
-        fi;
-        return KOAHSS_ExtensionSplitResponse(order,kind.prime,lower);
-    end;
-end);
-
-# True when the degree has relations to measure and all of them split, so
-# that no stacking model (and no worker) is needed.
-BindGlobal("KOAHSS_ExtensionRelationsAllSplit",function(layers,k)
-    local name,layer,lowerCount,i,relations;
-    lowerCount:=0; relations:=0;
-    for name in ["D","C","B","A"] do
-        layer:=layers.(name);
-        if IsBound(layer.status) then return false; fi;
-        if lowerCount>0 then
-            for i in [1..Length(layer.orders)] do
-                if layer.orders[i]<>0 then
-                    if KOAHSS_ExtensionRelationModel(k,name,layer.orders[i]).model<>"split" then return false; fi;
-                    relations:=relations+1;
-                fi;
-            od;
-        fi;
-        lowerCount:=lowerCount+Length(layer.orders);
-    od;
-    return relations>0;
-end);
-
 # Per prime: the number of measured relations and the models that measured them.
 BindGlobal("KOAHSS_ExtensionPrimeSummary",function(result)
     local summary,v,w,prime,model,entry;
@@ -274,6 +241,143 @@ BindGlobal("KOAHSS_ExtensionPrimeSummary",function(result)
     return summary;
 end);
 
+# The generators of the resolved layers (those below the first unresolved
+# layer), grouped by the prime of their order, right after the layers are
+# read. Layer generators have prime-power or infinite order. A free generator
+# (order 0) belongs to no prime: it is a lower generator of the relations of
+# every prime, and carries no relation itself.
+BindGlobal("KOAHSS_ExtensionPrimeParts",function(layers)
+    local names,name,orders,free,primes,i,prime,parts,part;
+    names:=[];
+    for name in ["D","C","B","A"] do
+        if IsBound(layers.(name).status) then break; fi;
+        Add(names,name);
+    od;
+    free:=rec(); primes:=[];
+    for name in names do
+        orders:=layers.(name).orders;
+        free.(name):=Filtered([1..Length(orders)],i->orders[i]=0);
+        for i in [1..Length(orders)] do
+            if orders[i]<>0 then
+                prime:=KOAHSS_RelationPrime(orders[i]);
+                if prime=fail then
+                    Error("koFull: an E6 generator order is not a prime power: ",orders[i]);
+                fi;
+                AddSet(primes,prime);
+            fi;
+        od;
+    od;
+    parts:=[];
+    for prime in primes do
+        part:=rec(prime:=prime,generators:=rec());
+        for name in names do
+            orders:=layers.(name).orders;
+            part.generators.(name):=Filtered([1..Length(orders)],
+                i->orders[i]<>0 and KOAHSS_RelationPrime(orders[i])=prime);
+        od;
+        Add(parts,part);
+    od;
+    return rec(names:=names,free:=free,parts:=parts);
+end);
+
+# The relation oracle that returns recorded rows, in the presentation of the
+# lower layers that koAHSSExtensionFromLayers passes to it.
+BindGlobal("KOAHSS_ExtensionReplayOracle",function(rows)
+    return function(layer,index,order,lower)
+        local recorded,response;
+        if not IsBound(rows.(layer.name)[index]) then
+            return rec(status:="unresolved",
+                reason:="the relation was not measured: a relation below it is unresolved");
+        fi;
+        recorded:=rows.(layer.name)[index];
+        if recorded.status<>"computed" then return recorded; fi;
+        if Length(recorded.lowerCoordinates)<>lower.generatorCount then
+            Error("koFull: a recorded relation does not match its lower presentation");
+        fi;
+        response:=ShallowCopy(recorded);
+        response.lowerPresentationId:=lower.presentationId;
+        return response;
+    end;
+end);
+
+# The lower presentation of the layers names (from D upward) with their
+# recorded relation rows.
+BindGlobal("KOAHSS_ExtensionLowerPresentation",function(layers,names,oracle)
+    local input,name,result;
+    input:=rec();
+    for name in names do input.(name):=layers.(name); od;
+    result:=koAHSSExtensionFromLayers(input,oracle);
+    if result.status<>"computed" then
+        Error("koFull: a lower presentation needs every recorded lower relation");
+    fi;
+    return result.lowerModel;
+end);
+
+# The relation rows of a degree, prime by prime (two first) and, for each
+# prime, one generator at a time from D upward. A relation of the prime p is
+# measured only if it does not split and some lower generator has p-power or
+# infinite order: otherwise its row is zero, because the lower group has no
+# p-primary part and no free part, so it lies in m*H for the order m.
+# With prime localization on, a row keeps only the coordinates on
+# generators of its prime and free generators. The other coordinates are on
+# torsion of order prime to m that no kept row refers to (the odd torsion of
+# the rows B, C and A lies in D, below every two-primary relation, and an odd
+# relation belongs to A and has no B or C coordinate), so they vanish after
+# localization at p and the rows of all primes together present the group.
+BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
+    local rows,restrict,failure,replay,part,prime,position,name,below,fullLower,
+        localLower,lower,i,order,kind,response,failed,keep,j,n,o,coordinates;
+    rows:=rec(D:=[],C:=[],B:=[],A:=[]);
+    restrict:=KOAHSS_PrimeLocalizationEnabled();
+    failure:=Length(parts.names)+1;
+    replay:=KOAHSS_ExtensionReplayOracle(rows);
+    for part in parts.parts do
+        prime:=part.prime; failed:=false;
+        for position in [1..Length(parts.names)] do
+            if failed or position>failure then break; fi;
+            name:=parts.names[position]; below:=parts.names{[1..position-1]};
+            fullLower:=Sum(below,n->Length(layers.(n).orders));
+            # Over the zero lower group there is no relation to record.
+            if fullLower=0 or IsEmpty(part.generators.(name)) then continue; fi;
+            keep:=Concatenation(List(below,n->List(layers.(n).orders,
+                o->o=0 or KOAHSS_RelationPrime(o)=prime)));
+            localLower:=Number(keep,x->x);
+            lower:=fail;
+            for i in part.generators.(name) do
+                order:=layers.(name).orders[i];
+                kind:=KOAHSS_ExtensionRelationModel(degree,name,order);
+                if restrict and kind.model<>"split" and localLower=0 then
+                    response:=rec(status:="computed",lowerCoordinates:=List([1..fullLower],j->0),
+                        witness:=rec(kind:="zero-local-lower-group",operation:="xtimes",
+                            power:=order,prime:=prime,model:=kind.model,measuredLayers:=[],
+                            certificate:="the lower group has no generator of this prime and no free generator"));
+                else
+                    if lower=fail then lower:=KOAHSS_ExtensionLowerPresentation(layers,below,replay); fi;
+                    response:=engine.answer(layers.(name),i,order,lower);
+                    if restrict and response.status="computed" and not ForAll(keep,x->x) then
+                        coordinates:=List([1..fullLower],j->0);
+                        for j in [1..fullLower] do
+                            if keep[j] then coordinates[j]:=response.lowerCoordinates[j]; fi;
+                        od;
+                        if coordinates<>response.lowerCoordinates then
+                            response:=ShallowCopy(response);
+                            response.witness:=ShallowCopy(response.witness);
+                            response.witness.fullLowerCoordinates:=response.lowerCoordinates;
+                            response.witness.localizedAt:=prime;
+                            response.lowerCoordinates:=coordinates;
+                        fi;
+                    fi;
+                fi;
+                rows.(name)[i]:=response;
+                if response.status<>"computed" then
+                    failed:=true; failure:=Minimum(failure,position); break;
+                fi;
+            od;
+        od;
+    od;
+    return rows;
+end);
+
 # A detailed koAHSS_batch result computed through E6, with its cochain context.
 BindGlobal("KOAHSS_DetailedE6Context",function(ahss)
     if not IsBound(ahss.kind) or ahss.kind<>"koAHSSResult"
@@ -287,53 +391,42 @@ BindGlobal("KOAHSS_DetailedE6Context",function(ahss)
 end);
 
 # The extension problem of one degree: its E6 layers A (degree-3,0),
-# B (degree-2,-1), C (degree-1,-2) and D (degree+1,-4).
+# B (degree-2,-1), C (degree-1,-2) and D (degree+1,-4). Right after the layers
+# are read, their generators are grouped by prime (KOAHSS_ExtensionPrimeParts);
+# the relations of each prime are recorded from D upward, one generator at a
+# time (KOAHSS_ExtensionPrimeRows), and the rows of all primes are assembled
+# into one presentation. The stacking model, its worker, the flat lifts and
+# the bar transport are built only when a relation is measured.
 BindGlobal("KOAHSS_FullDegree",function(context,degree)
-    local layers, oracle, model, computeDegree, attempt, oldBreak, answer;
-    layers:=fail; model:=fail;
+    local layers,engine,model,computeDegree,attempt,oldBreak,answer;
+    layers:=fail; engine:=fail;
     computeDegree:=function()
-        local candidate;
+        local parts,rows,candidate;
         layers:=KOAHSS_ExtensionLayers(context,degree);
         if degree<1 then
             # Degrees -1 and 0 have the single layer D: no relation is measured.
             return koAHSSExtensionFromLayers(layers,fail);
         fi;
-        # Every relation of the degree splits at its prime: no stacking model.
-        if KOAHSS_PrimeLocalizationEnabled() and KOAHSS_ExtensionRelationsAllSplit(layers,degree) then
-            candidate:=koAHSSExtensionFromLayers(layers,KOAHSS_ExtensionSplitOracle(degree));
-            if candidate.status="computed" then
-                candidate.certificateLevel:="prime-split";
-                candidate.primes:=KOAHSS_ExtensionPrimeSummary(candidate);
+        parts:=KOAHSS_ExtensionPrimeParts(layers);
+        # Degrees 1-6: the native transferred model on R, when needed.
+        engine:=CallFuncList(ValueGlobal("KOAHSS_ExtensionRelationEngine"),
+            [context.backend,degree,layers,function()
+                if not IsBoundGlobal("KOAHSS_ExtensionTransferredModel") then
+                    return rec(status:="unresolved",reason:="the native extension model is unavailable");
+                fi;
+                return CallFuncList(ValueGlobal("KOAHSS_ExtensionTransferredModel"),
+                    [context.backend,degree]);
+            end,rec(layerLimited:=true)]);
+        rows:=KOAHSS_ExtensionPrimeRows(engine,layers,parts,degree);
+        candidate:=koAHSSExtensionFromLayers(layers,KOAHSS_ExtensionReplayOracle(rows));
+        if candidate.status<>"computed" then
+            if IsBound(candidate.pendingRelation) and IsBound(candidate.pendingRelation.code)
+               and candidate.pendingRelation.code="model-setup" then
+                return rec(status:="unresolved",reason:=candidate.reason,pendingLayer:="model-setup");
             fi;
             return candidate;
         fi;
-        # Degrees 1-6: the native transferred model on R.
-        if not IsBoundGlobal("KOAHSS_ExtensionTransferredModel") then
-            return rec(status:="unresolved",reason:="the native extension model is unavailable",
-                pendingLayer:="model-setup");
-        fi;
-        model:=CallFuncList(ValueGlobal("KOAHSS_ExtensionTransferredModel"),
-            [context.backend,degree]);
-        if model.status<>"computed" or not model.supports(degree) then
-            # With at most one nonzero layer there is no extension to
-            # solve: the group is that layer, and no relation is measured.
-            if ForAll(RecNames(layers),name->not IsBound(layers.(name).status)) and
-               Number(RecNames(layers),name->not IsEmpty(layers.(name).orders))<=1 then
-                candidate:=koAHSSExtensionFromLayers(layers,fail);
-                candidate.singleLayer:=true;
-                if IsBound(model.reason) then candidate.modelSetupReason:=model.reason; fi;
-                return candidate;
-            fi;
-            if IsBound(model.reason) then
-                return rec(status:="unresolved",reason:=model.reason,pendingLayer:="model-setup");
-            fi;
-            return rec(status:="unresolved",reason:=
-                "native extension resource budget exceeded in this degree",pendingLayer:="model-setup");
-        fi;
-        oracle:=CallFuncList(ValueGlobal("KOAHSS_ExtensionHigherOracle"),
-            [context.backend,degree,layers,model]);
-        candidate:=koAHSSExtensionFromLayers(layers,oracle);
-        if candidate.status="computed" then
+        if engine.model()<>fail then
             # Gauge completeness is an assumption of this transferred model,
             # as are commutativity and associativity of stacking on gauge
             # classes. No finite multiplication table is audited; the
@@ -341,22 +434,40 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
             candidate.certificateLevel:="transfer-R";
             candidate.gaugeCompletenessAssumed:=true;
             candidate.abelianQuotientAssumed:=true;
-            candidate.primes:=KOAHSS_ExtensionPrimeSummary(candidate);
+        elif ForAny(candidate.extensionVectors,v->IsBound(v.result.witness.model)
+                and v.result.witness.model="split") then
+            candidate.certificateLevel:="prime-split";
+        else
+            # No relation needed a measurement: every row is zero by the
+            # orders of the lower layers or by a divisibility certificate,
+            # and the group is the direct sum of its layers.
+            candidate.certificateLevel:="direct-sum";
+        fi;
+        candidate.primes:=KOAHSS_ExtensionPrimeSummary(candidate);
+        candidate.primeParts:=List(parts.parts,part->rec(prime:=part.prime,
+            generators:=part.generators,invariants:=Filtered(candidate.invariants,
+                x->x<>0 and KOAHSS_RelationPrime(x)=part.prime)));
+        if Number(["D","C","B","A"],name->not IsEmpty(layers.(name).orders))<=1 then
+            candidate.singleLayer:=true;
         fi;
         return candidate;
     end;
     oldBreak:=BreakOnError; BreakOnError:=false;
     attempt:=CALL_WITH_CATCH(computeDegree,[]);
     BreakOnError:=oldBreak;
-    if model<>fail and IsBound(model.close) then model.close(); fi;
+    model:=fail;
+    if engine<>fail then model:=engine.builtModel(); engine.close(); fi;
     if attempt[1] then answer:=attempt[2];
-    elif model<>fail and IsBound(model.lastFailure) and model.lastFailure.status="unresolved" then
+    elif model<>fail and IsRecord(model) and IsBound(model.lastFailure)
+         and model.lastFailure.status="unresolved" then
         answer:=rec(status:="unresolved",reason:=model.lastFailure.reason,pendingLayer:="resource-limit");
     else
         Error("koFull: exact extension calculation failed; the original error is reported above");
     fi;
     answer.degree:=degree; answer.layers:=layers;
-    if model<>fail and IsBound(model.modelId) then answer.modelId:=model.modelId; fi;
+    if engine<>fail and engine.model()<>fail and IsBound(engine.model().modelId) then
+        answer.modelId:=engine.model().modelId;
+    fi;
     return answer;
 end);
 

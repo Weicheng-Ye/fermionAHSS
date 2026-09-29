@@ -12,12 +12,18 @@ gap> Assert(0,KOAHSS_ExtensionRelationModel(5,"A",5).model="split" and KOAHSS_Ex
 gap> Assert(0,KOAHSS_ExtensionRelationModel(5,"A",4).model="complete" and KOAHSS_ExtensionRelationModel(5,"A",0).model="complete");
 gap> Assert(0,KOAHSS_ExtensionRelationModel(5,"D",3).model="complete");
 gap> Assert(0,IsBool(KOAHSS_PrimeLocalizationEnabled()));
-gap> # A degree whose relations all split needs no stacking model.
+gap> # The generators are grouped by prime right after the layers are read;
+gap> # free generators belong to no prime and are lower generators of all.
+gap> splitParts := KOAHSS_ExtensionPrimeParts(rec(D:=rec(orders:=[5,2,0]),C:=rec(orders:=[2]),B:=rec(orders:=[]),A:=rec(orders:=[5,2,4,3,0])));;
+gap> Assert(0,List(splitParts.parts,part->part.prime)=[2,3,5] and splitParts.names=["D","C","B","A"]);
+gap> Assert(0,splitParts.parts[1].generators=rec(D:=[2],C:=[1],B:=[],A:=[2,3]));
+gap> Assert(0,splitParts.parts[3].generators=rec(D:=[1],C:=[],B:=[],A:=[1]));
+gap> Assert(0,splitParts.free=rec(D:=[3],C:=[],B:=[],A:=[5]));
+gap> Assert(0,KOAHSS_ExtensionPrimeParts(rec(D:=rec(orders:=[2]),C:=rec(status:="unresolved"),B:=rec(orders:=[2]),A:=rec(orders:=[3]))).names=["D"]);
+gap> # A relation that splits at its prime needs no stacking model.
 gap> splitLayers := rec(A:=[5],D:=[5]);;
-gap> Assert(0,KOAHSS_ExtensionRelationsAllSplit(rec(D:=rec(orders:=[5]),C:=rec(orders:=[]),B:=rec(orders:=[]),A:=rec(orders:=[5])),5));
-gap> Assert(0,not KOAHSS_ExtensionRelationsAllSplit(rec(D:=rec(orders:=[5]),C:=rec(orders:=[]),B:=rec(orders:=[]),A:=rec(orders:=[5,2])),5));
-gap> Assert(0,not KOAHSS_ExtensionRelationsAllSplit(rec(D:=rec(orders:=[5]),C:=rec(orders:=[]),B:=rec(orders:=[]),A:=rec(orders:=[])),5));
-gap> splitResult := koAHSSExtensionFromLayers(splitLayers,KOAHSS_ExtensionSplitOracle(5));;
+gap> splitResult := koAHSSExtensionFromLayers(splitLayers,function(layer,index,order,lower)
+>     return KOAHSS_ExtensionSplitResponse(order,5,lower); end);;
 gap> Assert(0,splitResult.invariants=[5,5] and Last(splitResult.extensionVectors).result.witness.model="split");
 gap> Assert(0,KOAHSS_ExtensionPrimeSummary(splitResult)=[rec(prime:=5,relations:=1,models:=["split"])]);
 gap> # Z/3, untwisted, degree five: A=Z/3 at (2,0) and D=Z/3 at (6,-4); the
@@ -47,3 +53,22 @@ gap> c2 := koFull(CyclicGroup(2),0,0,5);;
 gap> Assert(0,SortedList(z6.invariants)=SortedList(Concatenation(c2.invariants,[9])));
 gap> Assert(0,ForAll(measured(z6),v->v.result.witness.model in ["complete","three-local"]));
 gap> Assert(0,First(measured(z6),v->v.order=3).result.witness.model="three-local");
+gap> Assert(0,List(z6.degreeResult.primeParts,part->part.prime)=[3]);
+gap> Assert(0,z6.degreeResult.primeParts[1].invariants=[9]);
+gap> # A row keeps only its coordinates on the generators of its prime and the
+gap> # free generators; here every measurement returns all ones.
+gap> rowLayers := rec(D:=rec(orders:=[2,3]),C:=rec(orders:=[2]),B:=rec(orders:=[]),A:=rec(orders:=[3,0]));;
+gap> rowEngine := rec(answer:=function(layer,index,order,lower)
+>     return rec(status:="computed",lowerPresentationId:=lower.presentationId,
+>         lowerCoordinates:=List([1..lower.generatorCount],j->1),witness:=rec(model:="stub"));
+> end);;
+gap> rows := KOAHSS_ExtensionPrimeRows(rowEngine,rowLayers,KOAHSS_ExtensionPrimeParts(rowLayers),5);;
+gap> Assert(0,rows.C[1].lowerCoordinates=[1,0] and rows.C[1].witness.fullLowerCoordinates=[1,1]);
+gap> Assert(0,rows.A[1].lowerCoordinates=[0,1,0] and not IsBound(rows.A[2]));
+gap> Assert(0,koAHSSExtensionFromLayers(rowLayers,KOAHSS_ExtensionReplayOracle(rows)).relationMatrix
+>     =[[2,0,0,0,0],[0,3,0,0,0],[-1,0,2,0,0],[0,-1,0,3,0]]);
+gap> # Over a lower group with no generator of its prime and none free, a
+gap> # relation needs no measurement.
+gap> rowLayers := rec(D:=rec(orders:=[3]),C:=rec(orders:=[2]),B:=rec(orders:=[]),A:=rec(orders:=[]));;
+gap> rows := KOAHSS_ExtensionPrimeRows(rec(answer:=function(arg) Error("measured"); end),rowLayers,KOAHSS_ExtensionPrimeParts(rowLayers),5);;
+gap> Assert(0,rows.C[1].witness.kind="zero-local-lower-group" and rows.C[1].lowerCoordinates=[0]);

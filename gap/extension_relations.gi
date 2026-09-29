@@ -144,13 +144,18 @@ end);
 # Compare with marked lower normal forms when ordinary coboundaries do not
 # generate the E6 equivalence relation. Every candidate uses the original
 # complete lower lifts, and every accepted vector has one full gauge witness.
+# The optional liftState(name,i) returns the state of the complete lift of a
+# lower generator, or fail; by default the lifts stored in layers.X.fullLifts
+# are used. A zero coordinate needs no lift.
 BindGlobal("KOAHSS_ExtensionGaugeReduce",function(arg)
     local model,k,state,layers,lower,preferred,ranges,stored,i,count,choices,
         canonicals,coordinates,canonical,power,j,stage,stageIndex,stages,
-        proof,attempts,used,budget,allowance,remaining,coordinateMethod;
-    if not Length(arg) in [5,6] then Error("koFull: invalid gauge reduction arguments"); fi;
+        proof,attempts,used,budget,allowance,remaining,coordinateMethod,liftState,lift;
+    if not Length(arg) in [5,6,7] then Error("koFull: invalid gauge reduction arguments"); fi;
     model:=arg[1]; k:=arg[2]; state:=arg[3]; layers:=arg[4]; lower:=arg[5];
-    preferred:=fail; if Length(arg)=6 then preferred:=arg[6]; fi;
+    preferred:=fail; if Length(arg)>=6 then preferred:=arg[6]; fi;
+    liftState:=function(name,i) return layers.(name).fullLifts[i].state; end;
+    if Length(arg)=7 then liftState:=arg[7]; fi;
     if preferred<>fail then
         if not IsList(preferred) or Length(preferred)<>lower.generatorCount
             or not ForAll(preferred,IsInt) then
@@ -166,7 +171,8 @@ BindGlobal("KOAHSS_ExtensionGaugeReduce",function(arg)
                 fi;
                 # A lift of another prime's model (coprime order) never
                 # enters a product of this model; its coordinate is irrelevant.
-                if IsBound(layers.(stored.name).fullLifts[i].model)
+                if IsBound(layers.(stored.name).fullLifts) and IsBound(layers.(stored.name).fullLifts[i])
+                    and IsBound(layers.(stored.name).fullLifts[i].model)
                     and layers.(stored.name).fullLifts[i].model<>"complete" then
                     Add(ranges,[0]);
                 else Add(ranges,[0..stored.orders[i]-1]); fi;
@@ -183,10 +189,16 @@ BindGlobal("KOAHSS_ExtensionGaugeReduce",function(arg)
         for stored in lower.layers do
             for i in [1..Length(stored.orders)] do
                 j:=stored.startColumn+i-1;
-                power:=KOAHSS_ExtensionPower(model,k,layers.(stored.name).fullLifts[i].state,coordinates[j]);
-                if not KOAHSS_ExtensionStateIsZero(power) then
-                    if KOAHSS_ExtensionStateIsZero(canonical) then canonical:=power;
-                    else canonical:=model.xtimes(k,canonical,power); fi;
+                if coordinates[j]<>0 then
+                    lift:=liftState(stored.name,i);
+                    if lift=fail then
+                        return rec(status:="unresolved",reason:="a lower flat lift of the gauge reduction is unavailable");
+                    fi;
+                    power:=KOAHSS_ExtensionPower(model,k,lift,coordinates[j]);
+                    if not KOAHSS_ExtensionStateIsZero(power) then
+                        if KOAHSS_ExtensionStateIsZero(canonical) then canonical:=power;
+                        else canonical:=model.xtimes(k,canonical,power); fi;
+                    fi;
                 fi;
             od;
         od;
@@ -219,80 +231,151 @@ BindGlobal("KOAHSS_ExtensionGaugeReduce",function(arg)
         differentialEvaluations:=used,residualState:=state);
 end);
 
-BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
-    local lift,layer,name,i,value,flat,times,flatProduct,boundary,reduce,answer,kernelCache,
-        local3,kind,leading,state,curvature,liftCompatible;
-    kernelCache:=rec();
-    model.gaugeKernelRepresentatives:=function(n,signed,family)
-        local key,q,data,generators;
-        key:=Concatenation(String(n),"_",String(signed));
-        if not IsBound(kernelCache.(key)) then
-            q:=-1; if signed then q:=0; fi;
-            data:=backend.cohomologyData(n,q);
-            generators:=IndependentGeneratorsOfAbelianGroup(data.group);
-            kernelCache.(key):=List(generators,g->model.lift(n,data.represent(g),signed));
-        fi;
-        return kernelCache.(key);
+# The relation measurements of one degree k. `source` is a stacking model, or
+# a function returning one, called once when the first relation needs a model;
+# options.layerLimited states that the model it returns takes layer-limited
+# requests. A model and a flat lift are made only for a relation that is
+# measured: a split relation, and a relation whose target layer shows that it
+# splits, need neither. Flat lifts are solved when first needed and kept on
+# the marked layer records (layers.X.fullLifts); a lower generator needs one
+# only when it enters a product with a nonzero coefficient.
+# engine.answer(layer,index,order,lower) is the relation oracle of
+# koAHSSExtensionFromLayers.
+BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,options)
+    local model,built,refusal,kernelCache,liftSolver,local3,layerLimited,liftFailure,
+        ensureModel,ensureLocal3,completeLift,localLift,partialLift,partialLifts,markedState,
+        liftState,refused,flat,times,flatProduct,boundary,reduce,answer;
+    model:=fail; built:=fail; refusal:=fail; local3:=fail; liftSolver:=fail; liftFailure:=fail;
+    kernelCache:=rec(); partialLifts:=rec();
+    if IsFunction(source) then
+        layerLimited:=IsBound(options.layerLimited) and options.layerLimited=true;
+    else
+        layerLimited:=IsBound(source.layerLimited) and source.layerLimited=true;
+    fi;
+    ensureModel:=function()
+        local candidate;
+        if model<>fail then return model; fi;
+        if refusal<>fail then return fail; fi;
+        if IsFunction(source) then
+            candidate:=source(); built:=candidate;
+            if not IsRecord(candidate) or not IsBound(candidate.status)
+               or candidate.status<>"computed"
+               or (IsBound(candidate.supports) and not candidate.supports(k)) then
+                refusal:=rec(status:="unresolved",code:="model-setup",
+                    reason:="native extension resource budget exceeded in this degree");
+                if IsRecord(candidate) and IsBound(candidate.reason) then
+                    refusal.reason:=candidate.reason;
+                fi;
+                return fail;
+            fi;
+        else candidate:=source; fi;
+        model:=candidate;
+        model.gaugeKernelRepresentatives:=function(n,signed,family)
+            local key,q,data,generators;
+            key:=Concatenation(String(n),"_",String(signed));
+            if not IsBound(kernelCache.(key)) then
+                q:=-1; if signed then q:=0; fi;
+                data:=backend.cohomologyData(n,q);
+                generators:=IndependentGeneratorsOfAbelianGroup(data.group);
+                kernelCache.(key):=List(generators,g->model.lift(n,data.represent(g),signed));
+            fi;
+            return kernelCache.(key);
+        end;
+        liftSolver:=KOAHSS_ExtensionLiftSolver(backend,k,layers,model);
+        return model;
     end;
-    lift:=KOAHSS_ExtensionLiftSolver(backend,k,layers,model);
     # The two-layer model of the prime three (degrees five and six) shares the
-    # worker of the complete model; see doc/extensions.md, "Localization at the primes".
-    local3:=fail;
-    if IsBound(model.primeLocal) and k in [5,6] and not IsBound(layers.A.status)
-        and ForAny(layers.A.orders,o->KOAHSS_ExtensionRelationModel(k,"A",o).model="three-local") then
+    # worker of the complete model; see doc/extensions.md, "Localization at
+    # the primes".
+    ensureLocal3:=function()
+        if local3<>fail then return local3; fi;
+        if ensureModel()=fail then return fail; fi;
+        if not IsBound(model.primeLocal) then
+            Error("koFull: the stacking model has no three-local model");
+        fi;
         local3:=model.primeLocal(3);
         local3.gaugeKernelRepresentatives:=model.gaugeKernelRepresentatives;
-    fi;
-    # Prepare even free generators and generators over a zero lower group.
-    # They can be needed in later comparisons, despite requiring no power row.
-    # Odd-primary A generators get the flat lift of their prime's own model:
-    # (A,0,0,D) in the three-local model, (A,0,0,0) at the split primes.
-    for name in ["D","C","B","A"] do
-        layer:=layers.(name);
-        if not IsBound(layer.fullLifts) then layer.fullLifts:=[]; fi;
-        if not IsBound(layer.status) then
-            for i in [1..Length(layer.generators)] do
-                kind:=KOAHSS_ExtensionRelationModel(k,name,layer.orders[i]);
-                if kind.model="complete" then
-                    value:=lift(layer,i);
-                    if value.status="obstructed" and not IsBound(model.act) then
-                        Error("koFull: an E6 survivor has no full flat lift: ",name," ",i," ",value);
-                    elif value.status<>"computed" then
-                        layer.status:="unresolved"; layer.reason:=value.reason; break;
-                    fi;
-                elif kind.model="three-local" then
-                    # The flat lift (A,0,0,D) of the two-layer model: D solves
-                    # delta_s D = -J(A), zero in degree five.
-                    leading:=local3.lift(layer.p,layer.cochains[i],true);
-                    value:=KOAHSS_ExtensionFlatLift(local3,k,name,leading);
-                    if value.status<>"computed" then
-                        layer.status:="unresolved";
-                        layer.reason:=Concatenation("three-local flat lift: ",String(value.reason)); break;
-                    fi;
-                    value:=ShallowCopy(value); value.model:=kind.model; value.prime:=kind.prime;
-                    MakeImmutable(value); layer.fullLifts[i]:=value;
-                else
-                    # Split primes: the marked closed cochain is the lift.
-                    leading:=model.lift(layer.p,layer.cochains[i],true);
-                    state:=StructuralCopy(model.zero(k)); state.(name):=leading;
-                    if ForAny(model.coboundary(layer.p,leading,true),x->x<>0) then
-                        Error("koFull: the marked E6 representative is not closed: ",name," ",i);
-                    fi;
-                    value:=rec(status:="computed",state:=state,model:=kind.model,prime:=kind.prime,
-                        witness:=rec(leadingLayer:=name,leadingCochain:=ShallowCopy(leading),
-                            definingEquations:=[],flatnessVerified:=true,differentialEvaluations:=0,
-                            modelId:="prime-split"));
-                    MakeImmutable(value); layer.fullLifts[i]:=value;
-                fi;
-            od;
+        return local3;
+    end;
+    refused:=function()
+        return rec(status:="unresolved",code:="model-setup",reason:=refusal.reason);
+    end;
+    # The complete flat lift of generator index of layer name, on the marked
+    # layer record itself.
+    completeLift:=function(name,index)
+        local value;
+        if ensureModel()=fail then return refused(); fi;
+        value:=liftSolver(layers.(name),index);
+        if value.status="obstructed" and not IsBound(model.act) then
+            Error("koFull: an E6 survivor has no full flat lift: ",name," ",index," ",value);
         fi;
-    od;
-    # A lift enters a measurement only in the model that solved it: complete
-    # lifts in the complete model, three-local lifts in the three-local model.
-    # The lifts of the split primes enter no measurement.
-    liftCompatible:=function(entry,mdl)
-        if not IsBound(entry.model) or entry.model="complete" then return not IsBound(mdl.localPrime); fi;
-        return entry.model="three-local" and IsBound(mdl.localPrime) and mdl.localPrime=3;
+        return value;
+    end;
+    # The three-local flat lift (A,0,0,D) of an A generator: D solves
+    # delta_s D = -J(A), zero in degree five.
+    localLift:=function(index)
+        local value,leading;
+        if IsBound(layers.A.fullLifts) and IsBound(layers.A.fullLifts[index]) then
+            return layers.A.fullLifts[index];
+        fi;
+        if ensureLocal3()=fail then return refused(); fi;
+        leading:=local3.lift(layers.A.p,layers.A.cochains[index],true);
+        value:=KOAHSS_ExtensionFlatLift(local3,k,"A",leading);
+        if value.status="computed" then
+            value:=ShallowCopy(value); value.model:="three-local"; value.prime:=3;
+            MakeImmutable(value);
+        fi;
+        if not IsBound(layers.A.fullLifts) then layers.A.fullLifts:=[]; fi;
+        layers.A.fullLifts[index]:=value;
+        return value;
+    end;
+    # A lift solved only through the layer index upto (layer-limited
+    # differential), for a relation measured through that layer when it is
+    # the layer right below the generator's: the measured power does not
+    # depend on the choice in that layer, since the generator's order is
+    # even and the layer is binary. A complete lift already solved is used
+    # as it is.
+    partialLift:=function(name,index,upto)
+        local key;
+        if IsBound(layers.(name).fullLifts) and IsBound(layers.(name).fullLifts[index])
+           and layers.(name).fullLifts[index].status="computed" then
+            return layers.(name).fullLifts[index];
+        fi;
+        key:=Concatenation(name,"_",String(index),"_",String(upto));
+        if not IsBound(partialLifts.(key)) then
+            partialLifts.(key):=KOAHSS_ExtensionFlatLift(model,k,name,
+                model.lift(layers.(name).p,layers.(name).cochains[index],name in ["A","D"]),
+                rec(upto:=upto));
+        fi;
+        return partialLifts.(key);
+    end;
+    # A generator of the last layer that a product is measured through
+    # contributes its marked cocycle only: the state with that one layer. It
+    # agrees there with its flat lift, whose leading layer is that cocycle,
+    # and the products and their curvature through that layer read nothing
+    # else.
+    markedState:=function(mdl,name,j)
+        local state,signed;
+        signed:=name in ["A","D"];
+        state:=StructuralCopy(mdl.zero(k));
+        state.(name):=mdl.lift(layers.(name).p,layers.(name).cochains[j],signed);
+        if ForAny(mdl.coboundary(layers.(name).p,state.(name),signed),
+                x->(signed and x<>0) or (not signed and x mod 2<>0)) then
+            Error("koFull: the marked E6 representative is not closed: ",name," ",j);
+        fi;
+        return state;
+    end;
+    # The state of the complete lift of a lower generator, or fail (the
+    # reason is kept in liftFailure).
+    liftState:=function(name,index)
+        local value;
+        value:=completeLift(name,index);
+        if value.status<>"computed" then
+            liftFailure:=Concatenation("the flat lift of generator ",String(index)," of layer ",
+                name," is unavailable: ",String(value.reason));
+            return fail;
+        fi;
+        return value.state;
     end;
     flat:=function(mdl,state,upto)
         if upto<3 then
@@ -307,14 +390,33 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
         if upto<3 then return mdl.xtimes(k,x,y,upto); fi;
         return mdl.xtimes(k,x,y);
     end;
+    # The ordered product of the powers of the complete lifts of layer name
+    # with the given coefficients; a zero coefficient needs no lift.
     flatProduct:=function(mdl,name,coefficients,upto)
-        local product,j,power;
+        local product,j,power,state,last,field;
         product:=mdl.zero(k);
+        last:=Position(["A","B","C","D"],name)-1=upto;
         for j in [1..Length(coefficients)] do
-            power:=KOAHSS_ExtensionPower(mdl,k,layers.(name).fullLifts[j].state,coefficients[j],upto);
-            if not KOAHSS_ExtensionStateIsZeroThrough(power,upto) then
-                if KOAHSS_ExtensionStateIsZeroThrough(product,upto) then product:=power;
-                else product:=times(mdl,product,power,upto); fi;
+            if coefficients[j]<>0 then
+                if last then state:=markedState(mdl,name,j);
+                else
+                    state:=liftState(name,j);
+                    if state=fail then return fail; fi;
+                    # A layer-limited product reads the layers through upto
+                    # only, and returns zeros below them: so does a single
+                    # factor, which reaches the comparison unmultiplied.
+                    if upto<3 then
+                        state:=StructuralCopy(state);
+                        for field in ["A","B","C","D"]{[upto+2..4]} do
+                            state.(field):=List(state.(field),x->0);
+                        od;
+                    fi;
+                fi;
+                power:=KOAHSS_ExtensionPower(mdl,k,state,coefficients[j],upto);
+                if not KOAHSS_ExtensionStateIsZeroThrough(power,upto) then
+                    if KOAHSS_ExtensionStateIsZeroThrough(product,upto) then product:=power;
+                    else product:=times(mdl,product,power,upto); fi;
+                fi;
             fi;
         od;
         return product;
@@ -336,14 +438,13 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
     # Reduce the layers A.. of a stacked power through the layer index upto
     # (D=3 is the complete reduction). Below the target layer of a relation
     # the state is never read, and every operation stays layer-limited. In
-    # the three-local model the binary layers are absent and only lifts of
-    # that model enter; when its ordinary reduction fails, the complete
-    # measurement takes over.
+    # the three-local model the binary layers are absent; its D layer is
+    # reduced by the marked D generators.
     reduce:=function(mdl,state,lower,upto)
         local current,coefficients,steps,name,n,signed,gens,rows,solution,
             count,values,primitive,gauge,chosen,left,next,stored,j,coordinates,
-            canonical,comparison,comparisonSteps,preferred,data,class,projected,fallback,fields,
-            localMode,active,entry;
+            canonical,comparison,preferred,data,class,projected,fallback,fields,
+            localMode,active;
         fields:=["A","B","C","D"]; localMode:=IsBound(mdl.localPrime);
         current:=state; coefficients:=rec(A:=[],B:=[],C:=[],D:=[]); steps:=[];
         for name in fields{[1..upto+1]} do
@@ -357,13 +458,13 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
                 Add(steps,rec(layer:=name,coordinates:=coefficients.(name),absentLayer:=true));
                 continue;
             fi;
+            # The rows are the marked leading cochains: the leading layer of a
+            # flat lift is the marked cochain itself (KOAHSS_ExtensionLiftSolver).
             gens:=[]; active:=[];
             if stored<>fail then
                 for j in [1..Length(stored.orders)] do
-                    entry:=layers.(name).fullLifts[j];
-                    if name="D" or liftCompatible(entry,mdl) then
-                        Add(gens,entry.state.(name)); Add(active,j);
-                    fi;
+                    Add(gens,mdl.lift(layers.(name).p,layers.(name).cochains[j],signed));
+                    Add(active,j);
                 od;
             fi;
             count:=Length(gens); rows:=Concatenation(gens,mdl.matrix(n-1,signed));
@@ -392,7 +493,11 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
                         od;
                     od;
                 fi;
-                fallback:=KOAHSS_ExtensionGaugeReduce(mdl,k,state,layers,lower,preferred);
+                fallback:=KOAHSS_ExtensionGaugeReduce(mdl,k,state,layers,lower,preferred,
+                    function(name,i)
+                        if name="D" then return markedState(mdl,name,i); fi;
+                        return liftState(name,i);
+                    end);
                 fallback.reductionSteps:=steps;
                 fallback.ordinaryReductionFailure:=rec(layer:=name,residualState:=current);
                 return fallback;
@@ -400,7 +505,11 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
             values:=solution.particular{[1..count]};
             for j in [1..count] do coefficients.(name)[active[j]]:=values[j]; od;
             primitive:=solution.particular{[count+1..Length(solution.particular)]};
-            chosen:=flatProduct(mdl,name,coefficients.(name),upto); gauge:=boundary(mdl,name,primitive,chosen,upto);
+            chosen:=flatProduct(mdl,name,coefficients.(name),upto);
+            if chosen=fail then
+                return rec(status:="unresolved",reason:=liftFailure,residualState:=current,reductionSteps:=steps);
+            fi;
+            gauge:=boundary(mdl,name,primitive,chosen,upto);
             if IsBound(mdl.act) then left:=gauge.state;
             elif KOAHSS_ExtensionStateIsZero(gauge.state) then left:=chosen;
             elif KOAHSS_ExtensionStateIsZero(chosen) then left:=gauge.state;
@@ -424,6 +533,9 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
             values:=coefficients.(stored.name);
             for j in [1..Length(values)] do coordinates[stored.startColumn+j-1]:=values[j]; od;
             chosen:=flatProduct(mdl,stored.name,values,upto);
+            if chosen=fail then
+                return rec(status:="unresolved",reason:=liftFailure,residualState:=current,reductionSteps:=steps);
+            fi;
             if not KOAHSS_ExtensionStateIsZeroThrough(chosen,upto) then
                 if KOAHSS_ExtensionStateIsZeroThrough(canonical,upto) then canonical:=chosen;
                 else canonical:=times(mdl,canonical,chosen,upto); fi;
@@ -444,36 +556,36 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
             orderedReductionVerified:=true,residualState:=current);
     end;
     answer:=function(layer,index,order,lower)
-        local marked,power,result,fields,target,upto,partial,position,below,lowerNames,kind,entry,complete;
+        local power,result,fields,target,upto,partial,position,below,lowerNames,kind,entry,witness,reason;
         fields:=["A","B","C","D"];
-        marked:=layers.(layer.name);
         kind:=KOAHSS_ExtensionRelationModel(k,layer.name,order);
         if kind.model="split" then return KOAHSS_ExtensionSplitResponse(order,kind.prime,lower); fi;
-        if not IsBound(marked.fullLifts) or not IsBound(marked.fullLifts[index])
-            or marked.fullLifts[index].status<>"computed" then
-            return rec(status:="unresolved",reason:="the fixed full flat representative is unavailable");
-        fi;
-        entry:=marked.fullLifts[index];
         position:=Position(fields,layer.name);
         lowerNames:=fields{[position+1..4]};
         # The target-layer shortcut: only the layers down to the lowest free
-        # lower generator decide the group (KOAHSS_ExtensionTargetLayer).
+        # lower generator decide the group (KOAHSS_ExtensionTargetLayer). It
+        # reads the lower presentation only, so a relation with no free lower
+        # generator needs neither a model nor a lift.
         target:=fail;
-        if KOAHSS_LayeredRelationsEnabled() and IsBound(model.layerLimited) and model.layerLimited=true
-            and lower.generatorCount>0 then
+        if KOAHSS_LayeredRelationsEnabled() and layerLimited and lower.generatorCount>0 then
             target:=KOAHSS_ExtensionTargetLayer(lower,order);
             if target.layer=fail then
+                witness:=rec(operation:="xtimes",power:=order,prime:=kind.prime,model:=kind.model,
+                    measuredLayers:=[],truncatedBelow:=lowerNames[1],sufficiency:=target);
+                if model<>fail then witness.modelId:=model.modelId; fi;
                 return rec(status:="computed",lowerPresentationId:=lower.presentationId,
-                    lowerCoordinates:=List([1..lower.generatorCount],j->0),
-                    witness:=rec(operation:="xtimes",power:=order,prime:=kind.prime,model:=kind.model,
-                        flatLift:=entry,measuredLayers:=[],truncatedBelow:=lowerNames[1],
-                        sufficiency:=target,modelId:=model.modelId));
+                    lowerCoordinates:=List([1..lower.generatorCount],j->0),witness:=witness);
             fi;
         fi;
         if kind.model="three-local" then
             # The two-layer measurement of the prime three: the A layer is
-            # reduced by coboundaries and same-model lifts, the D layer by the
-            # marked D lifts; the binary layers are absent.
+            # reduced by coboundaries, the D layer by the marked D generators;
+            # the binary layers are absent.
+            if ensureLocal3()=fail then return refused(); fi;
+            entry:=localLift(index);
+            if entry.status<>"computed" then
+                return rec(status:="unresolved",reason:=Concatenation("three-local flat lift: ",String(entry.reason)));
+            fi;
             power:=KOAHSS_ExtensionPower(local3,k,entry.state,order);
             partial:=reduce(local3,power,lower,3);
             if partial.status="computed" then
@@ -485,18 +597,27 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
                         binaryLayersAbsent:=true,truncatedBelow:=fail,sufficiency:=target,
                         modelId:=local3.modelId));
             fi;
-            # Otherwise the complete measurement takes over, with a complete lift.
-            complete:=lift(layer,index);
-            if complete.status<>"computed" then
-                return rec(status:="unresolved",reason:=Concatenation(
-                    "the three-local reduction failed and the complete flat lift is unavailable: ",
-                    String(complete.reason)),threeLocalReduction:=partial);
-            fi;
-            entry:=complete; kind:=rec(model:="complete",prime:=kind.prime);
+            # The complete four-layer measurement would give the relation in
+            # the lifts of the binary generators; its three-local row needs
+            # their complete relations, which are not measured here.
+            if IsBound(partial.reason) then reason:=partial.reason;
+            else reason:=Concatenation("the three-local reduction does not close in layer ",partial.layer); fi;
+            return rec(status:="unresolved",code:="three-local-reduction",
+                reason:=Concatenation("three-local relation: ",reason),threeLocalReduction:=partial);
         fi;
+        if ensureModel()=fail then return refused(); fi;
         if target<>fail then
             upto:=target.index;
             if upto<3 then
+                # Through the layer right below the generator's, a lift solved
+                # through that layer suffices; a lower target needs a complete
+                # lift, whose choices in the layers between are those of an
+                # element of the group.
+                if upto=position then entry:=partialLift(layer.name,index,upto);
+                else entry:=completeLift(layer.name,index); fi;
+                if entry.status<>"computed" then
+                    return rec(status:="unresolved",reason:=entry.reason);
+                fi;
                 power:=KOAHSS_ExtensionPower(model,k,entry.state,order,upto);
                 partial:=reduce(model,power,lower,upto);
                 if partial.status="computed" then
@@ -510,6 +631,10 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
                 # Otherwise the complete measurement below takes over.
             fi;
         fi;
+        entry:=completeLift(layer.name,index);
+        if entry.status<>"computed" then
+            return rec(status:="unresolved",reason:=entry.reason);
+        fi;
         power:=KOAHSS_ExtensionPower(model,k,entry.state,order);
         result:=reduce(model,power,lower,3);
         if result.status<>"computed" then return result; fi;
@@ -519,5 +644,18 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
                 reduction:=result,measuredLayers:=lowerNames,truncatedBelow:=fail,
                 modelId:=model.modelId));
     end;
-    return answer;
+    if not IsFunction(source) then ensureModel(); fi;
+    return rec(answer:=answer,
+        # the model in use, or fail when no relation has needed one
+        model:=function() return model; end,
+        # what the model source returned (a refusal included), or fail
+        builtModel:=function() return built; end,
+        close:=function()
+            if built<>fail and IsRecord(built) and IsBound(built.close) then built.close(); fi;
+        end);
+end);
+
+# The relation oracle of a fixed model (koAHSSExtensionFromLayers).
+BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
+    return KOAHSS_ExtensionRelationEngine(backend,k,layers,model,rec()).answer;
 end);

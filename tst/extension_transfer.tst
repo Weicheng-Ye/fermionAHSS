@@ -58,6 +58,24 @@ gap> Assert(0,transferFailure.failure.degree=1 and transferFailure.failure.basis
 gap> Assert(0,transferFailure.failure.image=[] and transferFailure.failure.expected=[[2,1,1]]);
 gap> Assert(0,transferExtraTr.pullback(1,transferExtraTr.lift(1,[0,1],0),0)=[0,0]);
 gap> Assert(0,not transferFailure.chainRetractionVerified and not transferFailure.transferReady);
+gap> # The comparison is chosen on R alone: f g(e_j)=h(boundary e_j) on the
+gap> # group bar, so the first failure is the one of the complete audit.
+gap> transferChoice:=KOAHSS_ExtensionGroupBarRetraction(transferExtra,5);;
+gap> Assert(0,not transferChoice.retracts and transferChoice.degree=1 and transferChoice.basis=2);
+gap> for transferGroup in [CyclicGroup(2),CyclicGroup(3),CyclicGroup(4),SymmetricGroup(3),DihedralGroup(8),QuaternionGroup(8)] do
+> transferR:=ResolutionFiniteGroup(transferGroup,6);
+> transferChoice:=KOAHSS_ExtensionGroupBarRetraction(transferR,5);
+> transferAudit:=KOAHSS_ExtensionTransportPreflight(KOAHSS_NaturalBarTransport(transferR),3);
+> Assert(0,transferChoice.retracts=(transferAudit.status="checked"));
+> if not transferChoice.retracts then
+>     Assert(0,transferAudit.code="chain-retraction-failed" and transferAudit.failure.degree=transferChoice.degree and transferAudit.failure.basis=transferChoice.basis);
+> fi;
+> od;
+gap> transferR:=ResolutionDirectProduct(ResolutionFiniteGroup(CyclicGroup(2),6),ResolutionFiniteGroup(CyclicGroup(2),6));;
+gap> transferChoice:=KOAHSS_ExtensionGroupBarRetraction(transferR,5);;
+gap> transferAudit:=KOAHSS_ExtensionTransportPreflight(KOAHSS_NaturalBarTransport(transferR),3);;
+gap> Assert(0,transferChoice.retracts=(transferAudit.status="checked"));
+gap> Assert(0,transferChoice.retracts or (transferAudit.code="chain-retraction-failed" and transferAudit.failure.degree=transferChoice.degree and transferAudit.failure.basis=transferChoice.basis));
 gap> # The normalized homotopy satisfies the integral group-ring identities,
 gap> # including nonzero homotopies on a proper C4 retract.
 gap> transferR:=ResolutionFiniteGroup(CyclicGroup(4),7);;

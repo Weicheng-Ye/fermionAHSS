@@ -21,8 +21,12 @@ the [extension API](extensions.md).
 A supplied integral HAP resolution can replace the group argument.
 Native states and solves on that resolution are the only extension
 mode in degrees 1–6; there is no model-selection option. The comparison
-(the group bar, or else the cell complex on the generators of R) must pass
-the strict retraction check, and the sparse homotopy is normalized.
+is the group bar when a test on R shows that it retracts (`fg=1` over the
+integral group ring), and otherwise the cell complex on the generators of
+R, on which `fg=1` holds by construction; every comparison chain is
+checked for the strict retraction identity when it is first used, and the
+sparse homotopy is normalized. The model is built only when a relation of
+the degree needs a measurement.
 The calculation assumes gauge completeness: native gauge equivalence
 captures the bar equivalence relation. Results record
 `gaugeCompletenessAssumed=true`; this is an assumption, not a runtime proof.
@@ -39,13 +43,19 @@ quotients to subsequent stages. Equal and independent nonzero lower
 images remain distinguishable.
 
 For degrees 1–6, the production engine retains the marked E6
-representatives in the supplied resolution basis. It
-solves and retains immutable full `(A,B,C,D)` lifts for every generator,
-including free A generators. Binary B/C defining choices are changed when
+representatives in the supplied resolution basis. It solves immutable
+`(A,B,C,D)` lifts when a measurement needs them: the lift of the measured
+generator (only through its target layer when that layer lies right below
+the generator's, since the power through it does not depend on the choice
+there) and the complete lifts of the lower generators that enter the
+compared product with a nonzero coefficient above the last measured layer;
+in that layer a lower generator enters with its marked cocycle, and no
+free generator needs a lift. Binary B/C defining choices are changed when
 needed to solve later equations, and D is solved integrally. The actual
-nonlinear differential verifies flatness of each complete tuple. The
-selected `xtimes` then measures powers of those same tuples; lower
-reductions reuse the recorded B/C/D basis and all integral carries. In
+nonlinear differential verifies flatness of each tuple through the layers
+it is solved to. The selected `xtimes` then measures powers of those same
+tuples; lower reductions reuse the marked B/C/D basis and all integral
+carries. In
 degrees 4–6 the native D-layer product omits the pure-C normalization of
 the production correction, an integral coboundary, so its D
 representatives differ from the reference model's by D-gauges while the
@@ -65,18 +75,27 @@ stacking on gauge classes are assumed, so the measured relations determine
 the group; no finite multiplication table of normal forms is audited. Free
 quotients split in the intended abelian abutment category.
 
-The measurement is localized at the prime of the generator's order. At the
-primes five and above no k-invariant of `ko` links the rows `q=0` and `q=-4`
-of the window (they lie in different Adams summands), so those relations are
-`m*g=0` without a measurement and a degree whose relations all split needs
-no stacking model; for cyclic groups this agrees with the `I`-adic
-filtration of the representation ring (`Z/5+Z/5`, `Z/7+Z/7`, `Z/25+Z/25` in
-degree five). Three-primary relations of degree five are measured in the
-two-layer model of the rows `q=0` and `q=-4` with the coefficient-two phase
+The relations are recorded prime by prime and localized at the prime of
+the generator's order. A measured row keeps only its coordinates on
+generators of that prime and on free generators, which is exact because
+the coordinates it drops lie on D generators of order prime to the
+relation's (an odd-primary relation, which belongs to A, has no B or C
+coordinate), and a relation whose lower group has no generator of its
+prime and no free generator is `m*g=0` without a measurement. At the
+primes five and above no k-invariant of `ko` links the rows `q=0` and
+`q=-4` of the window (they lie in different Adams summands), so those
+relations are `m*g=0` without a measurement, and a degree none of whose
+relations is measured builds no stacking model; for cyclic groups this
+agrees with the `I`-adic filtration of the representation ring
+(`Z/5+Z/5`, `Z/7+Z/7`, `Z/25+Z/25` in degree five). Three-primary
+relations of degree five are measured in the two-layer model of the rows
+`q=0` and `q=-4` with the coefficient-two phase
 `(2/3) lift(P^1_s rho_3 A)`, in degree five the cube modulo three, whose
 stacking correction is the polynomial `-2(AAA'+AA'A')` and whose gauge
 boundaries are `(delta_s u, delta_s w)`; the relation keeps its exact gauge
-comparison in that model. It reproduces the representation-ring values
+comparison in that model, and stays unresolved when the two-layer
+reduction does not close (the complete four-layer measurement is not
+substituted for it). It reproduces the representation-ring values
 `Z/9` for `Z/3`, `Z/3+Z/27` for `Z/9`, and `Z/9` for the sign-twisted
 `S_3`, `Z/6` and `A_4`, where the complete four-layer formulas raise a
 non-integrality error on the three-torsion generator. Three-primary
@@ -90,7 +109,8 @@ By suspension (`ko^3(Sigma BG) = ko^2(BG)`) it reproduces `Z/9` for
 `Z/3 x Z` and `Z/3+Z/27` for `Z/9 x Z` in degree six, the degree-five
 values of `Z/3` and `Z/9`.
 `FERMIONAHSS_PRIME_LOCAL=0` restores the complete measurement at every
-prime. See [extensions](extensions.md), "Localization at the primes".
+prime, with every coordinate of a row. See [extensions](extensions.md),
+"Localization at the primes".
 
 Gauge comparison tries D-only, C/D, B/C/D and A/B/C/D support in that
 order. This includes higher-layer boundaries responsible for incoming E6
@@ -122,12 +142,14 @@ runtime loading does not require the separate stacking research workspace.
 Helpers identical to the package kernel are imported from it, and the
 bundled hashes are not verified at runtime.
 
-Degrees -1 and 0 have only D, so no relation is measured. Incomplete page data
-and exhausted resource bounds remain unresolved. Native transfer
-requires a comparison passing `fg=id` over the integral group ring; the
-cell comparison provides one for any resolution whose generators have
-primitive boundaries, including infinite groups and several degree-zero
-generators. Branch flags test vanishing on the basis of R. Sparse
+Degrees -1 and 0 have only D, so no relation is measured and, as in every
+degree without a relation to measure, no stacking model or comparison is
+built. Incomplete page data and exhausted resource bounds remain
+unresolved. Native transfer requires a comparison with `fg=id` over the
+integral group ring, checked on each comparison chain when it is first
+used; the cell comparison provides one for any resolution whose
+generators have primitive boundaries, including infinite groups and
+several degree-zero generators. Branch flags test vanishing on the basis of R. Sparse
 transport has term bounds. Flat-lift searches default to 4096 differential
 evaluations. Gauge comparisons have additional finite search bounds
 documented in [extensions.md](extensions.md). Reaching a bound leaves the

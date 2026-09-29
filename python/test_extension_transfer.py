@@ -15,7 +15,7 @@ from unittest.mock import patch
 from extension_worker import FiniteBar
 from extension_degree_six import configure_degree_six
 import extension_transfer
-from extension_transfer import TransferredModel, TransferResourceLimit, degrees
+from extension_transfer import TransferredModel, TransferResourceLimit, degrees, integer
 import extension_native_upper as native_module
 
 
@@ -92,10 +92,84 @@ def random_cochains(seed, dimension):
     return dict(binary=binary, closed_binary=closed_binary, integral=integral, twists=twists, p=p)
 
 
+def lazy_c2_models(sign=0, omega=0, top=7):
+    """The C2 models of c2_models, with the chains g requested from the transport."""
+    bar = FiniteBar([[0, 1], [1, 0]], [sign], [omega])
+    eager, _, _ = c2_models(sign, omega, top)
+    setup = dict(schema=1, multiplication=bar.mul, ranks=[1] * (top + 1),
+        ordinary=eager.matrices[False], signed=eager.matrices[True],
+        gMode="lazy", s=[sign], omega=[omega])
+    calls = []
+    def transport(kind, degree, vertices):
+        calls.append((kind, degree, vertices))
+        if kind == "g":
+            return dict(status="computed", terms=[[1, 1, list(bar.simplices(degree)[0])]])
+        return dict(status="computed", terms=[[0, 1, 1]] if kind == "f" else [])
+    return TransferredModel(setup, transport), eager, calls
+
+
 class ExtensionTransferTests(unittest.TestCase):
     def test_twists_do_not_request_bar_values_during_setup(self):
         _, _, calls = c2_models(1, 1)
         self.assertEqual(calls, [])
+
+    def test_lazy_chains_are_requested_once_on_first_use(self):
+        native, eager, calls = lazy_c2_models(1, 1)
+        self.assertEqual(calls, [])
+        # The zero test stops at the first nonzero pairing; a projection
+        # requests every chain of its degree once and keeps it.
+        self.assertFalse(native.is_zero(native.lift(2, [1], False), True))
+        self.assertEqual([c for c in calls if c[0] == "g"], [("g", 2, 0)])
+        self.assertEqual(native.project(native.lift(3, [3], True), True), [3])
+        self.assertEqual(native.project(native.lift(3, [5], True), True), [5])
+        self.assertEqual([c for c in calls if c[0] == "g"], [("g", 2, 0), ("g", 3, 0)])
+        # The same values as with the chains supplied in full.
+        for k, data in ((3, state([0], [1], [0], [3])), (4, state([1], [0], [1], [2]))):
+            self.assertEqual(native.kappa(k, data), eager.kappa(k, data))
+        with self.assertRaises(ValueError):
+            native.chain(2, 1)
+
+    def test_projection_is_linear_and_uses_checked_identities(self):
+        native, _, calls = lazy_c2_models(1, 1)
+        p = native.lift(3, [2], True).__class__
+        def direct(cochain, weight):
+            return [sum(t[weight] * cochain(tuple(t[2])) for t in native.chain(cochain.degree, j))
+                    for j in range(native.ranks[cochain.degree])]
+        a, b = native.lift(3, [2], True), native.lift(3, [5], True)
+        other = p(3, lambda t: 7)
+        total = a + b - other
+        self.assertEqual(native.project(total, True), [integer(v) for v in direct(total, 1)])
+        self.assertEqual(native.project(total, True), [2 + 5 - 7])
+        # Each lift pairs through the identity f g = 1, checked once per degree.
+        self.assertTrue(native._identities[("lift", 3, 1, True)])
+        # A pairing is kept per cochain: the same sum is not paired twice.
+        count = len(calls)
+        self.assertEqual(native.project(total, True), [0])
+        self.assertEqual(len(calls), count)
+        binary = (native.lift(2, [1], False) + native.lift(2, [1], True)).mod2()
+        self.assertEqual(native.project(binary, False), [integer(v) % 2 for v in direct(binary, 0)])
+        image = native.homotopy(native.lift(4, [3], True), True)
+        self.assertEqual(native.project(image, True), [integer(v) for v in direct(image, 1)])
+
+    def test_projection_evaluates_when_an_identity_fails(self):
+        native, _, _ = lazy_c2_models()
+        # A comparison with f g = 2 on degree three: the lift identity fails,
+        # and the pairing is evaluated on the chains instead.
+        transport = native.transport
+        native.transport = lambda kind, degree, vertices: (
+            dict(status="computed", terms=[[0, 2, 2]]) if kind == "f"
+            else transport(kind, degree, vertices))
+        native._transport.clear()
+        self.assertEqual(native.project(native.lift(3, [3], True), True), [6])
+        self.assertFalse(native._identities[("lift", 3, 1, True)])
+
+    def test_lazy_chain_refusal_is_a_resource_limit(self):
+        native, _, _ = lazy_c2_models()
+        native.transport = lambda kind, degree, vertices: dict(
+            status="unresolved", code="support-budget",
+            reason="sparse comparison exceeds the per-degree support budget")
+        with self.assertRaises(TransferResourceLimit):
+            native.project(native.lift(2, [1], True), True)
 
     def test_curvature_prefix_stops_after_first_obstruction(self):
         native, bar, _ = c2_models(1, 0)

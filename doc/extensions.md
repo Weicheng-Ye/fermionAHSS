@@ -4,10 +4,11 @@
 through E6. `koFull` attempts to assemble its stacking extension in one
 degree, and `koFull_batch` in every degree up to a cutoff.
 The abstract abelian-group assembler accepts general finite or free
-layers. Its higher-degree relation oracle solves full flat cochain tuples,
-measures their actual stacking powers, and verifies their reduction in a
-common marked basis. The finite cochain model and its searches are bounded;
-missing relations remain unresolved. Every detailed
+layers. In degrees 1–6 the relations are recorded prime by prime; for each
+relation that needs a measurement, the higher-degree relation oracle solves
+flat cochain tuples, measures their actual stacking powers, and verifies
+their reduction in the common marked basis. The finite cochain model and
+its searches are bounded; missing relations remain unresolved. Every detailed
 result retains `certified_ko=false`; see [mathematical status](mathematical-status.md).
 
 ## Detailed AHSS results
@@ -96,9 +97,11 @@ once. `koFull` then attempts the extension in package degree `k`, and
 group, twist and cutoff conventions as `koAHSS`. There is no page-count
 argument. An integral HAP resolution may replace the group argument; it is
 retained without reconstruction. There is no model-selection option. The
-[native-resolution model](resolution-extensions.md) runs higher searches
-on R, checks exact sparse comparison identities, and assumes gauge
-completeness. Runtime completion uses native flatness and gauge checks.
+[native-resolution model](resolution-extensions.md) is built only when a
+relation of the degree needs a measurement. It runs higher searches on R,
+checks the exact sparse comparison identity of each comparison chain when
+it first uses it, and assumes gauge completeness. Runtime completion uses
+native flatness and gauge checks.
 It never constructs a complete-bar model for certification or retries an
 unresolved degree with one. Native gauge records use the action equation
 described below.
@@ -138,9 +141,13 @@ A `koFull_batch` result has these fields:
 
 Degree `j` is at index `j+2`, including degree -1 at index 1. Every degree
 record, including `full.degreeResult`, also stores `degree:=j` and its
-associated-graded `layers`. When a native model is available, its
-`modelId` is retained. Completed native calculations have
-`gaugeCompletenessAssumed=true` and `certificateLevel="transfer-R"`.
+associated-graded `layers`. When a relation of the degree needed the
+native model, its `modelId` is retained, and the completed calculation has
+`certificateLevel="transfer-R"`, `gaugeCompletenessAssumed=true` and
+`abelianQuotientAssumed=true`. A completed degree of 1–6 that built no
+model has `certificateLevel="prime-split"` when some relation split at an
+odd prime and `"direct-sum"` otherwise: every relation row is then zero and
+the group is the direct sum of its layers.
 
 ```gap
 full := koFull(CyclicGroup(2), 0, 0, 2);;
@@ -152,15 +159,20 @@ koAHSSDisplay(full);
 ```
 
 A completed degree stores `group`, `invariants`, `basis`, `relationMatrix`,
-`extensionVectors`, `smith`, `filtration` and `lowerModel`. An unresolved
+`extensionVectors`, `smith`, `filtration` and `lowerModel`; in degrees 1–6
+also `certificateLevel`, the per-prime summary `primes` and the prime parts
+`primeParts` (see "Localization at the primes"), and `singleLayer=true`
+when its line has at most one nonzero layer. An unresolved
 degree stores its reason, pending layer and (when applicable) generator,
 completed stages, measured vectors and lower model. It has no fabricated
 complete group or invariant list. The public `invariants` view uses `[]`
 only for a proved zero group and `[0]` for Z.
 
 In the higher-degree engine, `layers.<name>.fullLifts[i]` retains the
-immutable full representative and its defining-equation witnesses for
-each marked generator. Completed higher-degree results record
+immutable full representative and its defining-equation witnesses of each
+marked generator whose complete or three-local lift a measurement needed
+(see "Complete flat representatives and gauge comparisons"). Completed
+results with `certificateLevel="transfer-R"` record
 `abelianQuotientAssumed=true`: the measured relations are combined under
 the assumption that stacking is commutative and associative on gauge
 classes, and no finite multiplication table is audited.
@@ -213,33 +225,52 @@ The **target layer** of the relation is the lowest layer of the lower
 presentation containing a free generator; every generator below it lies in
 `mH`, so the components of `t_i` in those layers cannot change the class,
 and the oracle measures the power only through the target layer
-(`KOAHSS_ExtensionTargetLayer`). The stacked power and the reductions are
-then layer-limited (`upto` in the model's `d`, `xtimes`, `act` and
-`divideLeft`), so the D-layer stacking correction is never evaluated when
-the target layer is B or C; the unmeasured entries of `t_i` are recorded as
-zero, and the witness carries `measuredLayers`, `truncatedBelow` and the
-certificate `sufficiency`, the explicit integer combinations exhibiting
-every lower generator below the target layer as an element of `mH` modulo
-the relations. When no lower generator is free, the class is zero and the
-relation `m\widetilde q=0` is recorded without any measurement; when a free
-generator lies in the D layer, the measurement is complete as before. If the
+(`KOAHSS_ExtensionTargetLayer`), which it decides from the lower
+presentation alone, before it needs a model or a lift. The stacked power
+and the reductions are then layer-limited (`upto` in the model's `d`,
+`xtimes`, `act` and `divideLeft`), so the D-layer stacking correction is
+never evaluated when the target layer is B or C; the unmeasured entries of
+`t_i` are recorded as zero, and the witness carries `measuredLayers`,
+`truncatedBelow` and the certificate `sufficiency`, the explicit integer
+combinations exhibiting every lower generator below the target layer as an
+element of `mH` modulo the relations. A lower generator of the target layer
+enters the compared product with its marked cocycle only (the state with
+that one layer), which agrees there with its flat lift.
+
+When the target layer `T` lies right below the generator's layer (B for an
+A generator, C for a B generator), the generator's flat lift is solved only
+through `T` (`KOAHSS_ExtensionFlatLift` with `upto`, the lift's witness
+recording `solvedThrough`): the order is even (for odd `m`, `H/mH=D/mD`
+because the binary layers are two-groups, so the target layer is D or
+none) and `T` is binary, so the power and its reduction through `T` do not
+depend on the choice in `T`, and no layer below `T`, in particular no
+D-layer curvature, is evaluated for the relation. The target layer C of an
+A generator uses the complete lift: the choices in B change the power
+through C (the product term `\beta`) and must be those of an element of the
+group, which needs the extension through D. When no lower generator is
+free, the class is zero and the relation `m\widetilde q=0` is recorded
+without any measurement, model, lift or comparison chain; when a free
+generator lies in the D layer, the measurement is complete. If the
 layer-limited reduction fails to express a component through ordinary
-coboundaries, the complete measurement takes over. The environment variable
-`FERMIONAHSS_LAYERED_RELATIONS=0` disables the shortcut.
+coboundaries, the complete measurement with the complete lift takes over.
+The environment variable `FERMIONAHSS_LAYERED_RELATIONS=0` disables the
+shortcut.
 
 For the Pin⁻ line of `C2` with `s` at degree six, the lower group of the A
 generator is `<b,c,d\mid 2b=c,2c=d,2d=0>\cong Z/8`: only `b` is free, the
-target layer is B, and the B layer of the square of the A generator is
-`alpha(A,A)`, so `Z/16` is determined without the universal pair source of
-`gamma_6`. With a lower group `Z/2\oplus Z/4` (`2b=0`, `2c=d`) both `b`
-and `c` are free and the target layer is C: `2a=b` gives `Z/4\oplus Z/4`
-while `2a=b+c` gives `Z/8\oplus Z/2`, which only the C component decides.
+target layer is B, the lift of the A generator is solved through B only,
+and the B layer of its square is `alpha(A,A)`, so `Z/16` is determined
+without the universal pair source of `gamma_6`. With a lower group
+`Z/2\oplus Z/4` (`2b=0`, `2c=d`) both `b` and `c` are free and the target
+layer is C: `2a=b` gives `Z/4\oplus Z/4` while `2a=b+c` gives
+`Z/8\oplus Z/2`, which only the C component decides.
 
 Free quotient generators add columns but no power-relation rows and
 require no torsion query. A free quotient splits because the intended
-abutment category is that of abelian groups. The higher-degree engine
-still solves and retains its full representative, including a free A
-generator's B, C and D choices. The implementation keeps the named presentation
+abutment category is that of abelian groups. Free generators occur in A
+and D only, and neither needs a flat lift: an A generator is never a lower
+generator, and a D generator enters every measured product with its marked
+cocycle. The implementation keeps the named presentation
 columns across all four stages, so later vectors can refer to any earlier
 generator without losing its embedding.
 
@@ -247,13 +278,46 @@ generator without losing its embedding.
 
 The E6 layer generators are the independent generators of the cells
 (`IndependentGeneratorsOfAbelianGroup`), so every one of them has prime-power
-or infinite order and every relation `m\widetilde q=t` belongs to one prime.
-A lower generator of order coprime to `m` lies in `mH`, so it is never free
-for `q` (previous section): the components of a relation on the other primes'
-generators never change the group, the relation matrix is block diagonal up
-to such entries, and its Smith form is the direct sum of the p-primary parts
-and the free part. The binary rows `q=-1,-2` are two-groups, so odd-primary
-generators occur in the layers A and D only.
+or infinite order (any other order is an error) and every relation
+`m\widetilde q=t` belongs to one prime. The binary rows `q=-1,-2` are
+two-groups, so odd-primary generators occur in the layers A and D only, and
+every odd-primary relation belongs to A.
+
+Right after the layers are read, the generators of the resolved layers
+(those below the first unresolved layer) are grouped by the prime of their
+order (`KOAHSS_ExtensionPrimeParts`). A free generator belongs to no prime:
+it is a lower generator of the relations of every prime and carries no
+relation itself. The rows are recorded prime by prime, two first, and for
+each prime one generator at a time from D upward
+(`KOAHSS_ExtensionPrimeRows`); a generator over the zero lower group is not
+queried (the assembler records it with `kind="zero-lower-group"`). A
+relation of the prime `p` over a nonzero lower group `H` has the zero row,
+without a model or a lift, when it splits at `p` (below) and, otherwise,
+when no lower generator has `p`-power order and none is free
+(`witness.kind="zero-local-lower-group"`): `H` is then finite of order
+prime to `m`, so `mH=H` and the class in `H/mH` vanishes. Every other
+relation is measured: the target-layer shortcut of the previous section
+first, then the complete model for `p=2` or the three-local model for
+`p=3` in degrees five and six.
+
+A measured row keeps only its coordinates on the generators of its prime
+and on the free generators; when this drops a nonzero coordinate, the full
+row stays in `witness.fullLowerCoordinates`, with `witness.localizedAt`.
+This is exact. The lower generators of odd order of a two-primary relation
+(of B, C or A) lie in D, where they are torsion of odd order and vanish
+after localization at two. An odd-primary relation belongs to A, is split or
+three-local and has no B or C coordinate, since the three-local model has
+no binary layers, so the D generators of other primes that it drops vanish
+after localization at its prime as well. The rows of all primes therefore
+present the group: its localization at each prime is presented by the rows
+of that prime on the generators of that prime and the free generators, and
+its rank is the number of free generators. The rows are assembled into one
+presentation by `koAHSSExtensionFromLayers` with an oracle that replays
+them (`KOAHSS_ExtensionReplayOracle`), which gives the Smith staging and
+the fields of the next sections over all generators; the lower
+presentation of a measurement is built the same way from the rows below it
+(`KOAHSS_ExtensionLowerPresentation`). `degreeResult.primeParts` records,
+for each prime, its generators and the `p`-primary part of the invariants.
 
 The stacking model of a relation is chosen by the prime `p` of the order of
 its generator (`KOAHSS_ExtensionRelationModel`):
@@ -264,9 +328,9 @@ its generator (`KOAHSS_ExtensionRelationModel`):
   the window carries no k-invariant and no stacking correction at `p`; the
   relation is `m\widetilde q=0` in every degree, also over free lower
   generators, and the witness records `model="split"` with the certificate.
-  When every relation of a degree splits, the degree needs no stacking model
-  (`certificateLevel="prime-split"`), so the sparse comparison of the
-  resolution is not built either (`KOAHSS_ExtensionRelationsAllSplit`).
+  A split relation needs neither the stacking model nor a flat lift; a
+  completed degree with a split relation that built no model records
+  `certificateLevel="prime-split"`.
 - `p=3`: the three-local window is the two-stage tower of the rows `q=0`
   (layer A) and `q=-4` (layer D) with k-invariant `2\beta_3P^1\rho_3`; the
   potential is the coefficient-two phase `\Omega(A)=\tfrac23\,\mathrm{lift}(P^1_s\rho_3A)`
@@ -338,23 +402,29 @@ The model (`python/extension_three_local.py`, requests with `prime=3` on the
 same worker process, `model.primeLocal(3)` in GAP) evaluates `\gamma` on
 the resolution through the comparison lift and projection of the
 transferred model, so associativity and commutativity hold up to signed
-D-coboundaries as in the complete model; the flat lifts of three-primary A
-generators are solved in the two-layer model (`(A,0,0,0)` in degree five,
-`(A,0,0,D)` in degree six), the power is reduced in the A layer by
-coboundaries and same-model lifts, in the D layer by the marked D lifts,
-the binary layers are absent, and the relation keeps its exact gauge
-comparison (`witness.model="three-local"`, `witness.prime=3`). If the
-three-local reduction fails to express the D residual through ordinary
-coboundaries, the complete measurement with a complete lift takes over.
+D-coboundaries as in the complete model; the flat lift of a three-primary
+A generator is solved in the two-layer model when its relation is measured
+(`(A,0,0,0)` in degree five, `(A,0,0,D)` in degree six), the power is
+reduced in the A layer by coboundaries and in the D layer by the marked D
+cocycles and coboundaries, the binary layers are absent, and the relation
+keeps its exact gauge comparison (`witness.model="three-local"`,
+`witness.prime=3`). If the three-local reduction does not express the D
+residual through the marked D cocycles and ordinary coboundaries, the
+relation stays unresolved (`code="three-local-reduction"`). The complete
+four-layer measurement is not used for it: it writes the relation in the
+lifts of the binary generators, whose three-local contribution needs their
+complete, untruncated relations.
 
-Lifts of one prime's model never enter a measurement of another model: the
-A-layer rows of a reduction are the same-model lifts, the coordinates of the
-other primes' generators are recorded as zero, and the gauge-reduction
-fallback ranges over the complete lifts only. The per-prime summary of a
-degree is `degreeResult.primes` (prime, number of measured relations, the
-models that measured them), and
+Lifts of one prime's model never enter a measurement of another model: a
+three-local lift enters only its own relation, and the lower products of
+both models consist of complete lifts and marked cocycles of lower
+generators (in the three-local model, marked D cocycles only). The
+per-prime summary of a degree is `degreeResult.primes` (prime, number of
+relations over a nonzero lower group, and their models), and
 `FERMIONAHSS_PRIME_LOCAL=0` restores the complete measurement for every
-prime.
+prime: every relation uses the complete model, a row keeps all its
+coordinates, and the zero rows of a lower group without generators of the
+prime are not used.
 
 For cyclic groups the window is `F^2/F^{10}` of the skeletal filtration of
 `ko^2(BZ/n)`, which is the `I`-adic filtration of the anti-invariant part
@@ -381,8 +451,10 @@ groups d5 does not vanish on the Tor classes of `H^3`.
 
 ## Smith coordinates and filtration maps
 
-The returned Smith data satisfy `smith.U * relationMatrix * smith.V =
-smith.S`. Coordinates are row vectors. A vector `x` in the named
+In degrees 1–6 `relationMatrix` is the one presentation of the rows of all
+primes ("Localization at the primes"). The returned Smith data satisfy
+`smith.U * relationMatrix * smith.V = smith.S`. Coordinates are row
+vectors. A vector `x` in the named
 presentation maps to Smith coordinates as `x * smith.V`; retain
 `smith.activeIndices` to omit unit-order factors and reduce finite
 coordinates modulo the corresponding orders.
@@ -453,6 +525,8 @@ presentation. It queries all torsion generators of a later layer against
 one common lower presentation before adjoining that layer's generators.
 It then computes the joint Smith form. Wrong presentation IDs, malformed
 vectors and inconsistent exact data are errors, not unresolved results.
+`koFull` records its rows prime by prime first and then calls the assembler
+with an oracle that replays them.
 
 ## Complete flat representatives and gauge comparisons
 
@@ -495,10 +569,25 @@ rational cochain whose integrality is only tested, so that sector keeps
 has a nonzero A layer is evaluated: its universal pair primitive vanishes
 identically, since every term of the pair contraction keeps a zero fiber
 and the relative small basis has no word of one fiber alone.
-All independent generators of D, C, B and A receive a full flat lift,
-including free generators and generators over a zero lower group.
 
-For an A generator, it solves
+Flat lifts are solved when a measurement first needs them. The measured
+generator gets its complete lift, its lift through the target layer when
+that layer lies right below the generator's ("Layers and measured
+relations"), or its two-layer lift at the prime three. A lower generator
+gets its complete lift only when it enters the compared product with a
+nonzero coefficient in a layer above the last measured layer (the target
+layer, or D in a complete or three-local measurement); in the last measured
+layer it enters with its marked cocycle, the state with that one layer,
+since the leading component of a flat lift is the marked cochain itself
+and the products through that layer read nothing else. The rows of a layer
+reduction are these marked cochains, so a zero coefficient needs no lift,
+and no D generator and no free generator ever needs one. The complete and
+three-local lifts that were needed are kept in `layers.<name>.fullLifts`,
+a lift through the target layer in the witness of its relation
+(`witness.flatLift`); a needed lift that fails leaves its relation
+unresolved with the lift's reason.
+
+For an A generator, the complete lift solves
 
 \[
  \delta_s A=0,\qquad \delta B+P_R(A)=0,\qquad
@@ -513,20 +602,25 @@ chosen B does not admit C, or a chosen C does not admit D, it changes
 that defining choice and retries the dependent equations. It evaluates
 the actual full differential to verify the resulting tuple is flat.
 B- and C-layer generators undergo the same lower-equation procedure.
+A lift through the layer `T` solves the equations through `T` only, with
+the layer-limited differential, and leaves the layers below `T` zero.
 The solver stores the chosen primitives, their adjustments, the exact
 equation data and the final zero-curvature witness. No universal helper
 is replaced by a locally solved formula.
 
 Each `fullLifts[i].state` is an immutable tuple `(A,B,C,D)` in the retained
 resolution basis. The exact same tuple is reused in all powers, lower reductions
-and basis comparisons. A generator's lower components are not reset to
-zero or reconstructed from their cohomology classes in a later query.
+and basis comparisons. A complete lift's lower components are not reset to
+zero or reconstructed from their cohomology classes in a later query; only
+in the last measured layer, where nothing below it is read, does a
+generator enter with its marked cocycle alone.
 
-For a torsion generator of order `m`, the oracle stacks this complete
-tuple to obtain its measured power. It reduces the result using the
-previously stored lower lifts and retains all integral carries and
-boundary data. The resulting coordinates refer to the named D/C/B/A
-columns used by the common relation matrix.
+For a torsion generator of order `m`, the oracle stacks its lift to obtain
+its measured power. It reduces the result using the lifts and marked
+cocycles of the lower generators described above and retains all integral
+carries and boundary data. The resulting coordinates refer to the named
+D/C/B/A columns of the lower presentation, and the rows of all primes are
+combined in one relation matrix.
 
 An ordered reduction alone does not justify rearranging cochain products.
 The engine therefore constructs the canonical lower product in its
@@ -563,12 +657,13 @@ If ordinary layer reduction fails at D, the reducer projects the remaining
 D cocycle into the retained E6 cell to propose coordinates in the marked
 D basis. This accounts for incoming differentials that ordinary
 coboundaries alone do not remove. It then compares the **original full
-stacked tuple** with the canonical product of all recorded lower lifts,
-including their earlier carries, using the staged gauge search above.
+stacked tuple** with the canonical product of the lower generators with
+nonzero proposed coordinates (complete lifts, including their earlier
+carries, and marked D cocycles), using the staged gauge search above.
 The E6 projection alone never certifies a stacking relation.
 
 For other failed ordinary reductions, the alternative search tries at most 32
-marked finite lower normal forms, stage by stage, using the same stored
+marked finite lower normal forms, stage by stage, with the same
 representatives. It does not guess coordinates for a free lower factor.
 Accepted relations retain `canonicalComparison.winningStage`,
 `attemptedStages` and the full gauge. Unresolved relation queries retain
@@ -624,8 +719,9 @@ No expected classification table is consulted at runtime.
 ## Low degrees and resource limits
 
 Degrees -1 and 0 have only the D layer: the group is that layer and no
-relation is measured. Degrees one and two use the native engine with the
-differentials and products of
+relation is measured, so, as in every degree without a relation to
+measure, no stacking model is built. Degrees one and two use the native
+engine with the differentials and products of
 [low_degree_stacking.md](low_degree_stacking.md), for arbitrary valid
 `s` and `omega`. A degree-one state is `(C,D)` and its gauges are
 degree-zero states `(D)`; a degree-two state is `(B,C,D)` and its gauges
@@ -639,8 +735,8 @@ The native implementation has explicit resource bounds:
 
 | Work | Bound |
 | --- | --- |
-| Distinct g-support simplices per degree in preflight | 8192 |
-| Processed sparse transport expansion terms | 2,000,000 |
+| Distinct g-support simplices per degree, over the comparison chains verified in that degree | 8192 |
+| Processed sparse transport terms: g and f terms of the verified comparison chains, and normalized-homotopy expansion terms | 2,000,000 each |
 | Flat-lift affine search | 4096 distinct differential evaluations by default |
 | Gauge-comparison affine search | 4096 equation evaluations and 64 leading choices shared across requested stages; integral kernel coefficients initially bounded by absolute value 1 |
 | Alternative lower-coordinate search | 32 marked finite normal forms; 4096 equation evaluations shared across stages and candidates |

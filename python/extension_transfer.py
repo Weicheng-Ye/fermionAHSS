@@ -15,6 +15,7 @@ import gc
 import itertools
 import json
 import sys
+import weakref
 
 from extension_worker import api, BoundedCache
 import extension_acceleration as acceleration
@@ -27,6 +28,7 @@ from extension_three_local import ThreeLocalModel
 from coherent_low_commutative import (DegreeOneCommutativeStacking,
                                      DegreeTwoCommutativeStacking)
 from a0_gamma import beta2
+from cochain_tools import LinearCochain
 
 p = api.p
 structural_zero = acceleration.is_zero
@@ -100,7 +102,6 @@ class TransferredModel:
         else:
             raise ValueError("unknown vertex mode")
         self.ranks = setup["ranks"]
-        self.g = setup["g"]
         self.matrices = {False: setup["ordinary"], True: setup["signed"]}
         self.max_degree = len(self.ranks) - 1
         self.max_debug_simplices = setup.get("maxDebugSimplices", 8192)
@@ -108,11 +109,25 @@ class TransferredModel:
             raise ValueError("maxDebugSimplices must be positive")
         if any(type(n) is not int or n < 0 for n in self.ranks):
             raise ValueError("invalid resolution ranks")
-        if len(self.g) != len(self.ranks):
-            raise ValueError("g must cover every supplied resolution degree")
-        for n, rank in enumerate(self.ranks):
-            if len(self.g[n]) != rank:
-                raise ValueError("g has the wrong resolution rank")
+        # The comparison chains g(e_j): supplied in full, or requested from
+        # GAP one basis element at a time when first needed (gMode "lazy").
+        self._chains = {}
+        if "g" in setup:
+            g = setup["g"]
+            if len(g) != len(self.ranks):
+                raise ValueError("g must cover every supplied resolution degree")
+            for n, rank in enumerate(self.ranks):
+                if len(g[n]) != rank:
+                    raise ValueError("g has the wrong resolution rank")
+                for j, chain in enumerate(g[n]):
+                    self._chains[n, j] = chain
+        elif setup.get("gMode") != "lazy":
+            raise ValueError("setup needs the comparison chains g or gMode 'lazy'")
+        # Pairings <c, g(e_j)> per cochain (weight 0: modulo two, weight 1:
+        # exact), kept without keeping the cochains alive, and the retraction
+        # identities checked per degree (see _pairing).
+        self._pairings = (weakref.WeakKeyDictionary(), weakref.WeakKeyDictionary())
+        self._identities = {}
         for signed, matrices in self.matrices.items():
             if len(matrices) < self.max_degree:
                 raise ValueError("missing resolution coboundary matrices")
@@ -200,6 +215,21 @@ class TransferredModel:
             self._transport[key] = tuple(tuple(t) for t in answer)
         return self._transport[key]
 
+    def chain(self, n, j):
+        """g(e_j) for the basis element j (0-based) of R_n, as [c, c*chi, labels] terms."""
+        found = self._chains.get((n, j))
+        if found is None:
+            if not 0 <= n <= self.max_degree or not 0 <= j < self.ranks[n]:
+                raise ValueError("comparison chain outside the supplied resolution basis")
+            answer = self.transport("g", n, j)
+            if isinstance(answer, dict):
+                if answer.get("status") != "computed":
+                    raise TransferResourceLimit(answer.get("reason", "transport refused"))
+                answer = answer["terms"]
+            found = tuple((t[0], t[1], tuple(t[2])) for t in answer)
+            self._chains[n, j] = found
+        return found
+
     def lift(self, n, vector, signed):
         if n < 0 or not any(vector):
             return p.zero(n)
@@ -207,18 +237,91 @@ class TransferredModel:
         def value(vertices):
             result = sum(t[weight] * vector[t[0]] for t in self.terms("f", vertices))
             return result if signed else result % 2
-        return p.Cochain(n, value)
+        answer = p.Cochain(n, value)
+        answer.native_lift = tuple(vector), signed
+        return answer
 
     def project(self, cochain, signed):
         n = cochain.degree
         if n < 0:
             return []
         if structural_zero(cochain):
-            return [0] * len(self.g[n])
-        weight = 1 if signed else 0
-        values = [sum(t[weight] * cochain(tuple(t[2])) for t in chain)
-                  for chain in self.g[n]]
+            return [0] * self.ranks[n]
+        values = self._pairing(cochain, 1 if signed else 0)
         return [integer(v) if signed else integer(v) % 2 for v in values]
+
+    def _pairing(self, cochain, weight):
+        """<cochain, g(e_j)> for every basis element j of R in its degree:
+        exact for weight 1, correct modulo two for weight 0.
+
+        Pairing is linear, so a sum is paired term by term, and a pairing is
+        computed once per cochain. A lift of v pairs to v and a homotopy image
+        pairs to zero (f g = 1 and H g = 0), each identity checked once per
+        degree on the chains themselves; otherwise the cochain is evaluated.
+        """
+        table = self._pairings[weight]
+        found = table.get(cochain)
+        if found is not None:
+            return found
+        n = cochain.degree
+        rank = self.ranks[n]
+        if structural_zero(cochain):
+            values = [0] * rank
+        elif isinstance(cochain, LinearCochain) and (
+                cochain.modulus is None or (cochain.modulus == 2 and weight == 0)):
+            values = [0] * rank
+            for term, k in cochain.terms:
+                part = self._pairing(term, weight)
+                values = [a + k * b for a, b in zip(values, part)]
+            if weight == 0:
+                values = [v % 2 for v in values]
+        else:
+            values = self._identity_pairing(cochain, weight)
+            if values is None:
+                values = [sum(t[weight] * cochain(tuple(t[2])) for t in self.chain(n, j))
+                          for j in range(rank)]
+        table[cochain] = values
+        return values
+
+    def _identity_pairing(self, cochain, weight):
+        n = cochain.degree
+        native = getattr(cochain, "native_lift", None)
+        if native is not None:
+            vector, signed = native
+            if (signed or weight == 0) and self._identity_holds("lift", n, weight, signed):
+                return [v % 2 for v in vector] if weight == 0 else list(vector)
+            return None
+        signed = getattr(cochain, "homotopy_image", None)
+        if signed is not None and (signed or weight == 0) and \
+                self._identity_holds("homotopy", n, weight, signed):
+            return [0] * self.ranks[n]
+        return None
+
+    def _identity_holds(self, kind, n, weight, signed):
+        """Whether <lift(e_i), g(e_j)> = delta_ij (kind "lift") or the chain
+        h(g(e_j)) vanishes (kind "homotopy") in degree n, as the pairing of
+        that weight sees them; computed once from the f or h terms of every
+        simplex of the chains of degree n."""
+        key = kind, n, weight, signed
+        answer = self._identities.get(key)
+        if answer is None:
+            answer = True
+            inner = (2 if signed else 1) if kind == "lift" else (1 if signed else 0)
+            for j in range(self.ranks[n]):
+                total = {}
+                for t in self.chain(n, j):
+                    for u in self.terms("f" if kind == "lift" else "h", tuple(t[2])):
+                        target = u[0] if kind == "lift" else tuple(u[2])
+                        total[target] = total.get(target, 0) + t[weight] * u[inner]
+                if weight == 0 or not signed:
+                    total = {x: v % 2 for x, v in total.items()}
+                total = {x: v for x, v in total.items() if v}
+                expected = {j: 1} if kind == "lift" else {}
+                if total != expected:
+                    answer = False
+                    break
+            self._identities[key] = answer
+        return answer
 
     def homotopy(self, cochain, signed):
         if cochain.degree <= 0 or structural_zero(cochain):
@@ -228,7 +331,9 @@ class TransferredModel:
             result = sum(t[weight] * cochain(tuple(t[2]))
                          for t in self.terms("h", vertices))
             return result if signed else result % 2
-        return p.Cochain(cochain.degree - 1, value)
+        answer = p.Cochain(cochain.degree - 1, value)
+        answer.homotopy_image = signed
+        return answer
 
     @lru_cache(None)
     def simplices(self, n):
@@ -259,11 +364,15 @@ class TransferredModel:
         n = cochain.degree
         if n < 0 or structural_zero(cochain):
             return True
-        if n >= len(self.g):
+        if n >= len(self.ranks):
             raise ValueError("zero test exceeds the supplied resolution degrees")
         weight = 0 if binary else 1
-        for chain in self.g[n]:
-            value = sum(t[weight] * cochain(tuple(t[2])) for t in chain)
+        known = self._pairings[weight].get(cochain)
+        if known is not None:
+            return all((v % 2 if binary else v) == 0 for v in known)
+        # Chains after the first nonzero pairing are never requested.
+        for j in range(self.ranks[n]):
+            value = sum(t[weight] * cochain(tuple(t[2])) for t in self.chain(n, j))
             if (value % 2 if binary else value) != 0:
                 return False
         return True
@@ -597,8 +706,11 @@ def serve():
     model = None
     acceleration.persist()
     def transport(kind, degree, vertices):
-        print(json.dumps(dict(operation="transport", kind=kind,
-                              degree=degree, vertices=vertices)), flush=True)
+        # A comparison chain is addressed by its 0-based basis index.
+        message = (dict(operation="transport", kind="g", degree=degree, basis=vertices)
+                   if kind == "g" else
+                   dict(operation="transport", kind=kind, degree=degree, vertices=vertices))
+        print(json.dumps(message), flush=True)
         line = sys.stdin.readline()
         if not line:
             raise RuntimeError("GAP transport stopped during a callback")
