@@ -368,6 +368,17 @@ three-torsion input (their half-lift carries fail for the generator of
 `Z/9` and for the sign-twisted `S_3`), so for these groups the three-local
 model is the only measurement.
 
+Degree six is checked by suspension: the degree-six window of `G\times Z`
+is the suspension of the degree-five window of `G` (`ko^3(\Sigma BG)=ko^2(BG)`,
+the layers being `H^3(G\times Z)\supset H^2(G)\otimes H^1(Z)` and
+`H^7\supset H^6(G)\otimes H^1(Z)`), and on the product resolution
+(`ResolutionDirectProduct` of the cyclic and the `Z` resolution) the
+three-local model gives `Z/9` for `Z/3\times Z` (`3A=14D`) and
+`Z/3\oplus Z/27` for `Z/9\times Z` (`9A=42D`, that is `9a=6d` modulo nine),
+the degree-five values of `Z/3` and `Z/9`. Finite groups rarely have
+three-torsion survivors in the degree-six A layer: for elementary abelian
+groups d5 does not vanish on the Tor classes of `H^3`.
+
 ## Smith coordinates and filtration maps
 
 The returned Smith data satisfy `smith.U * relationMatrix * smith.V =

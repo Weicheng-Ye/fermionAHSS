@@ -86,6 +86,9 @@ d5 term, and the stacking correction and gauge boundary use the natural
 cross-effect and coboundary primitives of `P^1` modulo three built from the
 third and lower cyclic diagonals; both are verified exactly on random
 cochains, and the model checks the divisibility by three of every value.
+By suspension (`ko^3(Sigma BG) = ko^2(BG)`) it reproduces `Z/9` for
+`Z/3 x Z` and `Z/3+Z/27` for `Z/9 x Z` in degree six, the degree-five
+values of `Z/3` and `Z/9`.
 `FERMIONAHSS_PRIME_LOCAL=0` restores the complete measurement at every
 prime. See [extensions](extensions.md), "Localization at the primes".
 
