@@ -1,48 +1,71 @@
-# Implemented formulas and calibration data
+# Documentation guide and formula sheet
 
-These documents describe the fixed bar formulas and resolution-based
-implementation of fermionAHSS.
+fermionAHSS computes the five rows `q = -4,-3,-2,-1,0` of the twisted
+connective real K-theory Atiyah–Hirzebruch spectral sequence of a group
+resolution through E6, and assembles the E6 layers of a degree into one
+group by solving the stacking extension problem. These notes record the
+mathematics behind the two steps: the fixed cochain formulas of the page
+differentials, the stacking model of the extension problem, the
+assumptions, and the comparisons with the literature. This page gives the
+layout of the notes and a sheet of the formulas that the package
+evaluates; each formula points to the note that derives it.
 
-| Document | Contents |
-| --- | --- |
-| [conventions.md](conventions.md) | Signed coefficients, interval-cut words, integral signs, binary lifts, primary maps, bar comparison, and defining-cochain corrections |
-| [secondary_operations.md](secondary_operations.md) | Complete Tau and Psi formulas, exact common lift, domains, and indeterminacy |
-| [tertiary_operations.md](tertiary_operations.md) | Implemented R0–R3 phases, the cubic term of R2, and all 19 prime-three terms |
-| [universal_helpers.md](universal_helpers.md) | Chi ANF decoding and degree table, zeta words, universal contractors, finite source tables, and every normalization selector |
-| [universal_value_growth.md](universal_value_growth.md) | Growth and periodicity of the stored universal source values: exact decomposition of the pair source, closed form of the degree-one contraction, affine growth of `V_1` on residue classes, the modulo-four period of the theta source behind `V_2` and `V_3`, their quasi-polynomial growth, the finite data that determine them, and the invariance of the results under a change of the universal contractions |
-| [backends.md](backends.md) | HAP, cochain, and page interfaces; direct-operation audits and exact quotient conventions |
-| [extensions.md](extensions.md) | Detailed AHSS results, `koFull` and `koFull_batch`, retained flat tuples, exact gauge comparisons, target layers, localization at the primes (split primes, the three-local model), common-coordinate Smith presentations, and the abelian-quotient assumption |
-| [transfer.md](transfer.md) | Resolution transfer: the retraction check, the normalized homotopy, conditional flatness and reflection, a counterexample to gauge completeness, and the preflight |
-| [resolution-extensions.md](resolution-extensions.md) | Native extension API, sparse normalized transport, gauge-completeness assumption and native completion checks |
-| [extension-paper-comparisons.md](extension-paper-comparisons.md) | Full-group literature fixtures, dimension and twist conventions, and the measured relations of the C2 cases |
-| [mathematical-status.md](mathematical-status.md) | Implemented range, mathematical assumptions, sources, and unresolved scope |
-| [dimension_indexed_differentials.md](dimension_indexed_differentials.md) | Explicit nonlinear differential through k=6 on the first-two-layer domain, the residual correction, and a literal square-zero proof |
-| [low_degree_stacking.md](low_degree_stacking.md) | Stacking products in package degrees one and two (gamma1, beta2, gamma2) and their use in `koFull` |
-| [all_cochain_differential.md](all_cochain_differential.md) | Piecewise extension to arbitrary cochains with first component δ_sA, complete degree table, exact square-zero proof, and the defining-system obstructions; not a natural local extension |
+## Layout
 
-The large chi word lists are encoded exactly by
-[data/chi-calibrated-degree7-anf.g](../data/chi-calibrated-degree7-anf.g)
-and the decoding rule in the helper reference. This is the complete
-runtime coefficient data; the millions of word summands are not needed
-separately.
+```
+doc/
+├── README.md                          this guide and the formula sheet
+│
+│   Cochains and the page differentials
+├── conventions.md                     twists, coefficient systems, cup-i words, lifts, primary maps
+├── secondary_operations.md            d3 = Tau (row 0 to -2) and d4 = Psi (row -1 to -4)
+├── tertiary_operations.md             d5 = T (row 0 to -4) in input degrees 0-3, prime-three term
+├── universal_helpers.md               the fixed helpers: chi words, Theta, V1, V2, V3, selectors
+├── universal_value_growth.md          growth and periodicity of the stored universal values
+│
+│   The stacking extension problem
+├── extensions.md                      koFull: layers, relations, target layers, prime localization, Smith bases
+├── low_degree_stacking.md             the products of package degrees one and two
+├── dimension_indexed_differentials.md the nonlinear differential of the stacking model, k = 0..6
+├── all_cochain_differential.md        its extension to arbitrary cochains and the square-zero proof
+├── transfer.md                        evaluating the bar formulas on a supplied resolution
+├── resolution-extensions.md           the native model on a resolution: transport, checks, limits
+│
+│   Interfaces, comparisons and status
+├── backends.md                        HAP, cochain and page backends, direct operation calls
+├── extension-paper-comparisons.md     the literature fixtures and what the package finds
+└── mathematical-status.md             implemented range, assumptions, sources, open scope
+```
 
-## Names and fixed coefficients
+Read [conventions.md](conventions.md) first: every other note uses its
+cochain conventions. The page differentials are in
+[secondary_operations.md](secondary_operations.md) and
+[tertiary_operations.md](tertiary_operations.md), with their helpers in
+[universal_helpers.md](universal_helpers.md). The extension problem is in
+[extensions.md](extensions.md), whose formulas are derived in
+[dimension_indexed_differentials.md](dimension_indexed_differentials.md),
+[low_degree_stacking.md](low_degree_stacking.md) and
+[all_cochain_differential.md](all_cochain_differential.md), and evaluated on
+a resolution as described in [transfer.md](transfer.md) and
+[resolution-extensions.md](resolution-extensions.md). The assumptions and
+the limits are collected in [mathematical-status.md](mathematical-status.md).
 
-The notes and GAP use the same differential names throughout.
+## Names and fixed data
 
-| Differential | Rows | Function |
-| --- | --- | --- |
-| d2 | 0 to -1 | `Dbar` |
-| d2 | -1 to -2 | `D` |
-| d3 | -2 to -4 | `Dtilde` |
-| d3 | 0 to -2 | `Tau` |
-| d4 | -1 to -4 | `Psi` |
-| d5 | 0 to -4 | `T` |
+The notes and GAP use the same names for the differentials.
 
-The primary functions are defined in [conventions.md](conventions.md).
-The formulas for `Tau` and `Psi` are in
-[secondary_operations.md](secondary_operations.md), and those for `T`
-are in [tertiary_operations.md](tertiary_operations.md).
+| Differential | Rows | Name | Cohomological expression |
+| --- | --- | --- | --- |
+| d2 | 0 to -1 | `Dbar` | \(D\rho\) |
+| d2 | -1 to -2 | `D` | \(\operatorname{Sq}^2+s\operatorname{Sq}^1+\omega\) |
+| d3 | -2 to -4 | `Dtilde` | \(\beta_s(\operatorname{Sq}^2+\omega)\) |
+| d3 | 0 to -2 | `Tau` | secondary, formula (S11) below |
+| d4 | -1 to -4 | `Psi` | secondary, formula (S7) below |
+| d5 | 0 to -4 | `T` | tertiary, formula (T) below |
+
+The binary representative of `Tau` is \(\tau'\), the integral
+representative of `Psi` is \(\psi'\). The helper \(\Theta_m\) is a rational
+phase, not a differential.
 
 | Datum | Value |
 | --- | --- |
@@ -58,36 +81,236 @@ are in [tertiary_operations.md](tertiary_operations.md).
 | Prime-three coefficient | `2`; on the page it contributes only in input degree three, in degree two it enters the degree-five stacking correction |
 
 The entries of \(\boldsymbol{\zeta}\) select the R1 rank normalization and
-the two R2 suspension terms, respectively. This vector is distinct from
-the secondary epsilon and eta vectors and from the cochain helpers
-\(\zeta_{i,n}\).
+the two R2 suspension terms; the vector is distinct from the secondary
+epsilon and eta vectors and from the cochain helpers \(\zeta_{i,n}\). The
+chi word lists are encoded exactly by
+[data/chi-calibrated-degree7-anf.g](../data/chi-calibrated-degree7-anf.g)
+and the decoding rule of [universal_helpers.md](universal_helpers.md).
 
-## Runtime source map
+## Formula sheet
 
-| Source | Role |
-| --- | --- |
-| [natural_bar.gi](../gap/natural_bar.gi) | Integral equivariant bar comparison and homotopy |
-| [natural_words.gi](../gap/natural_words.gi) | Interval cuts, integral cup signs, and compiled chi evaluation |
-| [natural_secondary.gi](../gap/natural_secondary.gi) | Complete lower formulas and matched lift |
-| [natural_tertiary.gi](../gap/natural_tertiary.gi) | Defining systems, Python worker, phase projection, and exact boundary |
-| [worker.py](../python/worker.py) | Exact JSON line protocol, one process per GAP session, face-equation audits, and the shared `V1` table |
-| [low_phases.py](../python/low_phases.py) | Degree-zero, -one, and -two phases |
-| [high_phase.py](../python/high_phase.py) | Degree-three phase |
-| [cochain_tools.py](../python/cochain_tools.py) | The single interval-cut engine: cup-i words, integral signs, coboundary, interval pullback and prism, Q |
-| [phase_eval.py](../python/phase_eval.py) | Shared lower phase, source splitting, chi, polarization and hD, integrality checks |
-| [mod3_power.py](../python/mod3_power.py) | Prime-three formula and signed transport |
-| [pages.gi](../gap/pages.gi) | Exact homology, surviving representatives, and page quotients |
-| [group_api.gi](../gap/group_api.gi) | `koAHSS` and `koAHSS_batch` for finite groups and supplied resolutions |
-| [extensions.gi](../gap/extensions.gi) | Marked abelian extension presentations, Smith transformations, `koFull` and `koFull_batch` |
-| [extension_lifts.gi](../gap/extension_lifts.gi) | Immutable full generator lifts, affine B/C defining choices, integral D solves, and exact flatness witnesses |
-| [extension_transfer.gi](../gap/extension_transfer.gi) | Native extension model, exact retraction preflight and sparse normalized transport |
-| [extension_transfer.py](../python/extension_transfer.py) | Lazy transferred curvature, products and gauge actions using the fixed formulas |
-| [extension_native_upper.py](../python/extension_native_upper.py) | D-layer terms of the native model in degrees 3–6: the prescribed J/G transport below the cutoff, `J_6` and the legal `gamma_6` at it, the legal product of degrees 4–6 without the pure-C normalization, and the exact A=0 dispatch of degrees 5–6 to the direct `a0_high_gamma` curvature and the `pure_c_gamma` product |
-| [universal_sources.py](../python/universal_sources.py) | Universal tables shared by both workers: theta values of the degree-three source per term under keys reduced modulo four ([universal_value_growth.md](universal_value_growth.md) Theorem 4), theta-pair sources, and V2 |
-| [extension_acceleration.py](../python/extension_acceleration.py) | Exact evaluation policy of the extension worker: structural zeros, identity-memoized builders, persistent universal values, unstored coboundaries, scalar multiples and chi, bounded memo tables and chain caches for universal evaluations, and the recycled source registry |
-| [universal_values.py](../python/universal_values.py) | Store of universal values shared by the extension and page workers: bundled values, one append-only file of JSON lines per table under the source-hash directory |
-| [generate_universal_values.py](../python/generate_universal_values.py) | Recomputes the bundled universal values in [universal-values.json](../data/universal-values.json) for the current formula sources |
-| [extension_bar.gi](../gap/extension_bar.gi) | Bounded complete finite-bar model, used only as a reference by the tests |
-| [extension_relations.gi](../gap/extension_relations.gi) | Powers of fixed full lifts, common lower coordinates, and retained reduction carries |
-| [extension_equivalence.gi](../gap/extension_equivalence.gi) | Exact ordered native gauge comparison, without assumed cochain associativity |
-| [extension_degree_six.gi](../gap/extension_degree_six.gi) | Basis data for the degree-six section of the complete-bar reference model |
+### Twists, coefficients and operations
+
+The twists are fixed cocycles \(s\in Z^1(X;\mathbf F_2)\) and
+\(\omega\in Z^2(X;\mathbf F_2)\); the rows `q=0,-4` carry the sign system
+\(\mathbf Z_s\) with monodromy \((-1)^s\), the rows `q=-1,-2` carry
+\(\mathbf F_2\), and the row `q=-3` is zero. \(\rho\) is reduction modulo
+two, \(\widetilde z\) the pointwise \(0,1\)-valued lift of a binary
+cochain, \(\mathsf h(z)=\widetilde z/2\), \(\smile_i\) the interval-cut
+cup-\(i\) product and \(d_s\) the coboundary of \(\mathbf Z_s\)-valued
+cochains, transported from the first vertex:
+
+\[
+(d_sc)(v_0,\ldots,v_{r+1})=(-1)^{s(v_0,v_1)}c(v_1,\ldots,v_{r+1})
++\sum_{j\ge1}(-1)^jc(v_0,\ldots,\widehat{v_j},\ldots,v_{r+1}).
+\]
+
+For a binary cochain \(x\) of degree \(r\), possibly not closed,
+
+\[
+Q^j(x)=x\smile_{r-j}x+x\smile_{r-j+1}dx,\qquad
+E(x)=Q^2(x)+\omega\smile x,\qquad
+Q_D(x)=E(x)+s\smile Q^1(x),
+\]
+
+and for a cocycle \(a\), \(\operatorname{Sq}^j(a)=a\smile_{n-j}a\),
+\(B(a)=d\widetilde a/2\), \(e(a)=\rho B(a)\). The primary maps are
+
+\[
+D(a)=\operatorname{Sq}^2(a)+s\smile e(a)+\omega\smile a,\qquad
+\operatorname{Dbar}(A)=D(\rho A),\qquad
+\operatorname{Dtilde}(a)=\beta_s\bigl(\operatorname{Sq}^2[a]+\omega\smile[a]\bigr),
+\]
+
+with \(\beta_s[z]=[d_s\widetilde z/2]\)
+([conventions.md](conventions.md), (C5)–(C7)).
+
+### The secondary differentials Tau and Psi
+
+For an input \(a\) of degree \(n\) (binary for `Psi`, \(a=\rho A\) for
+`Tau`) choose a defining cochain \(b\) with \(db=Da\), and set
+\(u=\operatorname{Sq}^2a\), \(v=\omega a\), \(w=se\), \(e=e(a)\),
+\(B=B(a)\), \(C_B=(B+\widetilde e)/2\). The common binary cochain and
+integer cochain of degree \(n+3\) are
+
+\[
+\begin{aligned}
+F={}&Q^2(b)+\omega\smile b+\zeta_{2,n}(\omega,a)+\chi_n(a)
+ +u\smile_{n+1}v+u\smile_{n+1}w+v\smile_{n+1}w\\
+ &+\zeta_{1,n+1}(s,e)+(\omega\smile_1s)\smile e+s\smile u+s^2\smile\rho C_B,
+\qquad q=\widetilde\omega\smile B+B\smile_{n-1}B.
+\end{aligned}
+\]
+
+With \(Z=\widetilde{s\smile u}+\widetilde{\omega\smile e}\) (an integer
+sum of two lifts), the integral representative of `Psi` is
+
+\[
+\psi'=\frac{d_s\bigl(2\widetilde F+q+2Z\bigr)}4,
+\qquad
+\operatorname{Psi}_n(a)=\operatorname{Psi}_{{\rm ref},n}(a)
++\beta_s\bigl(s\operatorname{Sq}^2[a]\bigr)+\beta_s\bigl(\omega\operatorname{Sq}^1[a]\bigr).
+\tag{S7}
+\]
+
+For `Tau`, with \(d_sA=0\), \(K=(A-\widetilde a)/2\), \(t=\rho K\),
+\(x=dt\), \(y=s\smile a\), the binary
+\(G=Q^2(t)+\omega\smile t+x\smile_ny+\zeta_{1,n}(s,a)+(\omega\smile_1s)\smile a+s\smile b\)
+and \(L=(q-d_s\widetilde G)/2\), the binary representative is
+
+\[
+\tau'=F+\rho\Bigl(\frac{q-d_s\widetilde G}{2}\Bigr)+s^3\smile a,
+\qquad
+\operatorname{Tau}_n(A)=\operatorname{Tau}_{{\rm ref},n}(A)+s^3\rho A.
+\tag{S11}
+\]
+
+The helpers \(\zeta_{1,n},\zeta_{2,n},\chi_n\) are the fixed words of
+[universal_helpers.md](universal_helpers.md); the divisions are exact for a
+valid defining system, and the code checks the projected numerators
+([secondary_operations.md](secondary_operations.md)).
+
+### The tertiary differential T
+
+For a signed cocycle \(A\) of degree \(n\le3\) with defining cochains
+\(b,c\) (\(db=Da\), \(dc=\tau_n(A,b)\)), the integral differential is the
+signed coboundary of a rational phase,
+
+\[
+T_n(A;b,c)=d_s\mathcal O_n(A,b,c),\qquad
+\mathcal O_n=\mathsf h(Ec)+\widehat R_n(A,b)+\mathbf 1_{n\ge2}\,\tfrac23\,\widetilde{P^1_s\rho_3A}.
+\tag{T}
+\]
+
+\(\widehat R_n\) is the calibrated boundary-normalized phase of input
+degree \(n\) (Sections 3–6 of
+[tertiary_operations.md](tertiary_operations.md)), built from the boundary
+phase \(\Theta_m\), the prism and the universal sources \(V_1,V_2,V_3\) of
+[universal_helpers.md](universal_helpers.md); \(P^1_s\) is the signed
+reduced power modulo three, the cube of \(\rho_3A\) in degree two and the
+nineteen-term cyclic-diagonal formula in degree three (Section 7 there),
+and its lift takes the values `0,1,2`. The three-primary term
+\(\tfrac23\widetilde{P^1_s\rho_3A}\) has coboundary
+\(2\beta_3P^1_s\rho_3A\), the k-invariant of `ko` at the prime three.
+
+### The stacking model
+
+A state of package degree \(k\) is \((A,B,C,D)\) with
+\(A\in C^{k-3}(\mathbf Z_s)\), \(B\in C^{k-2}(\mathbf F_2)\),
+\(C\in C^{k-1}(\mathbf F_2)\), \(D\in C^{k+1}(\mathbf Z_s)\), one cochain
+per layer of the line `p+q=k-3`. With \(\tau_k=\tau'_{k-3}(A;B)\)
+(\(\omega B\) at \(k=2\), zero below) and the phase \(\Omega_k\) of the
+table, its differential is
+
+\[
+t_k=\delta C+\tau_k,\qquad
+\Phi_k=\Omega_k+\mathsf h\bigl(t_k\smile_{k-1}\tau_k\bigr),\qquad
+J_k=\delta_s\Phi_k-\mathsf h\bigl(E_k(t_k)\bigr),\qquad
+\mathfrak d_k(A,B,C,D)=\bigl(\delta_sA,\ \delta B+Q_D(\rho A),\ t_k,\ \delta_sD+J_k\bigr),
+\tag{4}
+\]
+
+| k | \(\Omega_k\) |
+| ---: | --- |
+| 1 | \(\mathsf h(\omega C)\) |
+| 2 | \(\mathsf h(C\smile\delta C+\omega C)\) |
+| 3, 4 | \(\mathsf h(E\,C)+\widehat R_{k-3}(A,B)\) |
+| 5, 6 | \(\mathsf h(E\,C)+\widehat R_{k-3}(A,B)+\tfrac23\widetilde{P^1_s\rho_3A}\) |
+
+so that a flat state, \(\mathfrak d_k=0\), has \(\delta_sD=-J_k\) and
+\(J_k=T_{k-3}(A;B,C)\) when \(t_k=0\)
+([dimension_indexed_differentials.md](dimension_indexed_differentials.md),
+which also proves \(\mathfrak d_k^2=0\) literally, and
+[all_cochain_differential.md](all_cochain_differential.md) for arbitrary
+cochains). Products are triangular,
+
+\[
+(A,B,C,D)\cdot(A',B',C',D')=\bigl(A+A',\ B+B'+\alpha(A,A'),\ C+C'+\beta(\ldots),\ D+D'+\gamma_k(\ldots)\bigr),
+\]
+
+with the D-layer correction the polarization of the phase corrected by a
+universal primitive,
+\(\gamma_k=\Omega_k+\Omega_k'-\Omega_k(\text{sum})+\delta_s(\text{primitive})\),
+so that it is integral; the degree-one and degree-two products
+\(\gamma_1,\beta_2,\gamma_2\) are written out in
+[low_degree_stacking.md](low_degree_stacking.md). Two flat states are gauge
+equivalent when a gauge \((u,b,c,w)\) of degree \(k-1\) carries one to the
+other through the product with its boundary state; the group of a degree is
+the group of flat states modulo gauge, and stacking is assumed to be
+commutative and associative on gauge classes.
+
+### The extension problem
+
+The E6 layers of degree \(j\) are
+
+\[
+A_j=E_6^{j-3,0},\qquad B_j=E_6^{j-2,-1},\qquad C_j=E_6^{j-1,-2},\qquad D_j=E_6^{j+1,-4},
+\]
+
+assembled from D upward. Every generator \(q\) of order \(m\) of the next
+layer is represented by a flat lift \(\widetilde q\), its power is measured
+in the lower group \(H\), \(m\widetilde q=t\in H\), and the group is the
+cokernel of the presentation
+
+\[
+R=\begin{pmatrix}R_H&0\\-T&\operatorname{diag}(m_i)\end{pmatrix}.
+\]
+
+Only the class of \(t\) in \(\operatorname{Ext}(\mathbf Z/m,H)=H/mH\)
+matters: a lower generator \(e\notin mH\) is free for \(q\), and the
+relation is measured only through its **target layer**, the lowest layer
+with a free generator; the components below it are recorded as zero with
+the certificate that exhibits them as multiples ([extensions.md](extensions.md)).
+
+### Localization at the primes
+
+The layer generators have prime-power order, so each relation belongs to
+one prime and is measured in the model of that prime:
+
+- at \(p\ge5\) the rows `q=0` and `q=-4` lie in different Adams summands of
+  `ko`; the relation is \(m\widetilde q=0\) without a measurement;
+- at \(p=2\) the complete model above;
+- at \(p=3\) the two-layer model of the rows `q=0` and `q=-4` with the
+  potential \(\Omega(A)=\tfrac23\widetilde{P^1_s\rho_3A}\). In package
+  degree five, where \(P^1\) is the cube, the potential is
+  \(\tfrac23A\smile A\smile A\) up to an integral cochain, the correction is
+  the integral polynomial
+
+  \[
+  \gamma(A,A')=-2\,(A\smile A\smile A'+A\smile A'\smile A'),
+  \]
+
+  the gauge boundary is \((\delta_su,\delta_sw)\), and the relation of a
+  generator of order \(3^a\) with \(3^aA=\delta_su\) is
+
+  \[
+  x_D=2\cdot3^{a-1}A\smile A\smile A
+  +\tfrac23\,\delta_s\Bigl[\sum_{j=1}^{3^a-1}\Xi(jA,A)-u\smile\delta_su\smile\delta_su\Bigr]
+  \pmod{3^aH_D},
+  \]
+
+  with \(\Xi=2A(A\smile_1A')+(A\smile_1A')A+2(A\smile_1A')A'+A'(A\smile_1A')\).
+  In package degree six the correction and the gauge boundary are
+
+  \[
+  \gamma(A,A')=\tfrac23\bigl[L(P^1a)+L(P^1a')-L(P^1(a+a'))+\delta_sL(\varphi(a,a'))\bigr],
+  \qquad
+  D_u=-\tfrac23\bigl[L(P^1\rho_3\delta_su)-\delta_sL(\chi(u))\bigr],
+  \]
+
+  with \(L\) the `0,1,2` lift and \(\varphi,\chi\) the natural cross-effect
+  and coboundary primitives of the reduced power modulo three
+  ([extensions.md](extensions.md), "Localization at the primes").
+
+These give Z/9 for Z/3, Z/3 ⊕ Z/27 for Z/9 and the split groups at the
+primes five and seven in degree five, the values of the representation
+ring of the cyclic group, and by suspension Z/9 for Z/3 × Z in degree six.
+
+## Reading the results
+
+An exact invariant list uses `[]` for zero, `[0]` for Z and `[2]` for
+Z/2; the display writes `0`, `.` and `?` for zero, outside the window and
+unresolved. Unresolved entries are never zero. Every result keeps
+`certified_ko=false`: the window is the five rows through E6, the
+identification with `ko` and with the classification of fermionic phases
+rests on the assumptions listed in [mathematical-status.md](mathematical-status.md).
