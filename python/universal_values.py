@@ -31,6 +31,7 @@ KEY_CLASSES = (('chain_models', 'Diag'), ('r1_pair_chain', 'Borel'),
 # Runtime and test modules do not determine universal values.
 _NOT_SOURCES = {'extension_transfer.py', 'extension_worker.py',
                 'extension_degree_six.py', 'extension_native_upper.py',
+                'extension_three_local.py',
                 'extension_acceleration.py', 'universal_sources.py',
                 'worker.py', 'runtime_cache.py', 'generate_universal_values.py',
                 'universal_values.py'}

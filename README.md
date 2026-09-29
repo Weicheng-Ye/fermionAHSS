@@ -244,6 +244,19 @@ as zero, and the witness lists the measured layers (`measuredLayers`,
 `FERMIONAHSS_LAYERED_RELATIONS=0` to measure every relation completely (see
 [extensions.md](doc/extensions.md)).
 
+Relations are localized at the prime of their generator's order (the layer
+generators have prime-power order). Two-primary relations use the complete
+model. At the primes five and above the rows `q=0` and `q=-4` lie in
+different Adams summands of `ko`, so the relation is `m*g=0` without a
+measurement (`witness.model="split"`), and a degree whose relations all
+split builds no stacking model. Three-primary relations of degree five use
+the two-layer three-local model of the coefficient-two phase, whose stacking
+correction is the polynomial `-2(AAA'+AA'A')` in transported cup products
+(`witness.model="three-local"`); three-primary relations of degree six stay
+on the complete path. The per-prime summary is `degreeResult.primes`, and
+`FERMIONAHSS_PRIME_LOCAL=0` restores the complete measurement everywhere
+(see [extensions.md](doc/extensions.md), "Localization at the primes").
+
 The native complete-state runtime covers degrees 1–6. Degrees -1 and 0 have
 only the D layer, so no relation is measured there. In degrees 4–6 the
 D-layer product omits the pure-C normalization of the production

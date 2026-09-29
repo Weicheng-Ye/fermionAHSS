@@ -566,6 +566,69 @@ class ExtensionTransferTests(unittest.TestCase):
         self.assertEqual(native.calculate(dict(operation="xtimes", degree=3,
             state=shifted["state"], other=actual))["state"], shifted["other"])
 
+    def test_three_local_operations_on_the_c2_setup(self):
+        # The two-layer model of the prime three (degree five, B=C=0): curvature,
+        # product, division and gauge action, and their worker requests.
+        native, bar, _ = c2_models()
+        local = native.three_local
+        A = state([1], [0], [0], [0])
+        self.assertEqual(local.kappa(5, A), native.zero(6))
+        product = local.product(5, A, A)
+        # gamma(A,A) = -2 (A A A + A A A) = -4 A^3 on the one-cell resolution.
+        self.assertEqual(product, state([2], [0], [0], [-4]))
+        self.assertEqual(local.divide_left(5, A, product), A)
+        # A gauge (u,w) of degree four acts through its boundary (delta u, delta w):
+        # delta u = 2u in degree one and delta w = 2w in degree five of the
+        # untwisted C2 resolution, and the D layer receives gamma(delta u, A).
+        gauge = state([1], [0], [0], [2])
+        self.assertEqual(local.act(5, gauge, A), state([3], [0], [0], [4 - 12]))
+        self.assertEqual(native.calculate(dict(operation="xtimes", degree=5, state=A,
+            other=A, prime=3))["state"], product)
+        self.assertEqual(native.calculate(dict(operation="divide_left", degree=5, state=A,
+            other=product, prime=3))["state"], A)
+        self.assertEqual(native.calculate(dict(operation="act", degree=5, state=A,
+            gauge=gauge, prime=3))["state"], state([3], [0], [0], [-8]))
+        self.assertEqual(native.calculate(dict(operation="d", degree=5, state=product,
+            prime=3))["state"], native.zero(6))
+        self.assertEqual(native.calculate(dict(operation="d", degree=4, state=gauge,
+            prime=3))["state"], state([2], [0], [0], [4]))
+        # The complete model is untouched by the localized requests.
+        self.assertEqual(native.kappa(5, A)["A"], [0])
+        with self.assertRaises(ValueError):
+            local.product(5, state([1], [1], [0], [0]), A)
+        with self.assertRaises(ValueError):
+            native.calculate(dict(operation="d", degree=5, state=A, prime=5))
+        with self.assertRaises(ValueError):
+            native.calculate(dict(operation="xtimes", degree=4, state=state([1], [0], [0], [0]),
+                other=state([1], [0], [0], [0]), prime=3))
+
+    def test_three_local_correction_is_the_polarization_up_to_a_cup_one_coboundary(self):
+        # gamma(A,A') = -2 (AAA' + AA'A') differs from the polarization of
+        # Omega'(A) = (2/3) AAA by (2/3) delta Xi with
+        # Xi = 2 A(A u1 A') + (A u1 A')A + 2 (A u1 A')A' + A'(A u1 A'), the
+        # Hirsch identity A'A - AA' = delta(A u1 A') applied word by word.
+        from fractions import Fraction
+        from low_phases import transported
+        tools = random_cochains(11, 6)
+        p = tools["p"]
+        s = p.zero(1)
+        simplex = tuple(range(7))
+        for trial in range(3):
+            A = p.ds(tools["integral"](1), s)
+            Ap = p.ds(tools["integral"](1), s)
+            word = lambda x, y, z: transported(transported(x, y, s), z, s)
+            polarization = p.scale(word(A, A, A) + word(Ap, Ap, Ap) - word(A + Ap, A + Ap, A + Ap),
+                                   Fraction(2, 3))
+            gamma = p.scale(word(A, A, Ap) + word(A, Ap, Ap), -2)
+            self.assertEqual(Fraction(gamma(simplex)).denominator, 1)
+            c1 = p.cup(A, Ap, 1, integral=True)
+            face = tuple(range(5))
+            self.assertEqual((transported(Ap, A, s) - transported(A, Ap, s))(face), p.ds(c1, s)(face))
+            xi = (p.scale(transported(A, c1, s), 2) + transported(c1, A, s)
+                  + p.scale(transported(c1, Ap, s), 2) + transported(Ap, c1, s))
+            self.assertEqual(Fraction(gamma(simplex)) - Fraction(polarization(simplex)),
+                             Fraction(2, 3) * Fraction(p.ds(xi, s)(simplex)))
+
 
 if __name__ == "__main__":
     unittest.main()

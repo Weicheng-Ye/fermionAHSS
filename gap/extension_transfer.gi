@@ -868,6 +868,61 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         if upto<3 then certificate.comparedLayers:=fields{[1..upto+1]}; fi;
         return certificate;
     end;
+    # The two-layer three-local model on the same worker process: its
+    # requests carry the prime, the worker answers them with
+    # extension_three_local, and its states are the four-layer records with
+    # B=C=0 (doc/extensions.md, "Localization at the primes").
+    model.primeLocal:=function(prime)
+        local local3,withPrime;
+        if prime<>3 then Error("koFull: the transferred model localizes at the prime three only"); fi;
+        if IsBound(model.localModels) then return model.localModels.three; fi;
+        withPrime:=function(requestRecord) requestRecord.prime:=prime; return requestRecord; end;
+        local3:=rec(status:="computed",modelId:=Concatenation(model.modelId,"/three-local"),
+            maxDegree:=k,localPrime:=prime,certificateLevel:="transfer-R",
+            gaugeCompletenessAssumed:=true,layerLimited:=true,
+            s:=model.s,omega:=model.omega,supports:=degree->degree=k and k=5,
+            dimension:=model.dimension,coboundary:=model.coboundary,matrix:=model.matrix,
+            lift:=model.lift,project:=model.project,zero:=model.zero);
+        local3.d:=function(arg)
+            local degree,state;
+            degree:=arg[1]; state:=arg[2];
+            return checkState(degree+1,request(withPrime(limited(arg,3,
+                rec(operation:="d",degree:=degree,state:=state)))).state);
+        end;
+        local3.xtimes:=function(arg)
+            local degree,x,y;
+            degree:=arg[1]; x:=arg[2]; y:=arg[3];
+            return checkState(degree,request(withPrime(limited(arg,4,
+                rec(operation:="xtimes",degree:=degree,state:=x,other:=y)))).state);
+        end;
+        local3.act:=function(arg)
+            local degree,gauge,canonical;
+            degree:=arg[1]; gauge:=arg[2]; canonical:=arg[3];
+            return checkState(degree,request(withPrime(limited(arg,4,
+                rec(operation:="act",degree:=degree,state:=canonical,gauge:=gauge)))).state);
+        end;
+        local3.divideLeft:=function(arg)
+            local degree,left,total;
+            degree:=arg[1]; left:=arg[2]; total:=arg[3];
+            return checkState(degree,request(withPrime(limited(arg,4,
+                rec(operation:="divide_left",degree:=degree,state:=left,other:=total)))).state);
+        end;
+        local3.transferCertificate:=function(arg)
+            local degree,gauge,canonical,target,upto,certificate;
+            degree:=arg[1]; gauge:=arg[2]; canonical:=arg[3]; target:=arg[4];
+            upto:=3; if Length(arg)>=5 then upto:=arg[5]; fi;
+            if local3.act(degree,gauge,canonical,upto)<>target then Error("three-local gauge equality failed"); fi;
+            certificate:=rec(certificateLevel:="transfer-R",nativeEqualityVerified:=true,
+                gaugeCompletenessAssumed:=true,localPrime:=prime,
+                gauge:=StructuralCopy(gauge),canonical:=StructuralCopy(canonical),target:=StructuralCopy(target),
+                comparisonAudit:=transport.audit,homotopyNormalization:=transport.normalization,
+                searchComplete:=false);
+            if upto<3 then certificate.comparedLayers:=fields{[1..upto+1]}; fi;
+            return certificate;
+        end;
+        model.localModels:=rec(three:=local3);
+        return local3;
+    end;
     model.debugRequest:=request;
     model.transportData:=transport.terms;
     # Explicit export for developer reference comparisons only. koFull never

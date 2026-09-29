@@ -243,6 +243,98 @@ generator's B, C and D choices. The implementation keeps the named presentation
 columns across all four stages, so later vectors can refer to any earlier
 generator without losing its embedding.
 
+## Localization at the primes
+
+The E6 layer generators are the independent generators of the cells
+(`IndependentGeneratorsOfAbelianGroup`), so every one of them has prime-power
+or infinite order and every relation `m\widetilde q=t` belongs to one prime.
+A lower generator of order coprime to `m` lies in `mH`, so it is never free
+for `q` (previous section): the components of a relation on the other primes'
+generators never change the group, the relation matrix is block diagonal up
+to such entries, and its Smith form is the direct sum of the p-primary parts
+and the free part. The binary rows `q=-1,-2` are two-groups, so odd-primary
+generators occur in the layers A and D only.
+
+The stacking model of a relation is chosen by the prime `p` of the order of
+its generator (`KOAHSS_ExtensionRelationModel`):
+
+- `p=2`: the complete transferred model, exactly as in the previous sections.
+- `p\ge 5`: no measurement. `ko_{(p)}` is a sum of Adams summands of period
+  `2(p-1)\ge 8`, so the rows `q=0` and `q=-4` lie in different summands and
+  the window carries no k-invariant and no stacking correction at `p`; the
+  relation is `m\widetilde q=0` in every degree, also over free lower
+  generators, and the witness records `model="split"` with the certificate.
+  When every relation of a degree splits, the degree needs no stacking model
+  (`certificateLevel="prime-split"`), so the sparse comparison of the
+  resolution is not built either (`KOAHSS_ExtensionRelationsAllSplit`).
+- `p=3`: the three-local window is the two-stage tower of the rows `q=0`
+  (layer A) and `q=-4` (layer D) with k-invariant `2\beta_3P^1\rho_3`; the
+  potential is the coefficient-two phase `\Omega(A)=\tfrac23\,\mathrm{lift}(P^1_s\rho_3A)`
+  of the [tertiary operations](tertiary_operations.md). In input degrees zero
+  and one `P^1=0`, so below package degree five the tower splits and the
+  relation is `m\widetilde q=0` (`model="split"`). In package degree five,
+  `P^1_s\rho_3A=\rho_3(A\cup A\cup A)` and `\Omega` differs from
+  `\Omega'(A)=\tfrac23\,A\cup A\cup A` (transported cup products) by an
+  integral cochain, an isomorphism of stacking models. In the model of
+  `\Omega'` the curvature of a cocycle vanishes, the stacking correction is
+  the integral polynomial
+
+  \[
+   \gamma(A,A')=-2\,(A\cup A\cup A'+A\cup A'\cup A'),
+  \]
+
+  whose difference from `\Omega'(A)+\Omega'(A')-\Omega'(A+A')` is
+  `\tfrac23\,\delta_s\Xi` with the cup-one expression
+  `\Xi=2A(A\cup_1A')+(A\cup_1A')A+2(A\cup_1A')A'+A'(A\cup_1A')`
+  (the Hirsch identity `A'A-AA'=\delta_s(A\cup_1A')` word by word), and the
+  boundary state of a gauge `(u,w)` is `(\delta_su,\delta_sw)`. The relation
+  of a generator of order `3^a` with `3^aA=\delta_su` and local flat lift
+  `(A,0,0,0)` is
+
+  \[
+   x_D=2\cdot 3^{a-1}\,A\cup A\cup A
+       +\tfrac23\,\delta_s\Bigl[\sum_{j=1}^{3^a-1}\Xi(jA,A)-u\cup\delta_su\cup\delta_su\Bigr]
+       \pmod{3^aH_D},
+  \]
+
+  whose last term is a Bockstein class and is computed, not dropped. The
+  model (`python/extension_three_local.py`, requests with `prime=3` on the
+  same worker process, `model.primeLocal(3)` in GAP) evaluates `\gamma` on
+  the resolution through the comparison lift and projection of the
+  transferred model, so associativity and commutativity hold up to signed
+  D-coboundaries as in the complete model; the flat lifts of three-primary A
+  generators are `(A,0,0,0)`, the power is reduced in the A layer by
+  coboundaries and same-model lifts, in the D layer by the marked D lifts,
+  the binary layers are absent, and the relation keeps its exact gauge
+  comparison (`witness.model="three-local"`, `witness.prime=3`). If the
+  three-local reduction fails to express the D residual through ordinary
+  coboundaries, the complete measurement with a complete lift takes over.
+  In package degree six the reduced power of a degree-three class is the
+  nineteen-term cyclic-diagonal formula, whose polarization and coboundary
+  primitives are not implemented; three-primary relations of degree six stay
+  on the complete path.
+
+Lifts of one prime's model never enter a measurement of another model: the
+A-layer rows of a reduction are the same-model lifts, the coordinates of the
+other primes' generators are recorded as zero, and the gauge-reduction
+fallback ranges over the complete lifts only. The per-prime summary of a
+degree is `degreeResult.primes` (prime, number of measured relations, the
+models that measured them), and
+`FERMIONAHSS_PRIME_LOCAL=0` restores the complete measurement for every
+prime.
+
+For cyclic groups the window is `F^2/F^{10}` of the skeletal filtration of
+`ko^2(BZ/n)`, which is the `I`-adic filtration of the anti-invariant part
+of the representation ring under complex conjugation, and this gives the
+three-local results independently: `Z/9` for `Z/3` (`3a=2d` modulo 3, the
+relation `3A=-16D` of the model), `Z/3\oplus Z/27` for `Z/9` (`9a=6d`
+modulo 9), `Z/9\oplus Z/81` for `Z/27`, and the split groups
+`Z/5\oplus Z/5`, `Z/7\oplus Z/7`, `Z/25\oplus Z/25` at the primes five and
+seven. The complete four-layer formulas are not defined on every
+three-torsion input (their half-lift carries fail for the generator of
+`Z/9` and for the sign-twisted `S_3`), so for these groups the three-local
+model is the only measurement.
+
 ## Smith coordinates and filtration maps
 
 The returned Smith data satisfy `smith.U * relationMatrix * smith.V =

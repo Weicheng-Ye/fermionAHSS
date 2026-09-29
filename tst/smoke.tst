@@ -19,4 +19,5 @@ gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"ext
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_equivalence.tst"),rec(compareFunction:="uptowhitespace")));
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_gauge_reduction.tst"),rec(compareFunction:="uptowhitespace")));
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_target_layer.tst"),rec(compareFunction:="uptowhitespace")));
+gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_prime_local.tst"),rec(compareFunction:="uptowhitespace")));
 gap> Assert(0, Test(Filename(DirectoriesPackageLibrary("fermionAHSS","tst"),"extension_transfer_hooks.tst"),rec(compareFunction:="uptowhitespace")));

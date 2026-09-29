@@ -23,6 +23,7 @@ import off_shell_beta as off
 import stacking_lower as lower
 import all_cochain_upper as upper
 import extension_native_upper as native
+from extension_three_local import ThreeLocalModel
 from coherent_low_commutative import (DegreeOneCommutativeStacking,
                                      DegreeTwoCommutativeStacking)
 from a0_gamma import beta2
@@ -129,6 +130,8 @@ class TransferredModel:
         self._cores = BoundedCache(256)
         self.low2 = DegreeTwoCommutativeStacking()
         self.low1 = DegreeOneCommutativeStacking(successor=self.low2)
+        # Requests carrying ``prime: 3`` use the two-layer three-local model.
+        self.three_local = ThreeLocalModel(self)
         self.s_vector = self.check_vector(1, setup["s"], False)
         self.w_vector = self.check_vector(2, setup["omega"], False)
         if any(v % 2 for v in self.coboundary(1, self.s_vector, False)):
@@ -542,6 +545,11 @@ class TransferredModel:
         key = json.dumps(request, sort_keys=True, separators=(",", ":"))
         if key in self._answers:
             return json.loads(self._answers[key])
+        if "prime" in request:
+            answer = self.three_local.calculate(request)
+            answer["status"] = "computed"
+            self._answers[key] = json.dumps(answer, separators=(",", ":"))
+            return answer
         # Layer-limited requests: ``upto`` is the last layer index computed
         # (A=0 to D=3); the answer has zeros above it, and the inputs need to
         # be flat only through the layer below it.

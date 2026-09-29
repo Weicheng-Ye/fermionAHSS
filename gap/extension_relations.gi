@@ -164,7 +164,12 @@ BindGlobal("KOAHSS_ExtensionGaugeReduce",function(arg)
                 if stored.orders[i]=0 then
                     return rec(status:="unresolved",reason:="gauge reduction needs projected coordinates for a free lower generator");
                 fi;
-                Add(ranges,[0..stored.orders[i]-1]);
+                # A lift of another prime's model (coprime order) never
+                # enters a product of this model; its coordinate is irrelevant.
+                if IsBound(layers.(stored.name).fullLifts[i].model)
+                    and layers.(stored.name).fullLifts[i].model<>"complete" then
+                    Add(ranges,[0]);
+                else Add(ranges,[0..stored.orders[i]-1]); fi;
             od;
         od;
         count:=Product(List(ranges,Length));
@@ -215,7 +220,8 @@ BindGlobal("KOAHSS_ExtensionGaugeReduce",function(arg)
 end);
 
 BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
-    local lift,layer,name,i,value,flat,times,flatProduct,boundary,reduce,answer,kernelCache;
+    local lift,layer,name,i,value,flat,times,flatProduct,boundary,reduce,answer,kernelCache,
+        local3,kind,leading,state,curvature,liftCompatible;
     kernelCache:=rec();
     model.gaugeKernelRepresentatives:=function(n,signed,family)
         local key,q,data,generators;
@@ -229,79 +235,133 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
         return kernelCache.(key);
     end;
     lift:=KOAHSS_ExtensionLiftSolver(backend,k,layers,model);
+    # The two-layer model of the prime three (degree five) shares the worker
+    # of the complete model; see doc/extensions.md, "Localization at the primes".
+    local3:=fail;
+    if IsBound(model.primeLocal) and k=5 and not IsBound(layers.A.status)
+        and ForAny(layers.A.orders,o->KOAHSS_ExtensionRelationModel(k,"A",o).model="three-local") then
+        local3:=model.primeLocal(3);
+        local3.gaugeKernelRepresentatives:=model.gaugeKernelRepresentatives;
+    fi;
     # Prepare even free generators and generators over a zero lower group.
     # They can be needed in later comparisons, despite requiring no power row.
+    # Odd-primary A generators get the flat lift (A,0,0,0) of their prime's
+    # own model, in which the marked closed cochain has no curvature.
     for name in ["D","C","B","A"] do
         layer:=layers.(name);
         if not IsBound(layer.fullLifts) then layer.fullLifts:=[]; fi;
         if not IsBound(layer.status) then
             for i in [1..Length(layer.generators)] do
-                value:=lift(layer,i);
-                if value.status="obstructed" and not IsBound(model.act) then
-                    Error("koFull: an E6 survivor has no full flat lift: ",name," ",i," ",value);
-                elif value.status<>"computed" then
-                    layer.status:="unresolved"; layer.reason:=value.reason; break;
+                kind:=KOAHSS_ExtensionRelationModel(k,name,layer.orders[i]);
+                if kind.model="complete" then
+                    value:=lift(layer,i);
+                    if value.status="obstructed" and not IsBound(model.act) then
+                        Error("koFull: an E6 survivor has no full flat lift: ",name," ",i," ",value);
+                    elif value.status<>"computed" then
+                        layer.status:="unresolved"; layer.reason:=value.reason; break;
+                    fi;
+                else
+                    leading:=model.lift(layer.p,layer.cochains[i],true);
+                    state:=StructuralCopy(model.zero(k)); state.(name):=leading;
+                    if kind.model="three-local" then curvature:=local3.d(k,state);
+                    else curvature:=rec(A:=model.coboundary(layer.p,leading,true)); fi;
+                    if ForAny(RecNames(curvature),f->ForAny(curvature.(f),x->x<>0)) then
+                        Error("koFull: the marked E6 representative is not closed: ",name," ",i);
+                    fi;
+                    value:=rec(status:="computed",state:=state,model:=kind.model,prime:=kind.prime,
+                        witness:=rec(leadingLayer:=name,leadingCochain:=ShallowCopy(leading),
+                            definingEquations:=[],flatnessVerified:=true,differentialEvaluations:=1,
+                            modelId:="prime-split"));
+                    if kind.model="three-local" then value.witness.modelId:=local3.modelId; fi;
+                    MakeImmutable(value); layer.fullLifts[i]:=value;
                 fi;
             od;
         fi;
     od;
-    flat:=function(state,upto)
+    # A lift enters a measurement only in the model that solved it: complete
+    # lifts in the complete model, three-local lifts in the three-local model.
+    # The lifts of the split primes enter no measurement.
+    liftCompatible:=function(entry,mdl)
+        if not IsBound(entry.model) or entry.model="complete" then return not IsBound(mdl.localPrime); fi;
+        return entry.model="three-local" and IsBound(mdl.localPrime) and mdl.localPrime=3;
+    end;
+    flat:=function(mdl,state,upto)
         if upto<3 then
-            if not KOAHSS_ExtensionStateIsZeroThrough(model.d(k,state,upto),upto) then
+            if not KOAHSS_ExtensionStateIsZeroThrough(mdl.d(k,state,upto),upto) then
                 Error("koFull: an extension reduction used a nonflat state");
             fi;
-        elif not KOAHSS_ExtensionStateIsZero(model.d(k,state)) then
+        elif not KOAHSS_ExtensionStateIsZero(mdl.d(k,state)) then
             Error("koFull: an extension reduction used a nonflat state");
         fi;
     end;
-    times:=function(x,y,upto)
-        if upto<3 then return model.xtimes(k,x,y,upto); fi;
-        return model.xtimes(k,x,y);
+    times:=function(mdl,x,y,upto)
+        if upto<3 then return mdl.xtimes(k,x,y,upto); fi;
+        return mdl.xtimes(k,x,y);
     end;
-    flatProduct:=function(name,coefficients,upto)
+    flatProduct:=function(mdl,name,coefficients,upto)
         local product,j,power;
-        product:=model.zero(k);
+        product:=mdl.zero(k);
         for j in [1..Length(coefficients)] do
-            power:=KOAHSS_ExtensionPower(model,k,layers.(name).fullLifts[j].state,coefficients[j],upto);
+            power:=KOAHSS_ExtensionPower(mdl,k,layers.(name).fullLifts[j].state,coefficients[j],upto);
             if not KOAHSS_ExtensionStateIsZeroThrough(power,upto) then
                 if KOAHSS_ExtensionStateIsZeroThrough(product,upto) then product:=power;
-                else product:=times(product,power,upto); fi;
+                else product:=times(mdl,product,power,upto); fi;
             fi;
         od;
         return product;
     end;
-    boundary:=function(name,primitive,canonical,upto)
+    boundary:=function(mdl,name,primitive,canonical,upto)
         local gauge,output;
-        gauge:=StructuralCopy(model.zero(k-1)); gauge.(name):=primitive;
-        if IsBound(model.act) then
-            if upto<3 then output:=model.act(k,gauge,canonical,upto);
-            else output:=model.act(k,gauge,canonical); fi;
-            flat(output,upto);
+        gauge:=StructuralCopy(mdl.zero(k-1)); gauge.(name):=primitive;
+        if IsBound(mdl.act) then
+            if upto<3 then output:=mdl.act(k,gauge,canonical,upto);
+            else output:=mdl.act(k,gauge,canonical); fi;
+            flat(mdl,output,upto);
             return rec(gauge:=gauge,state:=output,canonical:=canonical,
                 certificateLevel:="transfer-R",equation:="state = act(gauge, canonical)");
         fi;
         if upto<3 then Error("koFull: a layer-limited reduction needs the transferred model"); fi;
-        output:=model.d(k-1,gauge); flat(output,3);
+        output:=mdl.d(k-1,gauge); flat(mdl,output,3);
         return rec(gauge:=gauge,state:=output);
     end;
     # Reduce the layers A.. of a stacked power through the layer index upto
     # (D=3 is the complete reduction). Below the target layer of a relation
-    # the state is never read, and every operation stays layer-limited.
-    reduce:=function(state,lower,upto)
+    # the state is never read, and every operation stays layer-limited. In
+    # the three-local model the binary layers are absent and only lifts of
+    # that model enter; when its ordinary reduction fails, the complete
+    # measurement takes over.
+    reduce:=function(mdl,state,lower,upto)
         local current,coefficients,steps,name,n,signed,gens,rows,solution,
             count,values,primitive,gauge,chosen,left,next,stored,j,coordinates,
-            canonical,comparison,comparisonSteps,preferred,data,class,projected,fallback,fields;
-        fields:=["A","B","C","D"];
+            canonical,comparison,comparisonSteps,preferred,data,class,projected,fallback,fields,
+            localMode,active,entry;
+        fields:=["A","B","C","D"]; localMode:=IsBound(mdl.localPrime);
         current:=state; coefficients:=rec(A:=[],B:=[],C:=[],D:=[]); steps:=[];
         for name in fields{[1..upto+1]} do
             n:=k+rec(A:=-3,B:=-2,C:=-1,D:=1).(name); signed:=name in ["A","D"];
-            stored:=First(lower.layers,l->l.name=name); gens:=[];
-            if stored<>fail then gens:=List(layers.(name).fullLifts,x->x.state.(name)); fi;
-            count:=Length(gens); rows:=Concatenation(gens,model.matrix(n-1,signed));
+            stored:=First(lower.layers,l->l.name=name);
+            if stored<>fail then coefficients.(name):=List(stored.orders,o->0); fi;
+            if localMode and name in ["B","C"] then
+                if ForAny(current.(name),x->x<>0) then
+                    Error("koFull: a three-local state acquired a binary layer");
+                fi;
+                Add(steps,rec(layer:=name,coordinates:=coefficients.(name),absentLayer:=true));
+                continue;
+            fi;
+            gens:=[]; active:=[];
+            if stored<>fail then
+                for j in [1..Length(stored.orders)] do
+                    entry:=layers.(name).fullLifts[j];
+                    if name="D" or liftCompatible(entry,mdl) then
+                        Add(gens,entry.state.(name)); Add(active,j);
+                    fi;
+                od;
+            fi;
+            count:=Length(gens); rows:=Concatenation(gens,mdl.matrix(n-1,signed));
             if signed then solution:=koAHSSSolveIntegerSystem(rows,current.(name));
             else solution:=koAHSSSolveMod2System(rows,current.(name)); fi;
             if solution=fail then
-                if upto<3 then
+                if upto<3 or localMode then
                     # The complete measurement handles E6 quotients that
                     # ordinary coboundaries do not generate.
                     return rec(status:="fallback",layer:=name,residualState:=current,reductionSteps:=steps);
@@ -313,7 +373,7 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
                 # below still has to solve and verify the higher gauge.
                 if name="D" and IsBound(layers.D.cell) then
                     data:=backend.cohomologyData(n,-4);
-                    class:=layers.D.cell.project(data.class(model.project(n,current.D,true)));
+                    class:=layers.D.cell.project(data.class(mdl.project(n,current.D,true)));
                     projected:=KOAHSS_ExtensionGroupCoordinates(layers.D.group,layers.D.generators,class);
                     coefficients.D:=projected;
                     preferred:=List([1..lower.generatorCount],j->0);
@@ -323,25 +383,26 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
                         od;
                     od;
                 fi;
-                fallback:=KOAHSS_ExtensionGaugeReduce(model,k,state,layers,lower,preferred);
+                fallback:=KOAHSS_ExtensionGaugeReduce(mdl,k,state,layers,lower,preferred);
                 fallback.reductionSteps:=steps;
                 fallback.ordinaryReductionFailure:=rec(layer:=name,residualState:=current);
                 return fallback;
             fi;
-            values:=solution.particular{[1..count]}; coefficients.(name):=values;
+            values:=solution.particular{[1..count]};
+            for j in [1..count] do coefficients.(name)[active[j]]:=values[j]; od;
             primitive:=solution.particular{[count+1..Length(solution.particular)]};
-            chosen:=flatProduct(name,values,upto); gauge:=boundary(name,primitive,chosen,upto);
-            if IsBound(model.act) then left:=gauge.state;
+            chosen:=flatProduct(mdl,name,coefficients.(name),upto); gauge:=boundary(mdl,name,primitive,chosen,upto);
+            if IsBound(mdl.act) then left:=gauge.state;
             elif KOAHSS_ExtensionStateIsZero(gauge.state) then left:=chosen;
             elif KOAHSS_ExtensionStateIsZero(chosen) then left:=gauge.state;
-            else left:=model.xtimes(k,gauge.state,chosen); fi;
+            else left:=mdl.xtimes(k,gauge.state,chosen); fi;
             if KOAHSS_ExtensionStateIsZeroThrough(left,upto) then next:=current;
-            elif upto<3 then next:=KOAHSS_ExtensionDivideLeft(model,k,left,current,upto);
-            else next:=KOAHSS_ExtensionDivideLeft(model,k,left,current); fi;
+            elif upto<3 then next:=KOAHSS_ExtensionDivideLeft(mdl,k,left,current,upto);
+            else next:=KOAHSS_ExtensionDivideLeft(mdl,k,left,current); fi;
             if ForAny(next.(name),x->x<>0) then
                 Error("koFull: leading component survived its measured reduction");
             fi;
-            Add(steps,rec(layer:=name,coordinates:=values,boundary:=gauge,
+            Add(steps,rec(layer:=name,coordinates:=coefficients.(name),boundary:=gauge,
                 chosenProduct:=chosen,before:=current,after:=next,equationVerified:=true));
             current:=next;
         od;
@@ -349,21 +410,21 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
             Error("koFull: nonzero final extension residual");
         fi;
         coordinates:=List([1..lower.generatorCount],j->0);
-        canonical:=model.zero(k);
+        canonical:=mdl.zero(k);
         for stored in lower.layers do
             values:=coefficients.(stored.name);
             for j in [1..Length(values)] do coordinates[stored.startColumn+j-1]:=values[j]; od;
-            chosen:=flatProduct(stored.name,values,upto);
+            chosen:=flatProduct(mdl,stored.name,values,upto);
             if not KOAHSS_ExtensionStateIsZeroThrough(chosen,upto) then
                 if KOAHSS_ExtensionStateIsZeroThrough(canonical,upto) then canonical:=chosen;
-                else canonical:=times(canonical,chosen,upto); fi;
+                else canonical:=times(mdl,canonical,chosen,upto); fi;
             fi;
         od;
         # The preceding equations use an explicit ordered word. Preserve that
         # word and its boundary witnesses; do not assume strict associativity
         # or silently replace it by componentwise addition of the chosen lifts.
-        if upto<3 then comparison:=KOAHSS_ExtensionGaugeCompare(model,k,state,canonical,rec(upto:=upto));
-        else comparison:=KOAHSS_ExtensionGaugeCompare(model,k,state,canonical); fi;
+        if upto<3 then comparison:=KOAHSS_ExtensionGaugeCompare(mdl,k,state,canonical,rec(upto:=upto));
+        else comparison:=KOAHSS_ExtensionGaugeCompare(mdl,k,state,canonical); fi;
         if comparison.status<>"computed" then
             return rec(status:="unresolved",reason:="the measured power lacks an exact gauge comparison with the fixed lower product",
                 comparison:=comparison,reductionSteps:=steps,residualState:=current);
@@ -374,48 +435,78 @@ BindGlobal("KOAHSS_ExtensionHigherOracle",function(backend,k,layers,model)
             orderedReductionVerified:=true,residualState:=current);
     end;
     answer:=function(layer,index,order,lower)
-        local marked,power,result,fields,target,upto,partial,position,below,lowerNames;
+        local marked,power,result,fields,target,upto,partial,position,below,lowerNames,kind,entry,complete;
         fields:=["A","B","C","D"];
         marked:=layers.(layer.name);
+        kind:=KOAHSS_ExtensionRelationModel(k,layer.name,order);
+        if kind.model="split" then return KOAHSS_ExtensionSplitResponse(order,kind.prime,lower); fi;
         if not IsBound(marked.fullLifts) or not IsBound(marked.fullLifts[index])
             or marked.fullLifts[index].status<>"computed" then
             return rec(status:="unresolved",reason:="the fixed full flat representative is unavailable");
         fi;
+        entry:=marked.fullLifts[index];
         position:=Position(fields,layer.name);
         lowerNames:=fields{[position+1..4]};
         # The target-layer shortcut: only the layers down to the lowest free
         # lower generator decide the group (KOAHSS_ExtensionTargetLayer).
+        target:=fail;
         if KOAHSS_LayeredRelationsEnabled() and IsBound(model.layerLimited) and model.layerLimited=true
             and lower.generatorCount>0 then
             target:=KOAHSS_ExtensionTargetLayer(lower,order);
             if target.layer=fail then
                 return rec(status:="computed",lowerPresentationId:=lower.presentationId,
                     lowerCoordinates:=List([1..lower.generatorCount],j->0),
-                    witness:=rec(operation:="xtimes",power:=order,flatLift:=marked.fullLifts[index],
-                        measuredLayers:=[],truncatedBelow:=lowerNames[1],
+                    witness:=rec(operation:="xtimes",power:=order,prime:=kind.prime,model:=kind.model,
+                        flatLift:=entry,measuredLayers:=[],truncatedBelow:=lowerNames[1],
                         sufficiency:=target,modelId:=model.modelId));
             fi;
+        fi;
+        if kind.model="three-local" then
+            # The two-layer measurement of the prime three: the A layer is
+            # reduced by coboundaries and same-model lifts, the D layer by the
+            # marked D lifts; the binary layers are absent.
+            power:=KOAHSS_ExtensionPower(local3,k,entry.state,order);
+            partial:=reduce(local3,power,lower,3);
+            if partial.status="computed" then
+                return rec(status:="computed",lowerPresentationId:=lower.presentationId,
+                    lowerCoordinates:=partial.lowerCoordinates,witness:=rec(operation:="xtimes",
+                        power:=order,prime:=kind.prime,model:="three-local",flatLift:=entry,
+                        stackedState:=power,reduction:=partial,
+                        measuredLayers:=Filtered(lowerNames,n->n in ["A","D"]),
+                        binaryLayersAbsent:=true,truncatedBelow:=fail,sufficiency:=target,
+                        modelId:=local3.modelId));
+            fi;
+            # Otherwise the complete measurement takes over, with a complete lift.
+            complete:=lift(layer,index);
+            if complete.status<>"computed" then
+                return rec(status:="unresolved",reason:=Concatenation(
+                    "the three-local reduction failed and the complete flat lift is unavailable: ",
+                    String(complete.reason)),threeLocalReduction:=partial);
+            fi;
+            entry:=complete; kind:=rec(model:="complete",prime:=kind.prime);
+        fi;
+        if target<>fail then
             upto:=target.index;
             if upto<3 then
-                power:=KOAHSS_ExtensionPower(model,k,marked.fullLifts[index].state,order,upto);
-                partial:=reduce(power,lower,upto);
+                power:=KOAHSS_ExtensionPower(model,k,entry.state,order,upto);
+                partial:=reduce(model,power,lower,upto);
                 if partial.status="computed" then
                     below:=fail; if upto+2<=4 then below:=fields[upto+2]; fi;
                     return rec(status:="computed",lowerPresentationId:=lower.presentationId,
                         lowerCoordinates:=partial.lowerCoordinates,witness:=rec(operation:="xtimes",
-                            power:=order,flatLift:=marked.fullLifts[index],stackedState:=power,
+                            power:=order,prime:=kind.prime,model:="complete",flatLift:=entry,stackedState:=power,
                             reduction:=partial,measuredLayers:=fields{[position+1..upto+1]},
                             truncatedBelow:=below,sufficiency:=target,modelId:=model.modelId));
                 fi;
                 # Otherwise the complete measurement below takes over.
             fi;
         fi;
-        power:=KOAHSS_ExtensionPower(model,k,marked.fullLifts[index].state,order);
-        result:=reduce(power,lower,3);
+        power:=KOAHSS_ExtensionPower(model,k,entry.state,order);
+        result:=reduce(model,power,lower,3);
         if result.status<>"computed" then return result; fi;
         return rec(status:="computed",lowerPresentationId:=lower.presentationId,
             lowerCoordinates:=result.lowerCoordinates,witness:=rec(operation:="xtimes",
-                power:=order,flatLift:=marked.fullLifts[index],stackedState:=power,
+                power:=order,prime:=kind.prime,model:="complete",flatLift:=entry,stackedState:=power,
                 reduction:=result,measuredLayers:=lowerNames,truncatedBelow:=fail,
                 modelId:=model.modelId));
     end;

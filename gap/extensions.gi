@@ -179,6 +179,102 @@ BindGlobal("KOAHSS_ExtensionLayers",function(context,degree)
     return result;
 end);
 
+# Localization at the primes (doc/extensions.md, "Localization at the primes").
+# The prime localization of the relation measurement is on unless
+# FERMIONAHSS_PRIME_LOCAL=0.
+BindGlobal("KOAHSS_PrimeLocalizationEnabled",function()
+    if IsBound(GAPInfo.SystemEnvironment.FERMIONAHSS_PRIME_LOCAL) then
+        return GAPInfo.SystemEnvironment.FERMIONAHSS_PRIME_LOCAL<>"0";
+    fi;
+    return true;
+end);
+
+# The prime of a relation of prime-power order, or fail.
+BindGlobal("KOAHSS_RelationPrime",function(order)
+    if not IsInt(order) or order<2 or not IsPrimePowerInt(order) then return fail; fi;
+    return SmallestRootInt(order);
+end);
+
+# The stacking model measuring the relation of a generator of the given order
+# in the layer name of package degree k: "complete" (the transferred model),
+# "three-local" (the two-layer model of the prime three in degree five) or
+# "split" (no k-invariant of ko links the rows q=0 and q=-4 at the prime: the
+# primes at least five in every degree, and the prime three below degree
+# five, where P^1 vanishes). Only A generators have odd-primary relations.
+BindGlobal("KOAHSS_ExtensionRelationModel",function(k,name,order)
+    local prime;
+    prime:=KOAHSS_RelationPrime(order);
+    if order=0 or prime=fail or prime=2 or name<>"A" or not KOAHSS_PrimeLocalizationEnabled() then
+        return rec(model:="complete",prime:=prime);
+    fi;
+    if prime>=5 or k<=4 then return rec(model:="split",prime:=prime); fi;
+    if k=5 then return rec(model:="three-local",prime:=prime); fi;
+    return rec(model:="complete",prime:=prime);
+end);
+
+BindGlobal("KOAHSS_ExtensionSplitResponse",function(order,prime,lower)
+    local reason;
+    if prime=3 then reason:="P^1 vanishes on classes of degree below two";
+    else reason:=Concatenation("the rows q=0 and q=-4 lie in different Adams summands of ko localized at ",String(prime)); fi;
+    return rec(status:="computed",lowerPresentationId:=lower.presentationId,
+        lowerCoordinates:=List([1..lower.generatorCount],j->0),
+        witness:=rec(operation:="split",power:=order,prime:=prime,model:="split",
+            measuredLayers:=[],truncatedBelow:=fail,modelId:="prime-split",
+            certificate:=Concatenation("no stacking correction at the prime ",String(prime),": ",reason,
+                "; the relation is ",String(order),"*g=0")));
+end);
+
+# The relation oracle of a degree in which every measured relation splits.
+BindGlobal("KOAHSS_ExtensionSplitOracle",function(k)
+    return function(layer,index,order,lower)
+        local kind;
+        kind:=KOAHSS_ExtensionRelationModel(k,layer.name,order);
+        if kind.model<>"split" then
+            Error("koFull: the split oracle received a relation that needs a stacking model");
+        fi;
+        return KOAHSS_ExtensionSplitResponse(order,kind.prime,lower);
+    end;
+end);
+
+# True when the degree has relations to measure and all of them split, so
+# that no stacking model (and no worker) is needed.
+BindGlobal("KOAHSS_ExtensionRelationsAllSplit",function(layers,k)
+    local name,layer,lowerCount,i,relations;
+    lowerCount:=0; relations:=0;
+    for name in ["D","C","B","A"] do
+        layer:=layers.(name);
+        if IsBound(layer.status) then return false; fi;
+        if lowerCount>0 then
+            for i in [1..Length(layer.orders)] do
+                if layer.orders[i]<>0 then
+                    if KOAHSS_ExtensionRelationModel(k,name,layer.orders[i]).model<>"split" then return false; fi;
+                    relations:=relations+1;
+                fi;
+            od;
+        fi;
+        lowerCount:=lowerCount+Length(layer.orders);
+    od;
+    return relations>0;
+end);
+
+# Per prime: the number of measured relations and the models that measured them.
+BindGlobal("KOAHSS_ExtensionPrimeSummary",function(result)
+    local summary,v,w,prime,model,entry;
+    summary:=[];
+    if not IsBound(result.extensionVectors) then return summary; fi;
+    for v in result.extensionVectors do
+        w:=v.result.witness;
+        # A generator over the zero lower group measures nothing.
+        if IsBound(w.kind) and w.kind="zero-lower-group" then continue; fi;
+        if IsBound(w.prime) then prime:=w.prime; else prime:=KOAHSS_RelationPrime(v.order); fi;
+        if IsBound(w.model) then model:=w.model; else model:="complete"; fi;
+        entry:=First(summary,e->e.prime=prime);
+        if entry=fail then entry:=rec(prime:=prime,relations:=0,models:=[]); Add(summary,entry); fi;
+        entry.relations:=entry.relations+1; AddSet(entry.models,model);
+    od;
+    return summary;
+end);
+
 # A detailed koAHSS_batch result computed through E6, with its cochain context.
 BindGlobal("KOAHSS_DetailedE6Context",function(ahss)
     if not IsBound(ahss.kind) or ahss.kind<>"koAHSSResult"
@@ -202,6 +298,15 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
         if degree<1 then
             # Degrees -1 and 0 have the single layer D: no relation is measured.
             return koAHSSExtensionFromLayers(layers,fail);
+        fi;
+        # Every relation of the degree splits at its prime: no stacking model.
+        if KOAHSS_PrimeLocalizationEnabled() and KOAHSS_ExtensionRelationsAllSplit(layers,degree) then
+            candidate:=koAHSSExtensionFromLayers(layers,KOAHSS_ExtensionSplitOracle(degree));
+            if candidate.status="computed" then
+                candidate.certificateLevel:="prime-split";
+                candidate.primes:=KOAHSS_ExtensionPrimeSummary(candidate);
+            fi;
+            return candidate;
         fi;
         # Degrees 1-6: the native transferred model on R.
         if not IsBoundGlobal("KOAHSS_ExtensionTransferredModel") then
@@ -237,6 +342,7 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
             candidate.certificateLevel:="transfer-R";
             candidate.gaugeCompletenessAssumed:=true;
             candidate.abelianQuotientAssumed:=true;
+            candidate.primes:=KOAHSS_ExtensionPrimeSummary(candidate);
         fi;
         return candidate;
     end;
