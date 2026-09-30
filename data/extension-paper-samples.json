@@ -32,14 +32,6 @@
       "comparison_kind": "fermionic SPT phases of finite unitary groups in dimensions one to three, without the intrinsic Kitaev and p+ip layers",
       "note": "The rows 2, 3 and 12 are families; the cases instantiate them. The bosonic quotient is G_f/Z2^f, and omega is the extension class of G_f: zero for the split products, the cyclic carry u_m for Z_{2m}^f, x^2 for Z4^Tf and x^2+xy+y^2 for Q8^f."
     },
-    "ren_ning_qi_wang_gu_2024": {
-      "arxiv_id": "2310.19058",
-      "url": "https://arxiv.org/abs/2310.19058",
-      "full_text_url": "https://arxiv.org/pdf/2310.19058",
-      "location": "Tables I-IV (wallpaper groups); equation (6.2) for the time-reversal twists",
-      "comparison_kind": "stacking groups of the MC (1,-1), CF (2,-2) and B (4,-4) layers of 2+1D crystalline fermionic SPT phases, package degree 3",
-      "note": "Table I: spin-1/2 (s=w1, omega=0). Table II: spinless (s=w1, omega=w2+w1^2). Table III: spin-1/2 with time reversal (s=w1+t, omega=t^2+w1 t). Table IV: spinless with time reversal (s=w1+t, omega=w2+w1^2+w1 t). The p+ip layer (0,0) is not part of the tables, and p1 is omitted from Tables III and IV."
-    },
     "zhang_ning_qi_gu_2024": {
       "arxiv_id": "2204.13558v2",
       "url": "https://arxiv.org/abs/2204.13558v2",
@@ -260,49 +252,6 @@
           2,
           2,
           2
-        ]
-      }
-    },
-    {
-      "id": "ren-ning-qi-wang-gu-table-I-p2",
-      "source": "ren_ning_qi_wang_gu_2024",
-      "fermionic_symmetry": "wallpaper group p2 x Z2^f, spin-1/2 (s=w1, omega=0)",
-      "group_expression": "SGC_ResolutionSpaceGroup(SpaceGroupOnRightBBNWZ(2,2),6)",
-      "s": 0,
-      "omega": 0,
-      "cutoff": 3,
-      "quantity": "group of the E6 layers with p >= 1",
-      "expected_by_package_degree": {
-        "3": [
-          4,
-          8,
-          8,
-          8
-        ]
-      }
-    },
-    {
-      "id": "ren-ning-qi-wang-gu-table-II-p4",
-      "source": "ren_ning_qi_wang_gu_2024",
-      "fermionic_symmetry": "wallpaper group p4 x Z2^f, spinless (s=w1, omega=w2+w1^2)",
-      "group_expression": "SGC_ResolutionSpaceGroup(SpaceGroupOnRightBBNWZ(2,10),6)",
-      "s": 0,
-      "omega": [
-        1,
-        1,
-        1,
-        1,
-        1,
-        0
-      ],
-      "cutoff": 3,
-      "quantity": "group of the E6 layers with p >= 1",
-      "expected_by_package_degree": {
-        "3": [
-          2,
-          2,
-          2,
-          4
         ]
       }
     },

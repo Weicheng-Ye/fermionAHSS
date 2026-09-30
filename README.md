@@ -362,8 +362,7 @@ The original MIT license and attribution are preserved in [LICENSE](LICENSE).
    *Physical Review B* **110**, 235117 (2024),
    [doi:10.1103/PhysRevB.110.235117](https://doi.org/10.1103/PhysRevB.110.235117).
    The stacking group structure of fermionic SPT phases, the extension
-   problem that `koFull` solves; Tables I–IV supply the wallpaper-group
-   comparisons.
+   problem that `koFull` solves.
 4. Zhang, Ning, Qi, and Gu, [arXiv:2204.13558](https://arxiv.org/abs/2204.13558).
    Three-dimensional crystalline topological superconductors; Table I
    supplies the point-group comparisons.

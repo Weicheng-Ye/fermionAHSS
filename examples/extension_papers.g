@@ -6,10 +6,12 @@
 # a cutoff, the compared quantity and the printed values by package degree.
 # All cases are run by default (about five minutes for the finite groups);
 # FERMIONAHSS_PAPER_CASES selects cases by a comma-separated list of id
-# prefixes. Cases whose group expression cannot be evaluated in this session
-# (the wallpaper and space groups need the SpaceGroupCohomology package) are
-# reported as skipped. The expected groups are read only after koFull_batch
-# has completed.
+# prefixes. The space groups are resolved by SGC_ResolutionSpaceGroup of the
+# SpaceGroupCohomology package, whose resolutions carry the contracting
+# homotopy that koFull needs (HAP's own space-group resolutions have none);
+# the runner loads the package when it is installed. Cases whose group
+# expression cannot be evaluated in this session are reported as skipped.
+# The expected groups are read only after koFull_batch has completed.
 if not IsBoundGlobal("FERMION_AHSS_PACKAGE_VERSION") then
     CallFuncList(function()
         local file, slash, prefix;
@@ -31,13 +33,24 @@ CallFuncList(function()
         selection:=GAPInfo.SystemEnvironment.FERMIONAHSS_PAPER_CASES;
     fi;
     wanted:=SplitString(selection,",");
-    # Evaluate a group expression; fail when the session cannot build it.
+    # Evaluate a group expression; fail when the session cannot build it. The
+    # error is caught without a break loop, so that --quitonbreak does not end
+    # the session.
     evaluate:=function(expression)
-        local attempt;
+        local attempt, oldBreak, oldSilent;
+        oldBreak:=BreakOnError; oldSilent:=SilentNonInteractiveErrors;
+        BreakOnError:=false; SilentNonInteractiveErrors:=true;
         attempt:=CALL_WITH_CATCH(EvalString,[expression]);
+        BreakOnError:=oldBreak; SilentNonInteractiveErrors:=oldSilent;
         if attempt[1] then return attempt[2]; fi;
         return fail;
     end;
+    # The resolutions of the space groups with their contracting homotopy; a
+    # package that fails to load leaves those cases skipped.
+    if not IsBoundGlobal("SGC_ResolutionSpaceGroup")
+       and not IsEmpty(PackageInfo("SpaceGroupCohomology")) then
+        evaluate("LoadPackage(\"SpaceGroupCohomology\",false)");
+    fi;
     results:=[]; counts:=rec(match:=0,mismatch:=0,unresolved:=0,skipped:=0);
     for entry in fixture.cases do
         if selection<>"all" and not ForAny(wanted,w->StartsWith(entry.id,w)) then continue; fi;

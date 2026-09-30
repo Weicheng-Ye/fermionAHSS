@@ -1,15 +1,16 @@
 # Comparisons with the literature
 
 The fixture [extension-paper-samples.json](../data/extension-paper-samples.json)
-records a few printed classifications from four papers, together with the
+records a few printed classifications from three papers, together with the
 inputs that reproduce their symmetry data here, and the package's results
 for them are discussed below. The sources are Wang–Gu Tables VII and III
-([arXiv:1811.00536](https://arxiv.org/abs/1811.00536)), Ren–Ning–Qi–Wang–Gu
-Tables I–II ([arXiv:2310.19058](https://arxiv.org/abs/2310.19058)),
-Zhang–Ning–Qi–Gu Table I ([arXiv:2204.13558](https://arxiv.org/abs/2204.13558))
-and Tables I–II of [arXiv:2512.25069](https://arxiv.org/abs/2512.25069). The
-expected values are literature fixtures, not inputs to the solver, and every
-result keeps `certified_ko=false`.
+([arXiv:1811.00536](https://arxiv.org/abs/1811.00536)), Zhang–Ning–Qi–Gu
+Table I ([arXiv:2204.13558](https://arxiv.org/abs/2204.13558)) and Tables
+I–II of [arXiv:2512.25069](https://arxiv.org/abs/2512.25069). The expected
+values are literature fixtures, not inputs to the solver, and every result
+keeps `certified_ko=false`. The wallpaper-group tables of Ren–Ning–Qi–Wang–Gu
+([arXiv:2310.19058](https://arxiv.org/abs/2310.19058)) are not compared:
+`SGC_ResolutionSpaceGroup` does not support two-dimensional groups.
 
 ## Conventions
 
@@ -37,7 +38,7 @@ for a group). Every case has the same fields:
 stacking group of the whole E6 line. The **group of the E6 layers with
 p ≥ 1** leaves out the layer at `p=0`, the intrinsic Kitaev layer `(0,-1)`
 at `k=2` and the intrinsic `p+ip` layer `(0,0)` at `k=3`, which Table III
-and the wallpaper tables do not count; in `koFull` this is the filtration
+does not count; in `koFull` this is the filtration
 stage below that layer (`degreeResult.filtration`), and for `k\ge4` it is the
 full group. The **E6 layers** are the cells of the line themselves, for a
 paper that tabulates layers without solving the extensions. Invariant lists
@@ -53,9 +54,12 @@ The runner computes `koFull_batch` for every case, or for the cases whose
 id starts with one of the listed prefixes, and only then reads the expected
 values; it prints a JSON report and a summary of matches, mismatches,
 unresolved and skipped cases, and asserts only that the four Table VII
-groups are reproduced. The wallpaper and space groups need the
-SpaceGroupCohomology package for their resolutions and are skipped without
-it; the finite groups take about five minutes altogether.
+groups are reproduced. The space groups are resolved by
+`SGC_ResolutionSpaceGroup` of the SpaceGroupCohomology package, whose
+resolutions carry the contracting homotopy that `koFull` needs (HAP's own
+space-group resolutions have none); the runner loads the package when it is
+installed and skips the space groups without it. The finite groups take
+about five minutes altogether.
 
 ## Wang and Gu, Table VII: the four C2 cases
 
@@ -145,25 +149,6 @@ E6 line has `A=H^1(Z4;Z_s)=Z/2` and `C=H^3(Z4;Z2)=Z/2`, and the measured
 relation `2A=C` makes the group Z/4, where Table I prints `Z2^2`; the
 paper's Supplement S-3.8 derives the same nontrivial extension to Z/4, and
 the fixture records this conflict in `source_conflicts_not_tested`.
-
-## Ren, Ning, Qi, Wang and Gu, Tables I–II: wallpaper groups
-
-Tables I–IV give, for the seventeen wallpaper groups at package degree 3,
-the layers MC `(1,-1)`, CF `(2,-2)` and B `(4,-4)` and the group of their
-extension, without the `p+ip` layer `(0,0)`. Two cases are in the fixture,
-both with `s=w1` the orientation character: p2 from Table I (spin-1/2,
-`omega=0`) with the printed extension `[4,8,8,8]`, and p4 from Table II
-(spinless, `omega=w2+w1^2`) with `[2,2,2,4]`. The resolutions are those of
-the SpaceGroupCohomology package for the plane groups.
-
-The E6 layers are reproduced: for p2 the package finds MC `Z2^3`, CF
-`Z2^4` and B `Z2^4`, and for p4 spinless MC `0`, CF `Z2^2` and B
-`Z/2 ⊕ Z/4`, as printed, together with the `p+ip` layer Z at `(0,0)`. The
-extensions themselves are not computed: these resolutions have several
-generators in degree zero, which the transport of the native stacking model
-does not accept, so the degree stays unresolved rather than being reported
-as the product of the layers. The remaining tables (time-reversal symmetric
-cases) are not in the fixture.
 
 ## arXiv:2512.25069, Tables I–II: space groups
 
