@@ -28,6 +28,10 @@ doc/
 ├── low_degree_stacking.md             the products of package degrees one and two
 ├── dimension_indexed_differentials.md the nonlinear differential of the stacking model, k = 0..6
 ├── all_cochain_differential.md        its extension to arbitrary cochains and the square-zero proof
+├── ALL_COCHAIN_STACKING.md            the stacking products alpha, beta, gamma_k of every degree, k = -1..6
+├── G6_GENERAL_SECTION.md              the degree-six section construction of g6 and gamma6 outside L6
+├── ALL_COCHAIN_OBSTRUCTION.md         why g6 must be nonzero outside the legal locus L6
+├── extension_cup_i_formulas.md        the relation classes of each layer pair as cup-i formulas on R
 ├── transfer.md                        evaluating the bar formulas on a supplied resolution
 ├── resolution-extensions.md           the native model on a resolution: transport, checks, limits
 │
@@ -45,7 +49,13 @@ cochain conventions. The page differentials are in
 [extensions.md](extensions.md), whose formulas are derived in
 [dimension_indexed_differentials.md](dimension_indexed_differentials.md),
 [low_degree_stacking.md](low_degree_stacking.md) and
-[all_cochain_differential.md](all_cochain_differential.md), and evaluated on
+[all_cochain_differential.md](all_cochain_differential.md), with the products of
+every degree in [ALL_COCHAIN_STACKING.md](ALL_COCHAIN_STACKING.md), the
+degree-six section construction in
+[G6_GENERAL_SECTION.md](G6_GENERAL_SECTION.md) and its necessity in
+[ALL_COCHAIN_OBSTRUCTION.md](ALL_COCHAIN_OBSTRUCTION.md), with the relation
+classes of each pair of layers as cup-i formulas on the resolution in
+[extension_cup_i_formulas.md](extension_cup_i_formulas.md), and evaluated on
 a resolution as described in [transfer.md](transfer.md) and
 [resolution-extensions.md](resolution-extensions.md). The assumptions and
 the limits are collected in [mathematical-status.md](mathematical-status.md).

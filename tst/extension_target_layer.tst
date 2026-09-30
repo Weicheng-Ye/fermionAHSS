@@ -100,3 +100,27 @@ gap> shiftRows := KOAHSS_ExtensionPrimeRows(shiftFailing,shiftLayers,KOAHSS_Exte
 gap> Assert(0,shiftRows.A[1].status="unresolved" and shiftRows.A[1].pendingRelation.reason="no complete lift");
 gap> Assert(0,shiftRows.B[1].lowerCoordinates=[0,0] and shiftRows.B[1].witness.truncatedBelow="D");
 gap> Assert(0,koAHSSExtensionFromLayers(shiftLayers,KOAHSS_ExtensionReplayOracle(shiftRows)).status="unresolved");
+gap> # A primary-operation row of a C generator over D is determined modulo 2H,
+gap> # the relation of a lift shifted within D. A later relation measured
+gap> # through D with a coefficient on that generator measures it through D.
+gap> primaryLayers := rec(D:=rec(name:="D",orders:=[2,2]),C:=rec(name:="C",orders:=[2]),
+>     B:=rec(name:="B",orders:=[2]),A:=rec(name:="A",orders:=[]));;
+gap> primaryCalls := [];;
+gap> primaryEngine := rec(answer:=function(arg)
+>     local layer,lower,complete,witness;
+>     layer:=arg[1]; lower:=arg[4]; complete:=Length(arg)>=5 and arg[5].complete;
+>     Add(primaryCalls,[layer.name,complete]);
+>     witness:=rec(model:="complete",truncatedBelow:=fail,measuredLayers:=["D"]);
+>     if layer.name="C" then
+>         if not complete then
+>             witness:=rec(model:="primary-R",truncatedBelow:=fail,shiftedLift:="D",measuredLayers:=["D"]);
+>         fi;
+>         return rec(status:="computed",lowerPresentationId:=lower.presentationId,
+>             lowerCoordinates:=[1,0],witness:=witness);
+>     fi;
+>     return rec(status:="computed",lowerPresentationId:=lower.presentationId,
+>         lowerCoordinates:=[0,0,1],witness:=witness);
+> end);;
+gap> primaryRows := KOAHSS_ExtensionPrimeRows(primaryEngine,primaryLayers,KOAHSS_ExtensionPrimeParts(primaryLayers),4);;
+gap> Assert(0,primaryCalls=[["C",false],["B",false],["C",true]]);
+gap> Assert(0,IsBound(primaryRows.C[1].witness.measuredThroughD) and not IsBound(primaryRows.C[1].witness.shiftedLift));

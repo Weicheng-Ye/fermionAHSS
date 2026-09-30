@@ -118,7 +118,8 @@ InstallGlobalFunction(koAHSSCochainSpace, function(data)
     space.koAHSS := function(s, omega, maxDegree)
         local backend, dimensions, ordinary, twisted, cache, zeroS,
               dimension, getMatrix, validateTwist, cohomologyData,
-              cup, cupIntegral, reduce, differentialOnCochain, operation, operations;
+              cup, cupIntegral, reduce, differentialOnCochain, operation, operations,
+              primaryInput, nativePrimary;
         dimensions := [];
         ordinary := [];
         twisted := [];
@@ -274,6 +275,7 @@ InstallGlobalFunction(koAHSSCochainSpace, function(data)
         backend.cupMod2 := cup;
         backend.cupIntegral := cupIntegral;
         backend.hasIntegralCups := IsBound(data.cupIntegral);
+        backend.hasCupMod2 := IsBound(data.cupMod2);
         backend.twists := rec(s := s, omega := omega);
         backend.tertiaryCoefficient := 1;
         if IsBound(operations.usesNaturalT) and operations.usesNaturalT=true then
@@ -291,8 +293,8 @@ InstallGlobalFunction(koAHSSCochainSpace, function(data)
         fi;
         backend.usesNaturalPrimary:=IsBound(operations.useNaturalPrimary)
             and operations.useNaturalPrimary=true;
-        backend.primary := function(name, n, input)
-            local a, sq1, sq2, value;
+        primaryInput := function(name, n, input)
+            local a, value;
             KOAHSS_CC_CheckVector(input,dimension(n),"primary input");
             if name = "Dbar" and not ForAll(
                 differentialOnCochain(n,input,true),x -> x = 0) then
@@ -303,9 +305,16 @@ InstallGlobalFunction(koAHSSCochainSpace, function(data)
             if not ForAll(value,x -> x mod 2 = 0) then
                 Error("koAHSS: primary input is not a mod-two cocycle");
             fi;
-            if backend.usesNaturalPrimary then
-                return CallFuncList(ValueGlobal("KOAHSS_NaturalPrimary"),[backend,name,n,input]);
-            fi;
+            return rec(reduced := a, boundary := value);
+        end;
+        # The primary operations evaluated on the resolution itself: its
+        # cup-i products (data.cupMod2) and the Bockstein of the 0/1 lift.
+        # backend.primary uses them unless the operations select the natural
+        # bar words; koFull reads relation classes with them directly.
+        nativePrimary := function(name, n, input)
+            local checked, a, sq1, sq2, value;
+            checked := primaryInput(name, n, input);
+            a := checked.reduced; value := checked.boundary;
             sq1 := reduce(List(value,x -> x/2));
             sq2 := cup(n-2,n,a,n,a);
             value := sq2 + cup(0,2,omega,n,a);
@@ -319,6 +328,14 @@ InstallGlobalFunction(koAHSSCochainSpace, function(data)
                 return List(value,x -> x/2);
             fi;
             Error("koAHSS: unknown primary operation");
+        end;
+        backend.nativePrimary := nativePrimary;
+        backend.primary := function(name, n, input)
+            if backend.usesNaturalPrimary then
+                primaryInput(name, n, input);
+                return CallFuncList(ValueGlobal("KOAHSS_NaturalPrimary"),[backend,name,n,input]);
+            fi;
+            return nativePrimary(name, n, input);
         end;
         operation := function(r,n,q,cochain,source,target)
             local name, value, context, correction;

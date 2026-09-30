@@ -23,6 +23,22 @@ BindGlobal("KOAHSS_LayeredRelationsEnabled",function()
     return true;
 end);
 
+# The primary-operation rows of relations whose target layer lies right below
+# the generator's (doc/extension_cup_i_formulas.md) are on unless
+# FERMIONAHSS_NATIVE_RELATIONS=0. Tests may set
+# KOAHSS_EXTENSION_RELATION_OVERRIDE.native to true or false, which takes
+# precedence, and unbind it afterwards.
+BindGlobal("KOAHSS_EXTENSION_RELATION_OVERRIDE",rec());
+BindGlobal("KOAHSS_NativeRelationsEnabled",function()
+    if IsBound(KOAHSS_EXTENSION_RELATION_OVERRIDE.native) then
+        return KOAHSS_EXTENSION_RELATION_OVERRIDE.native=true;
+    fi;
+    if IsBound(GAPInfo.SystemEnvironment.FERMIONAHSS_NATIVE_RELATIONS) then
+        return GAPInfo.SystemEnvironment.FERMIONAHSS_NATIVE_RELATIONS<>"0";
+    fi;
+    return true;
+end);
+
 # Every lower generator e of the recorded presentation with e not in n*G_low
 # is free for a relation of order n: its component of the relation changes
 # the class in Ext(Z/n,G_low)=G_low/nG_low. The target layer is the lowest
@@ -244,9 +260,12 @@ end);
 BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,options)
     local model,built,refusal,kernelCache,liftSolver,local3,layerLimited,liftFailure,
         ensureModel,ensureLocal3,completeLift,localLift,partialLift,partialLifts,markedState,
-        liftState,refused,flat,times,flatProduct,boundary,reduce,answer;
+        liftState,refused,flat,times,flatProduct,boundary,reduce,answer,
+        nativeRelations,rowsCache,coboundaryRows,primaryRow,primaryFallbacks;
     model:=fail; built:=fail; refusal:=fail; local3:=fail; liftSolver:=fail; liftFailure:=fail;
-    kernelCache:=rec(); partialLifts:=rec();
+    kernelCache:=rec(); partialLifts:=rec(); rowsCache:=rec(); primaryFallbacks:=[];
+    nativeRelations:=KOAHSS_NativeRelationsEnabled();
+    if IsBound(options.nativeRelations) then nativeRelations:=options.nativeRelations=true; fi;
     if IsFunction(source) then
         layerLimited:=IsBound(options.layerLimited) and options.layerLimited=true;
     else
@@ -555,12 +574,86 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
             canonicalComparison:=comparison,measuredThrough:=fields[upto+1],
             orderedReductionVerified:=true,residualState:=current);
     end;
+    # The coboundary matrix of R in degree n as rows, from the backend.
+    coboundaryRows:=function(n,signed)
+        local key,d;
+        key:=Concatenation(String(n),"_",String(signed));
+        if not IsBound(rowsCache.(key)) then
+            d:=backend.dimension(n);
+            rowsCache.(key):=List([1..d],function(j)
+                local e;
+                e:=List([1..d],i->0); e[j]:=1;
+                return backend.coboundary(n,e,signed);
+            end);
+        fi;
+        return rowsCache.(key);
+    end;
+    # The row of a relation whose target layer lies right below the
+    # generator's, read from the class of a primary operation of the marked
+    # cocycle on R (doc/extension_cup_i_formulas.md): D(rho u) with
+    # delta_s u = m A for A over B, the reduced twisted Bockstein for B over C,
+    # and an integral lift of D(c) for C over D. No stacking model, flat lift
+    # or bar transport is used. The target-layer coordinates come from the E6
+    # cell projection, which quotients by the incoming images. A C-over-D row
+    # is determined modulo 2H, the relation of a lift shifted within D, and
+    # its witness says so (shiftedLift). Returns fail when an ingredient is
+    # unavailable; the relation is then measured in the model.
+    primaryRow:=function(layer,index,order,lower,target)
+        local fields,name,solution,z,value,twice,degree,q,element,coordinates,
+            stored,row,j,witness,method;
+        fields:=["A","B","C","D"]; name:=target.layer;
+        if not IsBound(backend.nativePrimary) or not IsBound(backend.hasCupMod2)
+           or backend.hasCupMod2<>true or not IsBound(layers.(name).cell)
+           or not IsBound(layer.cochains) or not IsBound(layer.cochains[index]) then
+            return fail;
+        fi;
+        if layer.name="A" then
+            if k<4 or not IsEvenInt(order) then return fail; fi;
+            solution:=koAHSSSolveIntegerSystem(coboundaryRows(k-4,true),
+                order*layer.cochains[index]);
+            if solution=fail then return fail; fi;
+            z:=List(solution.particular,x->x mod 2);
+            value:=backend.nativePrimary("D",k-4,z); degree:=k-2; q:=-1;
+            method:="D(rho u), delta_s u = m A";
+        elif layer.name="B" then
+            twice:=backend.coboundary(k-2,List(layer.cochains[index],x->x mod 2),true);
+            if ForAny(twice,IsOddInt) then return fail; fi;
+            value:=List(twice,x->(x/2) mod 2); degree:=k-1; q:=-2;
+            method:="rho beta_s(b)";
+        else
+            value:=backend.nativePrimary("D",k-1,List(layer.cochains[index],x->x mod 2));
+            twice:=backend.coboundary(k+1,value,true);
+            if ForAny(twice,IsOddInt) then return fail; fi;
+            solution:=koAHSSSolveIntegerSystem(coboundaryRows(k+1,true),List(twice,x->x/2));
+            if solution=fail then return fail; fi;
+            value:=value-2*solution.particular; degree:=k+1; q:=-4;
+            if ForAny(backend.coboundary(k+1,value,true),x->x<>0) then return fail; fi;
+            method:="integral lift of D(c)";
+        fi;
+        element:=layers.(name).cell.project(backend.cohomologyData(degree,q).class(value));
+        coordinates:=KOAHSS_ExtensionGroupCoordinates(layers.(name).group,
+            layers.(name).generators,element);
+        stored:=First(lower.layers,l->l.name=name);
+        if stored=fail or Length(stored.orders)<>Length(coordinates) then return fail; fi;
+        row:=List([1..lower.generatorCount],j->0);
+        for j in [1..Length(coordinates)] do row[stored.startColumn+j-1]:=coordinates[j]; od;
+        witness:=rec(operation:="xtimes",power:=order,prime:=2,model:="primary-R",
+            method:=method,measuredLayers:=[name],sufficiency:=target);
+        if name="D" then
+            witness.truncatedBelow:=fail;
+            witness.shiftedLift:="D";
+        else
+            witness.truncatedBelow:=fields[Position(fields,name)+1];
+        fi;
+        return rec(status:="computed",lowerPresentationId:=lower.presentationId,
+            lowerCoordinates:=row,witness:=witness);
+    end;
     # options.complete measures the relation through D, without the
     # target-layer shortcut (KOAHSS_ExtensionPrimeRows asks for it when a
     # later relation depends on the D components this relation dropped).
     answer:=function(arg)
         local layer,index,order,lower,complete,power,result,fields,target,upto,partial,position,
-            below,lowerNames,kind,entry,witness,reason;
+            below,lowerNames,kind,entry,witness,reason,oldBreak,oldSilent,attempt;
         layer:=arg[1]; index:=arg[2]; order:=arg[3]; lower:=arg[4];
         complete:=Length(arg)>=5 and IsBound(arg[5].complete) and arg[5].complete=true;
         fields:=["A","B","C","D"];
@@ -581,6 +674,20 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
                 if model<>fail then witness.modelId:=model.modelId; fi;
                 return rec(status:="computed",lowerPresentationId:=lower.presentationId,
                     lowerCoordinates:=List([1..lower.generatorCount],j->0),witness:=witness);
+            fi;
+            # A target layer right below the generator's: the primary-operation
+            # row. An error in its evaluation is caught without a message, and
+            # the relation is measured in the model and listed in primaryFallbacks.
+            if nativeRelations and kind.model="complete" and IsEvenInt(order)
+               and target.index=position then
+                oldBreak:=BreakOnError; oldSilent:=SilentNonInteractiveErrors;
+                BreakOnError:=false; SilentNonInteractiveErrors:=true;
+                attempt:=CALL_WITH_CATCH(primaryRow,[layer,index,order,lower,target]);
+                BreakOnError:=oldBreak; SilentNonInteractiveErrors:=oldSilent;
+                if attempt[1] and attempt[2]<>fail then return attempt[2]; fi;
+                Add(primaryFallbacks,rec(layer:=layer.name,index:=index,
+                    reason:=function() if attempt[1] then return "an ingredient was unavailable"; fi;
+                        return "the evaluation raised an error"; end()));
             fi;
         fi;
         if kind.model="three-local" then
@@ -654,6 +761,8 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
     return rec(answer:=answer,
         # the model in use, or fail when no relation has needed one
         model:=function() return model; end,
+        # relations whose primary-operation row fell back to the model
+        primaryFallbacks:=function() return primaryFallbacks; end,
         # what the model source returned (a refusal included), or fail
         builtModel:=function() return built; end,
         close:=function()

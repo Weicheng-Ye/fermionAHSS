@@ -251,8 +251,8 @@ The choice is
 Here \(F_6\) is the first three components of (A13), and
 \(\widehat F\phi=F_6\). The auxiliary natural triangular product
 \(\widehat\mu\) and its explicit corrections \(\alpha,\widehat\beta\)
-are specified in the section construction `G6_GENERAL_SECTION.md` of the
-stacking research workspace (not bundled).
+are specified in the section construction
+[G6_GENERAL_SECTION.md](G6_GENERAL_SECTION.md).
 For \(v\backslash w=z\), left division means
 \[
 \begin{aligned}
@@ -326,12 +326,12 @@ triangular stacking product with
 cochains. On \(B((\mathbf Z/3)^2)\), the defining system
 \((4\beta_{\mathbf Z,3}(u_1u_2),0,0,0)\) has a nonzero \(T_3\) class;
 stacking it with an input outside \(L_6\) would force that class to be a
-coboundary (see `ALL_COCHAIN_OBSTRUCTION.md` in the stacking research
-workspace, not bundled). With the \(T_3\mathcal R_6\) formula, the
+coboundary ([ALL_COCHAIN_OBSTRUCTION.md](ALL_COCHAIN_OBSTRUCTION.md)).
+With the \(T_3\mathcal R_6\) formula, the
 off-shell class on this example is the same nonzero prime-three
 obstruction, so there is no contradiction. The section branch is
 square-zero and admits the explicit degree-six stacking construction of
-`G6_GENERAL_SECTION.md`. Two legal cylinders prove its strict upper
+[G6_GENERAL_SECTION.md](G6_GENERAL_SECTION.md). Two legal cylinders prove its strict upper
 identity without assuming associativity of the lower cochain product.
 
 ## 4. Explicit verification of the second iterate
@@ -459,8 +459,8 @@ endpoint convention are constructions here, not formulas attributed
 to Wang–Gu.
 
 The compatible stacking law is defined in the degree-indexed stacking
-note `ALL_COCHAIN_STACKING.md` of the stacking research workspace (not
-bundled). Its degree-six formula uses this same section retraction and two
+note [ALL_COCHAIN_STACKING.md](ALL_COCHAIN_STACKING.md). Its degree-six
+formula uses this same section retraction and two
 legal cylinders; it does not assume associativity of the lower product.
 The classification agreement established here is the successive
 obstruction and solvability test, with the repository's page

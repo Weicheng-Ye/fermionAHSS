@@ -42,6 +42,8 @@ gap> koFull_batch(transferHookFull.ahss,rec());
 Error, usage: koFull_batch(group or HAP resolution,s,omega,k) or koFull_batch(detailedE6Result)
 gap> # C8 exceeds the complete-bar budget. Its native result requires no bar
 > # construction, certification hook, or exceptional C2 basis isomorphism.
+> # The model is exercised with the primary-operation rows switched off.
+gap> KOAHSS_EXTENSION_RELATION_OVERRIDE.native:=false;;
 gap> transferSavedBarFactory:=KOAHSS_ExtensionBarModel;;
 gap> MakeReadWriteGlobal("KOAHSS_ExtensionBarModel");
 gap> KOAHSS_ExtensionBarModel:=function(backend,k) Error("koFull attempted complete-bar construction"); end;;
@@ -84,3 +86,4 @@ gap> KOAHSS_ExtensionTransferredModel:=transferSavedFactory;;
 gap> MakeReadOnlyGlobal("KOAHSS_ExtensionTransferredModel");
 gap> KOAHSS_ExtensionBarModel:=transferSavedBarFactory;;
 gap> MakeReadOnlyGlobal("KOAHSS_ExtensionBarModel");
+gap> Unbind(KOAHSS_EXTENSION_RELATION_OVERRIDE.native);;

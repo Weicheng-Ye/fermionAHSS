@@ -98,7 +98,10 @@ group, twist and cutoff conventions as `koAHSS`. There is no page-count
 argument. An integral HAP resolution may replace the group argument; it is
 retained without reconstruction. There is no model-selection option. The
 [native-resolution model](resolution-extensions.md) is built only when a
-relation of the degree needs a measurement. It runs higher searches on R,
+relation of the degree needs a measurement; a two-primary relation whose
+target layer lies right below its generator's layer is read from a primary
+operation on R instead (see "Primary-operation rows"). The model runs
+higher searches on R,
 checks the exact sparse comparison identity of each comparison chain when
 it first uses it, and assumes gauge completeness. Runtime completion uses
 native flatness and gauge checks.
@@ -145,9 +148,11 @@ associated-graded `layers`. When a relation of the degree needed the
 native model, its `modelId` is retained, and the completed calculation has
 `certificateLevel="transfer-R"`, `gaugeCompletenessAssumed=true` and
 `abelianQuotientAssumed=true`. A completed degree of 1–6 that built no
-model has `certificateLevel="prime-split"` when some relation split at an
-odd prime and `"direct-sum"` otherwise: every relation row is then zero and
-the group is the direct sum of its layers.
+model has `certificateLevel="primary-R"`, with the same two assumptions,
+when some relation row is the class of a primary operation on R. Otherwise
+it has `"prime-split"` when some relation split at an odd prime and
+`"direct-sum"` if not: every relation row is then zero and the group is the
+direct sum of its layers.
 
 ```gap
 full := koFull(CyclicGroup(2), 0, 0, 2);;
@@ -162,7 +167,9 @@ A completed degree stores `group`, `invariants`, `basis`, `relationMatrix`,
 `extensionVectors`, `smith`, `filtration` and `lowerModel`; in degrees 1–6
 also `certificateLevel`, the per-prime summary `primes` and the prime parts
 `primeParts` (see "Localization at the primes"), and `singleLayer=true`
-when its line has at most one nonzero layer. An unresolved
+when its line has at most one nonzero layer. A degree whose
+primary-operation rows fell back to the model lists those relations in
+`primaryFallbacks` (see "Primary-operation rows"). An unresolved
 degree stores its reason, pending layer and (when applicable) generator,
 completed stages, measured vectors and lower model. It has no fabricated
 complete group or invariant list. The public `invariants` view uses `[]`
@@ -172,7 +179,7 @@ In the higher-degree engine, `layers.<name>.fullLifts[i]` retains the
 immutable full representative and its defining-equation witnesses of each
 marked generator whose complete or three-local lift a measurement needed
 (see "Complete flat representatives and gauge comparisons"). Completed
-results with `certificateLevel="transfer-R"` record
+results with `certificateLevel="transfer-R"` or `"primary-R"` record
 `abelianQuotientAssumed=true`: the measured relations are combined under
 the assumption that stacking is commutative and associative on gauge
 classes, and no finite multiplication table is audited.
@@ -258,9 +265,13 @@ shortcut.
 
 For the Pin⁻ line of `C2` with `s` at degree six, the lower group of the A
 generator is `<b,c,d\mid 2b=c,2c=d,2d=0>\cong Z/8`: only `b` is free, the
-target layer is B, the lift of the A generator is solved through B only,
-and the B layer of its square is `alpha(A,A)`, so `Z/16` is determined
-without the universal pair source of `gamma_6`. With a lower group
+target layer is B, and in the model the lift of the A generator is solved
+through B only, and the B coordinate of its relation is the B component
+`Q_D(rho u)` of the boundary state of the A gauge (`delta_s u=2A`; the B
+layer `alpha(A,A)` of the square is a coboundary), so `Z/16` is determined
+without the universal pair source of `gamma_6`; the class is `D(rho u)`,
+which the primary-operation row reads on R without the model (see
+"Primary-operation rows"). With a lower group
 `Z/2\oplus Z/4` (`2b=0`, `2c=d`) both `b` and `c` are free and the target
 layer is C: `2a=b` gives `Z/4\oplus Z/4` while `2a=b+c` gives
 `Z/8\oplus Z/2`, which only the C component decides.
@@ -290,8 +301,9 @@ layer C and the coefficient one on `b`, and without the measurement of `b`
 through D the rows would present `Z/4\oplus Z/4` instead of
 `Z/2\oplus Z/8`. With prime localization on, a relation without a free
 lower generator takes the zero row of the zero-local shortcut, which is
-exact after localization at its prime (next section), so only a B relation
-with target layer C is ever measured again.
+exact after localization at its prime (see "Localization at the primes"),
+so only a B relation with target layer C and a C relation read from its
+primary operation (see "Primary-operation rows") are ever measured again.
 
 Free quotient generators add columns but no power-relation rows and
 require no torsion query. A free quotient splits because the intended
@@ -301,6 +313,64 @@ generator, and a D generator enters every measured product with its marked
 cocycle. The implementation keeps the named presentation
 columns across all four stages, so later vectors can refer to any earlier
 generator without losing its embedding.
+
+## Primary-operation rows
+
+A two-primary relation `m\widetilde q=t` whose target layer lies right
+below the layer of `q` (A over B, B over C, C over D) is not measured in
+the model. The class of its target-layer component is a primary operation
+of the marked cocycle of `q`
+([extension_cup_i_formulas.md](extension_cup_i_formulas.md), Sections 3–5),
+which the engine evaluates on R with the cup-i products of its diagonals
+and the Bockstein of the 0/1 lift (`backend.nativePrimary`), and projects
+to the target layer with its E6 cell (`layers.<name>.cell.project`). With
+`D=Sq^2+s\,Sq^1+\omega`, the operation of `d_2` on the row `q=-1`:
+
+| Relation | Class of the target-layer component | Evaluation on R |
+| --- | --- | --- |
+| `a` over B | `D(z)` in `E_6^{j-2,-1}`, where `\beta_s z=(m/2)[a]` | `z=\rho u`, where `\delta_s u=m\,a` is solved over the integers |
+| `b` over C | `\rho\beta_s(b)=(Sq^1+s)b` in `E_6^{j-1,-2}` | `(\delta_s\widetilde b)/2` modulo two, `\widetilde b` the 0/1 lift of `b` |
+| `c` over D | an integral lift of `D(c)` in `E_6^{j+1,-4}` | `x-2w`, `x` the 0/1 lift of `D(c)` and `\delta_s w=(\delta_s x)/2` |
+
+The classes are well defined in the E6 cells: changing `u` by a cocycle
+`v` changes `D(z)` by `\operatorname{Dbar}[v]`, an incoming image; the
+representatives and the cup-i structure change the cochains by
+coboundaries; and the integral lift of `D(c)` is determined modulo
+`2H^{j+1}(BG;Z_s)`. The cell projection quotients by all incoming images,
+so the rows never need the gauge search of a component that meets them.
+Only the target-layer coordinates are filled in. The row of an A or B
+generator is the row of the measurement through its target layer and, like
+it, the relation of a lift shifted below that layer (`truncatedBelow` is C
+or D). The row of a C generator agrees with the measurement through D
+modulo `2D`: it is the relation
+`2(\widetilde c-h)=t` of a lift shifted by some `h` in D, its class in
+`D/2D` is exact, and its witness records `shiftedLift="D"`. A later
+relation measured through D with a nonzero coefficient on `c` therefore
+measures the relation of `c` through D in the model, as for a truncated row
+(previous section).
+
+These rows need no model, flat lift, gauge comparison, bar transport or
+universal value. On the Pin⁻ line of `C2` with `s` at degree six
+(`2a=b`, `2b=c`, `2c=d`) every relation has its target layer right below
+its generator, and `Z/16` is determined on R alone. Each row records
+`witness.model="primary-R"` and the evaluated `witness.method`, and a
+completed degree that built no model and has such a row records
+`certificateLevel="primary-R"`, with the assumptions of the model whose
+relations it reads (`gaugeCompletenessAssumed`, `abelianQuotientAssumed`).
+
+When an ingredient is unavailable (a backend without the operations on R,
+a layer without its E6 cell) or the evaluation fails, the relation is
+measured in the model, and the degree result lists it in
+`primaryFallbacks`. The odd relations keep their split rows or three-local
+measurements. The relations whose target layer lies two or three layers
+below the generator's (A over C or D, B over D), and the measurements
+through D requested by a later relation, are measured in the model; their
+classes involve secondary and tertiary operations
+([extension_cup_i_formulas.md](extension_cup_i_formulas.md), Section 6).
+The environment variable `FERMIONAHSS_NATIVE_RELATIONS=0` measures every
+relation in the model; in a GAP session,
+`KOAHSS_EXTENSION_RELATION_OVERRIDE.native` set to `false` or `true` takes
+precedence until it is unbound.
 
 ## Localization at the primes
 
@@ -324,9 +394,11 @@ without a model or a lift, when it splits at `p` (below) and, otherwise,
 when no lower generator has `p`-power order and none is free
 (`witness.kind="zero-local-lower-group"`): `H` is then finite of order
 prime to `m`, so `mH=H` and the class in `H/mH` vanishes. Every other
-relation is measured: the target-layer shortcut of the previous section
-first, then the complete model for `p=2` or the three-local model for
-`p=3` in degrees five and six.
+relation is measured: the target-layer shortcut (see "Layers and measured
+relations") first; for `p=2`, the primary-operation row when the target
+layer lies right below the generator's (see "Primary-operation rows"),
+otherwise the complete model; for `p=3` in degrees five and six, the
+three-local model.
 
 A measured row keeps only its coordinates on the generators of its prime
 and on the free generators; when this drops a nonzero coordinate, the full
@@ -350,7 +422,9 @@ for each prime, its generators and the `p`-primary part of the invariants.
 The stacking model of a relation is chosen by the prime `p` of the order of
 its generator (`KOAHSS_ExtensionRelationModel`):
 
-- `p=2`: the complete transferred model, exactly as in the previous sections.
+- `p=2`: the complete transferred model, exactly as in the previous sections,
+  or the primary-operation row of a relation whose target layer lies right
+  below its generator's.
 - `p\ge 5`: no measurement. `ko_{(p)}` is a sum of Adams summands of period
   `2(p-1)\ge 8`, so the rows `q=0` and `q=-4` lie in different summands and
   the window carries no k-invariant and no stacking correction at `p`; the
@@ -748,14 +822,18 @@ No expected classification table is consulted at runtime.
 
 Degrees -1 and 0 have only the D layer: the group is that layer and no
 relation is measured, so, as in every degree without a relation to
-measure, no stacking model is built. Degrees one and two use the native
+measure, no stacking model is built. In degrees one and two every
+two-primary relation with an adjacent target (C over D, and B over C) is
+read from a primary operation on R (see "Primary-operation rows"); a
+relation measured in the model there (B over D, a fallback, or a
+measurement through D requested by a later relation) uses the native
 engine with the differentials and products of
 [low_degree_stacking.md](low_degree_stacking.md), for arbitrary valid
 `s` and `omega`. A degree-one state is `(C,D)` and its gauges are
 degree-zero states `(D)`; a degree-two state is `(B,C,D)` and its gauges
 are degree-one states. Flat lifts, relation measurements, gauge
 comparisons, the comparison complex and the zero test are those of degrees
-3–5. No expected classification table is consulted at runtime. The
+3–6. No expected classification table is consulted at runtime. The
 abstract assembler's generality does not remove a production cochain
 requirement.
 

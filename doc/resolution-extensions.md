@@ -82,9 +82,10 @@ errors; they are not treated as split extensions.
 | --- | --- |
 | `batch.gaugeCompletenessAssumed` | `true`; identifies the assumption used for native completion |
 | `degree.modelId` | Identifier of the native model, when a relation of the degree needed it |
-| `degree.gaugeCompletenessAssumed` | `true` when a relation of the completed degree was measured in the native model |
-| `degree.certificateLevel` | `"transfer-R"` when a relation needed the native model; otherwise `"prime-split"` when a relation split at an odd prime and `"direct-sum"` if not, every relation row then being zero |
-| `degree.abelianQuotientAssumed` | `true` with `"transfer-R"`; the group law on gauge classes is assumed commutative and associative |
+| `degree.gaugeCompletenessAssumed` | `true` when a relation of the completed degree was measured in the native model or read from a primary operation on R |
+| `degree.certificateLevel` | `"transfer-R"` when a relation needed the native model; otherwise `"primary-R"` when a relation row is the class of a primary operation on R, `"prime-split"` when a relation split at an odd prime, and `"direct-sum"` if none of these, every relation row then being zero |
+| `degree.abelianQuotientAssumed` | `true` with `"transfer-R"` and `"primary-R"`; the group law on gauge classes is assumed commutative and associative |
+| `degree.primaryFallbacks` | The relations whose primary-operation row was unavailable and which were measured in the model, when there are any |
 | `degree.primes`, `degree.primeParts` | Per prime: the relations and their models; the generators and the primary part of the invariants |
 | `degree.singleLayer` | `true` when the line has at most one nonzero layer |
 
@@ -144,7 +145,9 @@ private, and the cell comparison refuses up front, before it builds any
 degree, when some boundary of R through degree k+2 is zero or has
 coefficients with gcd other than one ("the boundary of resolution
 generator j in degree n is not primitive"); a degree with a relation to
-measure then stays unresolved. Each degree of the cell comparison (the
+measure in the model then stays unresolved, while the primary-operation
+rows of relations with adjacent targets need no comparison
+([extensions.md](extensions.md), "Primary-operation rows"). Each degree of the cell comparison (the
 Smith form of its boundaries, the right inverse and the private vertex
 types) is built when it is first used, after every lower degree, so every
 value is the one of the construction of all degrees at once. Local cochain

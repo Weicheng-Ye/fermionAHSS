@@ -35,7 +35,9 @@ gap> # Real higher-degree lifts; the quotient table is not audited.
 gap> extReal := koFull_batch(CyclicGroup(2),0,0,3);;
 gap> Assert(0,extReal.invariants[5]=[0,8]);
 gap> Assert(0,extReal.degreeResults[5].abelianQuotientAssumed and not IsBound(extReal.degreeResults[5].algebraAudit));
-gap> Assert(0,ForAll(extReal.degreeResults[5].extensionVectors,v->v.layer="D" or v.result.witness.reduction.canonicalComparison.status="computed"));
+gap> Assert(0,ForAll(extReal.degreeResults[5].extensionVectors,v->v.layer="D"
+>     or (IsBound(v.result.witness.model) and v.result.witness.model="primary-R")
+>     or v.result.witness.reduction.canonicalComparison.status="computed"));
 gap> # koFull solves the extension problem of degree k only.
 gap> extDegree := koFull(CyclicGroup(2),0,0,3);;
 gap> Assert(0,extDegree.kind="koFullDegreeResult" and extDegree.k=3 and extDegree.invariants=extReal.invariants[5]);

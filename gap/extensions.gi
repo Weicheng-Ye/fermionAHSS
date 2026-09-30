@@ -328,8 +328,10 @@ end);
 #
 # A row measured only through its target layer T holds for the lift x-h of
 # its generator, where m*h is the part below T that it drops; a zero row
-# over a lower group H=m*H holds for x-h with m*h the whole relation. In
-# both cases h lies in the lower group of the generator, the layers below
+# over a lower group H=m*H holds for x-h with m*h the whole relation, and a
+# primary-operation row of a C generator over D, determined modulo 2H, holds
+# for x-h with h in D. In
+# all three cases h lies in the lower group of the generator, the layers below
 # it, but the stored lift x is what every later measurement multiplies. A
 # later relation measured through a layer below that of the generator, with
 # a nonzero coefficient on it, would be recorded in the wrong frame; the
@@ -371,13 +373,15 @@ BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
         fi;
         return 3;
     end;
-    # Whether a row holds only for a lift shifted by an unknown h.
-    shifted:=row->row.status="computed" and IsBound(row.witness.truncatedBelow)
-        and row.witness.truncatedBelow<>fail;
+    # Whether a row holds only for a lift shifted by an unknown h: it was
+    # measured only through its target layer, or it is a primary-operation
+    # row determined modulo 2H (shiftedLift).
+    shifted:=row->row.status="computed" and ((IsBound(row.witness.truncatedBelow)
+        and row.witness.truncatedBelow<>fail) or IsBound(row.witness.shiftedLift));
     # Record the relation of generator i of layer name; complete asks for the
     # measurement through D.
     record:=function(name,i,complete)
-        local order,kind,below,keep,lower,response,coordinates,stored,j,again,above;
+        local order,kind,below,keep,lower,response,coordinates,stored,j,again,above,why;
         order:=layers.(name).orders[i];
         kind:=KOAHSS_ExtensionRelationModel(degree,name,order);
         below:=parts.names{[1..Position(parts.names,name)-1]};
@@ -416,11 +420,15 @@ BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
                    and response.lowerCoordinates[stored.startColumn+j-1]<>0
                    and lastMeasured(response)>=Position(fields,stored.name)
                    and IsBound(rows.(stored.name)[j]) and shifted(rows.(stored.name)[j]) then
+                    why:="is measured only through its target layer";
+                    if IsBound(rows.(stored.name)[j].witness.shiftedLift) then
+                        why:="is read from a primary operation and holds only modulo 2H";
+                    fi;
                     again:=record(stored.name,j,true);
                     if again.status<>"computed" then
                         response:=rec(status:="unresolved",reason:=Concatenation(
                             "the relation refers to the lift of generator ",String(j)," of layer ",
-                            stored.name,", whose relation is measured only through its target layer, ",
+                            stored.name,", whose relation ",why,", ",
                             "and its measurement through D is unresolved: ",String(again.reason)),
                             pendingRelation:=again);
                     fi;
@@ -537,6 +545,13 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
             candidate.gaugeCompletenessAssumed:=true;
             candidate.abelianQuotientAssumed:=true;
         elif ForAny(candidate.extensionVectors,v->IsBound(v.result.witness.model)
+                and v.result.witness.model="primary-R") then
+            # Every measured row is the class of a primary operation on R
+            # (doc/extension_cup_i_formulas.md), under the same assumptions.
+            candidate.certificateLevel:="primary-R";
+            candidate.gaugeCompletenessAssumed:=true;
+            candidate.abelianQuotientAssumed:=true;
+        elif ForAny(candidate.extensionVectors,v->IsBound(v.result.witness.model)
                 and v.result.witness.model="split") then
             candidate.certificateLevel:="prime-split";
         else
@@ -569,6 +584,11 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
     answer.degree:=degree; answer.layers:=layers;
     if engine<>fail and engine.model()<>fail and IsBound(engine.model().modelId) then
         answer.modelId:=engine.model().modelId;
+    fi;
+    # The relations whose primary-operation row fell back to the model.
+    if engine<>fail and IsBound(engine.primaryFallbacks)
+       and not IsEmpty(engine.primaryFallbacks()) then
+        answer.primaryFallbacks:=engine.primaryFallbacks();
     fi;
     return answer;
 end);

@@ -1,4 +1,8 @@
 # Degrees one and two use the native transferred model, as degrees 3-5 do.
+# The primary-operation rows of adjacent relations are switched off here, so
+# that every relation is measured in the model
+# (tst/extension_primary_rows.tst compares the two).
+gap> KOAHSS_EXTENSION_RELATION_OVERRIDE.native:=false;;
 gap> stackUnitary := koFull_batch(CyclicGroup(2),0,0,2);;
 gap> Assert(0,stackUnitary.status="computed" and stackUnitary.invariants=[[0],[],[2,2],[2,2]]);
 gap> Assert(0,ForAll(stackUnitary.degreeResults{[3,4]},r->r.modelId="transferred-normalized-bar"
@@ -42,3 +46,4 @@ gap> stackCells := koFull_batch(stackSignedAHSS);;
 gap> KOAHSS_EXTENSION_TRANSPORT_OVERRIDE.cells:=false;;
 gap> Assert(0,stackCells.invariants=stackSigned.invariants);
 gap> Assert(0,List(stackCells.degreeResults,r->r.relationMatrix)=List(stackSigned.degreeResults,r->r.relationMatrix));
+gap> Unbind(KOAHSS_EXTENSION_RELATION_OVERRIDE.native);;

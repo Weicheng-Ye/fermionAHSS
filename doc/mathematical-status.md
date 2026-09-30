@@ -78,6 +78,21 @@ stacking on gauge classes are assumed, so the measured relations determine
 the group; no finite multiplication table of normal forms is audited. Free
 quotients split in the intended abelian abutment category.
 
+A two-primary relation whose target layer lies right below the layer of its
+generator is not measured in the model. Its target-layer component is the
+class of a primary operation of the generator's cocycle: `D(z)` with
+`beta_s z=(m/2)[a]` for A over B, `rho beta_s b=(Sq^1+s)b` for B over C,
+and an integral lift of `D(c)=Sq^2c+s Sq^1c+omega c` for C over D
+([extension_cup_i_formulas.md](extension_cup_i_formulas.md)). It is
+evaluated with the cup-i products of R and projected with the E6 cell of
+the target layer. The classes are derived from the product, boundary and
+reduction formulas of the model, so they rest on the same assumptions
+(`certificateLevel="primary-R"` when no relation of the degree needs the
+model). The integral lift is determined modulo `2D`, so a C-over-D row is
+the relation of a lift shifted within D; a later relation measured through
+D with a nonzero coefficient on that generator has the generator's relation
+measured through D in the model.
+
 The relations are recorded prime by prime and localized at the prime of
 the generator's order. A measured row keeps only its coordinates on
 generators of that prime and on free generators, which is exact because
@@ -139,7 +154,9 @@ degrees up to six.
 
 Degrees one and two use the same engine with the degree-one and
 degree-two formulas of [low_degree_stacking.md](low_degree_stacking.md),
-for arbitrary valid `s` and `omega`. The stacking formulas are bundled
+for arbitrary valid `s` and `omega`, for the relations measured in the
+model; their relations with adjacent targets are read from primary
+operations on R. The stacking formulas are bundled
 with their [upstream provenance](../python/stacking_model/provenance.json);
 runtime loading does not require the separate stacking research workspace.
 Helpers identical to the package kernel are imported from it, and the
