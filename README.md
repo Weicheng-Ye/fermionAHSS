@@ -259,12 +259,13 @@ generator of that prime and no free generator, or when no lower generator
 lies outside `m*H`. Otherwise a flat cochain lift of `g` is stacked `m`
 times and compared with a product of lower generators by an exact gauge,
 only through the target layer, the lowest layer of the lower presentation
-with a generator outside `m*H`, and in the model of the prime: the
-complete model for two-primary relations, the two-layer three-local model
-for three-primary ones (degrees five and six). The rows of all primes form
-one integer presentation, reduced to Smith form. The stacking model, the
-flat lifts and the comparison chains are built only when a relation is
-measured. Degrees -1 and 0 have only the D layer. The
+with a generator outside `m*H` (through D when a later relation that
+refers to `g` is measured below the layer of `g`), and in the model of the
+prime: the complete model for two-primary relations, the two-layer
+three-local model for three-primary ones (degrees five and six). The rows
+of all primes form one integer presentation, reduced to Smith form. The
+stacking model, the flat lifts and the comparison chains are built only
+when a relation is measured. Degrees -1 and 0 have only the D layer. The
 degree-six correction of two states with nonzero A layers is refused unless
 `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` is set, because its universal pair
 source nests the deepest contraction; the target-layer measurement makes

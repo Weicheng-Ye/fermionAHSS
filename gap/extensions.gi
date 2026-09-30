@@ -320,61 +320,163 @@ end);
 # p-primary part and no free part, so it lies in m*H for the order m.
 # With prime localization on, a row keeps only the coordinates on
 # generators of its prime and free generators. The other coordinates are on
-# torsion of order prime to m that no kept row refers to (the odd torsion of
-# the rows B, C and A lies in D, below every two-primary relation, and an odd
-# relation belongs to A and has no B or C coordinate), so they vanish after
-# localization at p and the rows of all primes together present the group.
+# torsion of order prime to m that no kept row refers to (the odd torsion
+# below a two-primary relation lies in D, since B and C are two-groups, and
+# an odd relation belongs to A and has no B or C coordinate), so they vanish
+# after localization at p and the rows of all primes together present the
+# group.
+#
+# A row measured only through its target layer T holds for the lift x-h of
+# its generator, where m*h is the part below T that it drops; a zero row
+# over a lower group H=m*H holds for x-h with m*h the whole relation. In
+# both cases h lies in the lower group of the generator, the layers below
+# it, but the stored lift x is what every later measurement multiplies. A
+# later relation measured through a layer below that of the generator, with
+# a nonzero coefficient on it, would be recorded in the wrong frame; the
+# generator is then measured through D, so that its column is x itself. A
+# later relation whose target lies at or above the layer of the generator
+# is not affected: h lies in the layers below that target, all of which lie
+# in m*H. The zero rows of the zero-local shortcut are exact after
+# localization at their prime p: their h has order prime to p.
+#
+# A measurement multiplies the flat lifts and reads the lower presentation
+# only for the target layer, which depends on the filtration of the lower
+# group and not on its presentation. The rows recorded above a row that is
+# measured again therefore keep their coordinates, and only their
+# target-layer certificates are restated in the final lower presentations.
 BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
-    local rows,restrict,failure,replay,part,prime,position,name,below,fullLower,
-        localLower,lower,i,order,kind,response,failed,keep,j,n,o,coordinates;
+    local rows,restrict,failure,replay,fields,part,prime,position,name,i,failed,
+        record,lastMeasured,shifted,response,measuredAgain,lowers,lowerOf,target,row;
     rows:=rec(D:=[],C:=[],B:=[],A:=[]);
     restrict:=KOAHSS_PrimeLocalizationEnabled();
     failure:=Length(parts.names)+1;
     replay:=KOAHSS_ExtensionReplayOracle(rows);
+    fields:=["A","B","C","D"];
+    measuredAgain:=false;
+    # The lower presentation of each layer, kept until a row below it is
+    # measured again. The binary layers are two-groups and odd or free
+    # generators carry no row below A, so every prime sees the same one.
+    lowers:=rec();
+    lowerOf:=function(name)
+        if not IsBound(lowers.(name)) then
+            lowers.(name):=KOAHSS_ExtensionLowerPresentation(layers,
+                parts.names{[1..Position(parts.names,name)-1]},replay);
+        fi;
+        return lowers.(name);
+    end;
+    # The index (A=0 to D=3) of the last layer that a row was measured through.
+    lastMeasured:=function(row)
+        if IsBound(row.witness.truncatedBelow) and row.witness.truncatedBelow<>fail then
+            return Position(fields,row.witness.truncatedBelow)-2;
+        fi;
+        return 3;
+    end;
+    # Whether a row holds only for a lift shifted by an unknown h.
+    shifted:=row->row.status="computed" and IsBound(row.witness.truncatedBelow)
+        and row.witness.truncatedBelow<>fail;
+    # Record the relation of generator i of layer name; complete asks for the
+    # measurement through D.
+    record:=function(name,i,complete)
+        local order,kind,below,keep,lower,response,coordinates,stored,j,again,above;
+        order:=layers.(name).orders[i];
+        kind:=KOAHSS_ExtensionRelationModel(degree,name,order);
+        below:=parts.names{[1..Position(parts.names,name)-1]};
+        keep:=Concatenation(List(below,n->List(layers.(n).orders,
+            o->o=0 or KOAHSS_RelationPrime(o)=KOAHSS_RelationPrime(order))));
+        if restrict and kind.model<>"split" and not ForAny(keep,x->x) then
+            response:=rec(status:="computed",lowerCoordinates:=List(keep,x->0),
+                witness:=rec(kind:="zero-local-lower-group",operation:="xtimes",
+                    power:=order,prime:=KOAHSS_RelationPrime(order),model:=kind.model,measuredLayers:=[],
+                    certificate:="the lower group has no generator of this prime and no free generator"));
+            rows.(name)[i]:=response;
+            return response;
+        fi;
+        lower:=lowerOf(name);
+        if complete then response:=engine.answer(layers.(name),i,order,lower,rec(complete:=true));
+        else response:=engine.answer(layers.(name),i,order,lower); fi;
+        if response.status="computed" and restrict and not ForAll(keep,x->x) then
+            coordinates:=List([1..Length(keep)],j->0);
+            for j in [1..Length(keep)] do
+                if keep[j] then coordinates[j]:=response.lowerCoordinates[j]; fi;
+            od;
+            if coordinates<>response.lowerCoordinates then
+                response:=ShallowCopy(response);
+                response.witness:=ShallowCopy(response.witness);
+                response.witness.fullLowerCoordinates:=response.lowerCoordinates;
+                response.witness.localizedAt:=KOAHSS_RelationPrime(order);
+                response.lowerCoordinates:=coordinates;
+            fi;
+        fi;
+        # The lower generators with a nonzero coefficient whose rows hold only
+        # for shifted lifts, in layers above the last one this relation was
+        # measured through, are measured through D.
+        for stored in lower.layers do
+            for j in [1..Length(stored.orders)] do
+                if response.status="computed"
+                   and response.lowerCoordinates[stored.startColumn+j-1]<>0
+                   and lastMeasured(response)>=Position(fields,stored.name)
+                   and IsBound(rows.(stored.name)[j]) and shifted(rows.(stored.name)[j]) then
+                    again:=record(stored.name,j,true);
+                    if again.status<>"computed" then
+                        response:=rec(status:="unresolved",reason:=Concatenation(
+                            "the relation refers to the lift of generator ",String(j)," of layer ",
+                            stored.name,", whose relation is measured only through its target layer, ",
+                            "and its measurement through D is unresolved: ",String(again.reason)),
+                            pendingRelation:=again);
+                    fi;
+                fi;
+            od;
+        od;
+        if complete then
+            # A failed measurement through D leaves the recorded row, which
+            # still presents its own stage; the caller becomes unresolved.
+            if response.status<>"computed" then return response; fi;
+            response:=ShallowCopy(response);
+            response.witness:=ShallowCopy(response.witness);
+            response.witness.measuredThroughD:="a later relation depends on the D components of this relation";
+            measuredAgain:=true;
+            for above in parts.names{[Position(parts.names,name)+1..Length(parts.names)]} do
+                Unbind(lowers.(above));
+            od;
+        fi;
+        rows.(name)[i]:=response;
+        return response;
+    end;
     for part in parts.parts do
         prime:=part.prime; failed:=false;
         for position in [1..Length(parts.names)] do
             if failed or position>failure then break; fi;
-            name:=parts.names[position]; below:=parts.names{[1..position-1]};
-            fullLower:=Sum(below,n->Length(layers.(n).orders));
+            name:=parts.names[position];
             # Over the zero lower group there is no relation to record.
-            if fullLower=0 or IsEmpty(part.generators.(name)) then continue; fi;
-            keep:=Concatenation(List(below,n->List(layers.(n).orders,
-                o->o=0 or KOAHSS_RelationPrime(o)=prime)));
-            localLower:=Number(keep,x->x);
-            lower:=fail;
+            if Sum(parts.names{[1..position-1]},n->Length(layers.(n).orders))=0 then continue; fi;
             for i in part.generators.(name) do
-                order:=layers.(name).orders[i];
-                kind:=KOAHSS_ExtensionRelationModel(degree,name,order);
-                if restrict and kind.model<>"split" and localLower=0 then
-                    response:=rec(status:="computed",lowerCoordinates:=List([1..fullLower],j->0),
-                        witness:=rec(kind:="zero-local-lower-group",operation:="xtimes",
-                            power:=order,prime:=prime,model:=kind.model,measuredLayers:=[],
-                            certificate:="the lower group has no generator of this prime and no free generator"));
-                else
-                    if lower=fail then lower:=KOAHSS_ExtensionLowerPresentation(layers,below,replay); fi;
-                    response:=engine.answer(layers.(name),i,order,lower);
-                    if restrict and response.status="computed" and not ForAll(keep,x->x) then
-                        coordinates:=List([1..fullLower],j->0);
-                        for j in [1..fullLower] do
-                            if keep[j] then coordinates[j]:=response.lowerCoordinates[j]; fi;
-                        od;
-                        if coordinates<>response.lowerCoordinates then
-                            response:=ShallowCopy(response);
-                            response.witness:=ShallowCopy(response.witness);
-                            response.witness.fullLowerCoordinates:=response.lowerCoordinates;
-                            response.witness.localizedAt:=prime;
-                            response.lowerCoordinates:=coordinates;
-                        fi;
-                    fi;
-                fi;
-                rows.(name)[i]:=response;
+                response:=record(name,i,false);
                 if response.status<>"computed" then
                     failed:=true; failure:=Minimum(failure,position); break;
                 fi;
             od;
         od;
     od;
+    # The target-layer certificates of the rows above a row measured again,
+    # in the final lower presentations.
+    if measuredAgain then
+        for position in [2..Minimum(failure,Length(parts.names))] do
+            name:=parts.names[position];
+            for i in [1..Length(layers.(name).orders)] do
+                if IsBound(rows.(name)[i]) and rows.(name)[i].status="computed"
+                   and IsBound(rows.(name)[i].witness.sufficiency)
+                   and rows.(name)[i].witness.sufficiency<>fail then
+                    target:=CallFuncList(ValueGlobal("KOAHSS_ExtensionTargetLayer"),
+                        [lowerOf(name),layers.(name).orders[i]]);
+                    if target.layer<>rows.(name)[i].witness.sufficiency.layer then
+                        Error("koFull: a target layer changed with the lower presentation");
+                    fi;
+                    row:=ShallowCopy(rows.(name)[i]); row.witness:=ShallowCopy(row.witness);
+                    row.witness.sufficiency:=target; rows.(name)[i]:=row;
+                fi;
+            od;
+        od;
+    fi;
     return rows;
 end);
 

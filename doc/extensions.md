@@ -265,6 +265,34 @@ without the universal pair source of `gamma_6`. With a lower group
 layer is C: `2a=b` gives `Z/4\oplus Z/4` while `2a=b+c` gives
 `Z/8\oplus Z/2`, which only the C component decides.
 
+A truncated row presents its own stage, but it is the relation of another
+lift of its generator. If the components of `t_i` below the target layer
+form `t_i''\in mH` and `mh=t_i''`, the recorded row `t_i-t_i''` is the
+relation of `\widetilde q_i-h`; a zero row over a lower group with `mH=H`
+is likewise the relation of `\widetilde q_i-h` with `mh=t_i`. In both cases
+`h` lies in the lower group of `q_i`, the layers below it. Every later
+measurement multiplies the flat lift `\widetilde q_i` itself, so a later
+relation `m'\widetilde u=t'` with a coefficient `c` on `q_i` is a relation
+of the recorded columns only up to `ch`. When the target layer of `u` lies
+at or above the layer of `q_i`, `ch` lies in the layers below that target,
+all of which lie in `m'H'`, and the row of `u` stands. Otherwise, when
+`c\neq0`, the relation of `q_i` is measured through D, with the complete
+lift and without the shortcut (`witness.measuredThroughD`); if that
+measurement is unresolved, so is the relation of `u`. The row of `u` itself
+is kept: a measurement multiplies the flat lifts and reads the lower
+presentation only for its target layer, which depends on the filtration of
+the lower group and not on its presentation. The target-layer certificates
+of the rows above a row measured again are restated in the final lower
+presentations. With every layer `Z/2` and the relations `2c=d`, `2b=d`,
+`2a=b` of the flat lifts, for example, the B relation has target layer C
+and is recorded as `2b=0`, the relation of `b-c`; the A relation has target
+layer C and the coefficient one on `b`, and without the measurement of `b`
+through D the rows would present `Z/4\oplus Z/4` instead of
+`Z/2\oplus Z/8`. With prime localization on, a relation without a free
+lower generator takes the zero row of the zero-local shortcut, which is
+exact after localization at its prime (next section), so only a B relation
+with target layer C is ever measured again.
+
 Free quotient generators add columns but no power-relation rows and
 require no torsion query. A free quotient splits because the intended
 abutment category is that of abelian groups. Free generators occur in A

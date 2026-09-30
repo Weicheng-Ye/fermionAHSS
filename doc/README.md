@@ -261,7 +261,10 @@ matters: a lower generator \(e\notin mH\) is free for \(q\), and the
 relation is measured only through its **target layer**, the lowest layer
 with a free generator; the components below it are recorded as zero with
 the certificate that exhibits them as multiples, and a relation without a
-free lower generator is \(t=0\), with no lift and no measurement
+free lower generator is \(t=0\), with no lift and no measurement. Such a
+row is the relation of a lift shifted within the lower group, so it is
+measured through D when a later relation with a nonzero coefficient on its
+generator is measured through a layer below that generator's
 ([extensions.md](extensions.md)).
 
 ### Localization at the primes

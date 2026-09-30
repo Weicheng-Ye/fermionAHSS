@@ -67,7 +67,10 @@ measured only through its target layer, the lowest layer of the lower
 presentation with a generator outside `m*H` (`m` the order of the
 generator, `H` the lower group): the components below it lie in `m*H` and
 cannot change the class of the extension in `Ext(Z/m,H)=H/mH`, which the
-recorded certificate exhibits, and they are left unmeasured. The witness
+recorded certificate exhibits, and they are left unmeasured. Such a row is
+the relation of a lift shifted within the lower group; when a later
+relation with a nonzero coefficient on its generator is measured through a
+layer below that generator's, the row is measured through D. The witness
 retains a native gauge tuple, verifies flatness of its action result
 through the measured layers, and checks the action equality component by
 component there. Commutativity and associativity of

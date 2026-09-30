@@ -555,8 +555,14 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
             canonicalComparison:=comparison,measuredThrough:=fields[upto+1],
             orderedReductionVerified:=true,residualState:=current);
     end;
-    answer:=function(layer,index,order,lower)
-        local power,result,fields,target,upto,partial,position,below,lowerNames,kind,entry,witness,reason;
+    # options.complete measures the relation through D, without the
+    # target-layer shortcut (KOAHSS_ExtensionPrimeRows asks for it when a
+    # later relation depends on the D components this relation dropped).
+    answer:=function(arg)
+        local layer,index,order,lower,complete,power,result,fields,target,upto,partial,position,
+            below,lowerNames,kind,entry,witness,reason;
+        layer:=arg[1]; index:=arg[2]; order:=arg[3]; lower:=arg[4];
+        complete:=Length(arg)>=5 and IsBound(arg[5].complete) and arg[5].complete=true;
         fields:=["A","B","C","D"];
         kind:=KOAHSS_ExtensionRelationModel(k,layer.name,order);
         if kind.model="split" then return KOAHSS_ExtensionSplitResponse(order,kind.prime,lower); fi;
@@ -567,7 +573,7 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
         # reads the lower presentation only, so a relation with no free lower
         # generator needs neither a model nor a lift.
         target:=fail;
-        if KOAHSS_LayeredRelationsEnabled() and layerLimited and lower.generatorCount>0 then
+        if not complete and KOAHSS_LayeredRelationsEnabled() and layerLimited and lower.generatorCount>0 then
             target:=KOAHSS_ExtensionTargetLayer(lower,order);
             if target.layer=fail then
                 witness:=rec(operation:="xtimes",power:=order,prime:=kind.prime,model:=kind.model,
