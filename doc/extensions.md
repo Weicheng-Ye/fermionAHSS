@@ -406,10 +406,17 @@ image, and a gauge class by the D image after the page Tau map has
 selected its E3 part. Rational cochains whose coboundary enters a residue
 are paired on the chains of their own degree and the twisted coboundary of
 R is applied (as for T on the pages). This identity requires normalized
-cochains. The evaluator checks omitted degenerate faces before using the
-chain-map identity, and degeneracies around the simplices consumed by a
-primitive's homotopy. A nonzero value is an error, not a correction to the
-residue. Eager and lazy comparison chains use the same tuple vertices.
+cochains. The production sources and rational potentials are exactly
+[normalized by construction](light-normalization.md), so their private
+transport paths omit repeated degeneracy evaluations and comparison chains
+needed only by those evaluations. Set
+`FERMIONAHSS_LIGHT_NORMALIZATION_CHECKS=1` to restore the on-demand checks
+for these production cochains. The generic `prim` and `rational_ds`
+helpers always retain the checks for arbitrary cochains: omitted degenerate
+faces for the chain-map identity, and degeneracies around the simplices
+consumed by a primitive's homotopy. A nonzero value is an error, not a
+correction to the residue. Eager and lazy comparison chains use the same
+tuple vertices.
 
 **Residues.**
 

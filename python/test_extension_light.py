@@ -5,6 +5,7 @@ Copyright (c) 2026 koAHSS contributors; MIT license.
 from fractions import Fraction
 import itertools
 import json
+import os
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -34,12 +35,16 @@ class LightTransportTests(unittest.TestCase):
             vector = model.project(r, True)
             self.assertEqual(model.coboundary(n, vector, True), light.integer(source))
             primitive = light.prim(source, vector, True)
+            trusted = light._prim_normalized(source, vector, True)
             for tail in itertools.product(range(4), repeat=n + 1):
                 simplex = (0,) + tail
                 if model.normalize(simplex) is not None:
                     self.assertEqual(p.ds(primitive, model.s)(simplex), source(simplex))
+                    self.assertEqual(trusted(simplex[:-1]), primitive(simplex[:-1]))
+                    self.assertEqual(p.ds(trusted, model.s)(simplex), source(simplex))
             half = p.scale(r, Fraction(1, 2))
             self.assertEqual(light.rational_ds(half), light.rational(p.ds(half, model.s)))
+            self.assertEqual(light._rational_ds_normalized(half), light.rational_ds(half))
         self.assertTrue(any(k == 'h' and records[k, n, v]['terms'] for k, n, v in calls))
 
     def test_eager_and_lazy_rational_pairing(self):
@@ -80,6 +85,48 @@ class LightTransportTests(unittest.TestCase):
         primitive = LightEvaluator(model).prim(p.Cochain(2, lambda f: 1), [0])
         with self.assertRaisesRegex(ArithmeticError, 'not normalized'):
             primitive((0, 1))
+
+    def test_production_tasks_do_not_repeat_normalization_checks(self):
+        model, *_ = c2_models(top=8)
+        with patch.dict(os.environ, FERMIONAHSS_LIGHT_NORMALIZATION_CHECKS='0'):
+            light = LightEvaluator(model)
+        model.light = light
+        with patch.object(light, 'check_normalized', side_effect=AssertionError('repeated check')), \
+                patch.object(light, 'normalized_degeneracies', side_effect=AssertionError('repeated check')):
+            # The production request constructs a primitive and pairs an
+            # integral coboundary of a rational potential in degrees 4--6.
+            for k in (4, 5, 6):
+                answer = model.calculate(dict(operation='light', degree=k,
+                    task='atom_curvature', data=dict(b=[0], c=[0])))
+                self.assertEqual(answer['result'], dict(J=[0]))
+            primitive = light._prim_normalized(model.lift(2, [2], True), [0], True)
+            self.assertEqual(primitive((0, 1)), 0)
+
+    def test_normalized_rational_coboundary_needs_no_successor_chains(self):
+        for sign, expected in ((0, Fraction(10, 3)), (1, Fraction(0))):
+            model, _, calls = lazy_c2_models(sign, top=8)
+            with patch.dict(os.environ, FERMIONAHSS_LIGHT_NORMALIZATION_CHECKS='0'):
+                light = LightEvaluator(model)
+            c = p.scale(model.lift(3, [5], True), Fraction(1, 3))
+            self.assertEqual(light._rational_ds_normalized(c), [expected])
+            self.assertEqual([call for call in calls if call[0] == 'g'], [('g', 3, 0)])
+
+    def test_audit_mode_checks_trusted_paths_and_generic_helpers_stay_checked(self):
+        for audit in ('0', '1'):
+            model, *_ = c2_models()
+            with patch.dict(os.environ, FERMIONAHSS_LIGHT_NORMALIZATION_CHECKS=audit):
+                light = LightEvaluator(model)
+            potential = p.Cochain(1, lambda f: Fraction(1, 2))
+            source = p.Cochain(2, lambda f: 1)
+            with self.assertRaisesRegex(ArithmeticError, 'not normalized'):
+                light.rational_ds(potential)
+            with self.assertRaisesRegex(ArithmeticError, 'not normalized'):
+                light.prim(source, [0])((0, 1))
+            if audit == '1':
+                with self.assertRaisesRegex(ArithmeticError, 'not normalized'):
+                    light._rational_ds_normalized(potential)
+                with self.assertRaisesRegex(ArithmeticError, 'not normalized'):
+                    light._prim_normalized(source, [0])((0, 1))
 
     def test_zero_primitive_needs_no_comparison_and_preserves_formula_zero(self):
         model, *_ = c2_models()

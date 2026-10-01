@@ -27,7 +27,9 @@ R, on which `fg=1` holds by construction; every comparison chain is
 checked for the strict retraction identity when it is first used, and the
 sparse homotopy is normalized. After the split and primary-operation rows,
 the default calculation reads the remaining rows from fixed light residues
-of transported defining data. It checks normalization, tracks live B
+of transported defining data. Its internal cochains are
+[normalized by construction](light-normalization.md); an optional audit
+repeats the on-demand normalization checks. It tracks live B
 markings and their precisions, and audits the final frame before accepting
 each prime part. Such a completed degree records `certificateLevel="light-R"`
 and `gaugeCompletenessAssumed=false`; abelian gauge classes are still assumed.

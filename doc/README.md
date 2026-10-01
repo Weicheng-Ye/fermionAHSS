@@ -25,6 +25,7 @@ doc/
 │
 │   The stacking extension problem
 ├── extensions.md                      koFull: light residues, markings, target layers, prime localization, Smith bases
+├── light-normalization.md             exact normalization of the light-task sources and rational potentials
 ├── low_degree_stacking.md             the products of package degrees one and two
 ├── dimension_indexed_differentials.md the nonlinear differential of the stacking model, k = 0..6
 ├── all_cochain_differential.md        its extension to arbitrary cochains and the square-zero proof

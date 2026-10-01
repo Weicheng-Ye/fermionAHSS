@@ -25,6 +25,7 @@ Copyright (c) 2026 koAHSS contributors; MIT license.
 """
 from fractions import Fraction
 import json
+import os
 import traceback
 import weakref
 
@@ -72,6 +73,7 @@ class LightEvaluator:
         # vectors that determine them.
         self._memo = BoundedCache(48)
         self._normalized = weakref.WeakKeyDictionary()
+        self._audit_normalization = os.environ.get('FERMIONAHSS_LIGHT_NORMALIZATION_CHECKS') == '1'
 
     def memo(self, key, build, objects=()):
         """A cached value; a key naming cochains by identity keeps them alive
@@ -89,7 +91,20 @@ class LightEvaluator:
         return c if signed else p.binary(c)
 
     def prim(self, source, vector, signed=False):
-        """P(z; r) = Lambda r + H z, with delta P = z for a closed source z."""
+        """P(z; r) for a closed source, checking normalization before using H."""
+        return self._primitive(source, vector, signed, check_normalization=True)
+
+    def _prim_normalized(self, source, vector, signed=False):
+        """Internal sources normalized by construction; see doc/extensions.md.
+
+        Only the fixed light-task constructors below may use this path.
+        Arbitrary Cochain callables must go through prim instead.
+        """
+        return self._primitive(source, vector, signed,
+                               check_normalization=self._audit_normalization)
+
+    def _primitive(self, source, vector, signed, *, check_normalization):
+        """P(z; r) = Lambda r + H z, with delta P = z for a normalized closed z."""
         # Preserve the transfer engine's structural-zero rule: H(0)=0.
         # Wrapping it in an opaque cochain would also hide the zero from
         # all the formula builders that consume this primitive.
@@ -100,12 +115,14 @@ class LightEvaluator:
             # A normalized contraction drops degeneracies. Check the source
             # on the degeneracies of each face it actually consumes, as well
             # as those of the input, before using that contraction.
-            self.normalized_degeneracies(source, tuple(vertices))
+            if check_normalization:
+                self.normalized_degeneracies(source, tuple(vertices))
             terms = self.model.terms('h', vertices)
-            for term in terms:
-                simplex = tuple(term[2])
-                for i in range(len(simplex)):
-                    self.normalized_degeneracies(source, simplex[:i] + simplex[i + 1:])
+            if check_normalization:
+                for term in terms:
+                    simplex = tuple(term[2])
+                    for i in range(len(simplex)):
+                        self.normalized_degeneracies(source, simplex[:i] + simplex[i + 1:])
             value = sum(t[weight] * source(tuple(t[2])) for t in terms)
             return value if signed else value % 2
         homotopy = p.Cochain(source.degree - 1, h_value)
@@ -142,16 +159,25 @@ class LightEvaluator:
                 for j in range(self.model.ranks[n])]
 
     def rational_ds(self, c):
+        """Pair a rational coboundary, checking omitted degenerate faces."""
+        return self._rational_coboundary(c, check_normalization=True)
+
+    def _rational_ds_normalized(self, c):
+        """Internal potential built from normalized lifts and formula constructors."""
+        return self._rational_coboundary(c, check_normalization=self._audit_normalization)
+
+    def _rational_coboundary(self, c, *, check_normalization):
         """Pi(delta_s c) = delta_s^R Pi(c), from the chains of the degree of c."""
         # The normalized chain boundary omits these faces. A nonzero value
         # would invalidate the chain-map identity rather than change a residue
         # by an allowed integral lift.
-        for j in range(self.model.dimension(c.degree + 1)):
-            for term in self.model.chain(c.degree + 1, j):
-                simplex = tuple(term[2])
-                for i in range(1, len(simplex) - 1):
-                    if simplex[i - 1] == simplex[i + 1]:
-                        self.check_normalized(c, simplex[:i] + simplex[i + 1:])
+        if check_normalization:
+            for j in range(self.model.dimension(c.degree + 1)):
+                for term in self.model.chain(c.degree + 1, j):
+                    simplex = tuple(term[2])
+                    for i in range(1, len(simplex) - 1):
+                        if simplex[i - 1] == simplex[i + 1]:
+                            self.check_normalized(c, simplex[:i] + simplex[i + 1:])
         return [Fraction(v) for v in self.model.coboundary(c.degree, self.rational(c), True)]
 
     @staticmethod
@@ -179,7 +205,7 @@ class LightEvaluator:
     def atom(self, k, d):
         def build():
             b = self.lift(k - 2, d['b'])
-            c = self.prim(p.QD(b, self.s, self.w), d['c']) if 'c' in d else None
+            c = self._prim_normalized(p.QD(b, self.s, self.w), d['c']) if 'c' in d else None
             return b, c
         return self.memo(('atom', k, tuple(d['b']), tuple(d.get('c', ()))), build)
 
@@ -247,7 +273,7 @@ class LightEvaluator:
         s, w = self.s, self.w
         if g.get('u'):
             u = self.lift(k - 4, g['u'], True)
-            y = self.prim(p.QD(p.binary(u), s, w), g['yR'])
+            y = self._prim_normalized(p.QD(p.binary(u), s, w), g['yR'])
             if g.get('y1'):
                 y = p.binary(y + self.lift(k - 3, g['y1']))
             return u, y, sharp.fsharp(u, y, s, w), 'tau'
@@ -299,8 +325,8 @@ class LightEvaluator:
         s, w = self.s, self.w
         A = self.lift(k - 3, d['A'], True)
         a = p.binary(A)
-        B = self.prim(p.QD(a, s, w), d['BR']) if 'BR' in d else None
-        C = self.prim(sharp.fsharp(A, B, s, w), d['CR']) if 'CR' in d else None
+        B = self._prim_normalized(p.QD(a, s, w), d['BR']) if 'BR' in d else None
+        C = self._prim_normalized(sharp.fsharp(A, B, s, w), d['CR']) if 'CR' in d else None
         star = d.get('star')
         if star:
             bs, cs = self.combination(k, star.get('terms', []))
@@ -329,16 +355,16 @@ class LightEvaluator:
         s, w = self.s, self.w
         m, e = d['m'], d['e']
         g = d['U']
-        U = self.prim(_times(A, m), g['u'], True)
+        U = self._prim_normalized(_times(A, m), g['u'], True)
         if g.get('v'):
             U = U + self.lift(k - 4, g['v'], True)
         XB = hp.hD(a, a, s) if e == 1 else p.zero(k - 2)
         B0 = ref[0]
         source = p.binary(p.QD(p.binary(U), s, w) + XB + B0)
-        Y = self.prim(source, g['YR']) if 'YR' in g else None
+        Y = self._prim_normalized(source, g['YR']) if 'YR' in g else None
         if Y is not None and g.get('tau'):
             v = self.lift(k - 4, g['tau']['v'], True)
-            yv = self.prim(p.QD(p.binary(v), s, w), g['tau']['yR'])
+            yv = self._prim_normalized(p.QD(p.binary(v), s, w), g['tau']['yR'])
             Y = p.binary(Y + yv + hp.hD(p.binary(U), p.binary(v), s))
             U = U + v
         if Y is not None and g.get('yD'):
@@ -368,7 +394,7 @@ class LightEvaluator:
         m, e = d['m'], d['e']
         U, Y, _, _ = self.a_gauge(k, d, A, a, ref)
         R = self.r_c(k, A, a, B, U, Y, ref, m, e)
-        W = self.prim(R, d['U']['WR'])
+        W = self._prim_normalized(R, d['U']['WR'])
         B0, C0, carry, pure = ref
         z = [p.zero(j) for j in range(k + 2)]
         # degree k+1 terms
@@ -408,7 +434,7 @@ class LightEvaluator:
                               lambda x=x: self.diagonal_phase(k, *x), (A, B, C))
             tail = tail + _times(phase, 2 ** (e - 1 - i))
         delta = r - cylinder - cross + tail
-        values = [x + y for x, y in zip(self.rational(direct), self.rational_ds(delta))]
+        values = [x + y for x, y in zip(self.rational(direct), self._rational_ds_normalized(delta))]
         return self.modular(values, m, 2, 'the A-over-D residue')
 
     # ------------------------------------------------------------------
@@ -422,7 +448,7 @@ class LightEvaluator:
         b, c = self.atom(k, d)
         s, w = self.s, self.w
         if k >= 4:
-            return {'J': self.exact(self.rational_ds(self.a0_potential(k, b, c)), 'A=0 curvature')}
+            return {'J': self.exact(self._rational_ds_normalized(self.a0_potential(k, b, c)), 'A=0 curvature')}
         z = [p.zero(j) for j in range(k + 2)]
         if k == 3:
             J = native.g(3, upper.Triple(z[0], b, c, True, False, True), s, w)
@@ -477,7 +503,7 @@ class LightEvaluator:
         g = d['gauge']
         u, y, P, kind = self.b_gauge(k, g)
         x = p.hD(b, b, s)
-        pi = self.prim(p.binary(x + P), g['pi'])
+        pi = self._prim_normalized(p.binary(x + P), g['pi'])
         n = b.degree
         A = p.Cochain(n, lambda f, b=b, pi=pi: b(f) % 2 + 2 * (pi(f) % 2))
         if kind == 'pure':
@@ -501,7 +527,7 @@ class LightEvaluator:
         u, y, P, kind = self.b_gauge(k, g) if k >= 3 else (None, None, p.zero(k - 1), 'pure')
         x = p.hD(b, b, s)
         C, half = self.pure_c(k, d.get('Cref', []))
-        pi = self.prim(p.binary(x + C + P), g['pi'])
+        pi = self._prim_normalized(p.binary(x + C + P), g['pi'])
         t = p.binary(p.differential(pi) + P)
         z = [p.zero(j) for j in range(k + 2)]
         L = api.local
@@ -535,7 +561,7 @@ class LightEvaluator:
         else:
             direct = direct + p.half(p.E(t, w))
             delta = delta - self.gauge_potential(k - 1, u, y, pi, P, t, kind)
-        values = [x_ + y_ for x_, y_ in zip(self.rational(direct), self.rational_ds(delta))]
+        values = [x_ + y_ for x_, y_ in zip(self.rational(direct), self._rational_ds_normalized(delta))]
         return {'Z': self.exact(values, 'the exact B-over-D residue')}
 
     def task_a_step(self, k, d):
@@ -551,7 +577,7 @@ class LightEvaluator:
         if 'pot' in want:
             potential = self.memo(('pot', id(A), id(B), id(C)),
                                   lambda: closed.potential(A, B, C, s, w), (A, B, C))
-            out['pot'] = self.exact(self.rational_ds(potential), 'the A curvature')
+            out['pot'] = self.exact(self._rational_ds_normalized(potential), 'the A curvature')
         ref = self.reference(k, d['ref']) if 'ref' in d else None
         if 'Ysrc' in want or 'RC' in want or 'QDv' in want:
             U, Y, XB, source = self.a_gauge(k, d, A, a, ref)
@@ -563,14 +589,14 @@ class LightEvaluator:
             if 'RC' in want:
                 out['RC'] = self.bin(self.r_c(k, A, a, B, U, Y, ref, d['m'], d['e']))
         if 'ypp' in want or 'page' in want:
-            U = self.prim(_times(A, d['m']), d['U']['u'], True)
+            U = self._prim_normalized(_times(A, d['m']), d['U']['u'], True)
             if d['U'].get('v'):
                 U = U + self.lift(k - 4, d['U']['v'], True)
             source = p.QD(p.binary(U), s, w)
             if 'ypp' in want:
                 out['ypp'] = self.bin(source)
             if 'page' in want:
-                ypp = self.prim(source, d['U']['ypp'])
+                ypp = self._prim_normalized(source, d['U']['ypp'])
                 t = p.binary(p.divide(A - a, 2, 'A carry'))
                 ea = p.binary(p.divide(p.differential(a), 2, 'binary Bockstein'))
                 st = p.cup(s, t)
