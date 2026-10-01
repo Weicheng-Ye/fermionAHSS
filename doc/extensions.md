@@ -405,7 +405,11 @@ the lower system of an A relation by the D image, the A=0 systems of
 image, and a gauge class by the D image after the page Tau map has
 selected its E3 part. Rational cochains whose coboundary enters a residue
 are paired on the chains of their own degree and the twisted coboundary of
-R is applied (as for T on the pages).
+R is applied (as for T on the pages). This identity requires normalized
+cochains. The evaluator checks omitted degenerate faces before using the
+chain-map identity, and degeneracies around the simplices consumed by a
+primitive's homotopy. A nonzero value is an error, not a correction to the
+residue. Eager and lazy comparison chains use the same tuple vertices.
 
 **Residues.**
 
@@ -439,7 +443,9 @@ the B rows with independent leading C parts are `(L,0)` (light-transport-proof
 (27)–(28)): a change of the C generators by a homomorphism into `D[2]`
 absorbs their D parts, and a dependent leading part is a formal sum of a
 kernel atom and those pivots. Otherwise, or with
-`FERMIONAHSS_LIGHT_ABSORPTION=0`, every B row is an exact residue.
+`FERMIONAHSS_LIGHT_ABSORPTION=0`, the D residues are retained. A kernel atom
+may still use its page form, which fixes its lower part with some D
+completion; an element reference requests its exact residue.
 
 **The A plan.** At the first A request the A-over-D relations are ordered by
 exponent and adapted (`a_i\mapsto a_i+2^{e_j-e_i}a_j`) until their leading B
@@ -449,8 +455,16 @@ atom with cocycle `\sum_iL_ib_i` is a basis element. The reference atom is
 re-marked by the pure-C state of the relation's relative C class, and a
 relation without leading part refers to that pure-C state (light-transport-proof
 (30)). The changed B generators are listed in `witness.light.remarked` and
-recorded again. Absorption is kept only if it is compatible with these
+recorded again. References to other B generators are live: a marking change
+or precision upgrade invalidates every dependent row transitively and bumps
+its version. Absorption is kept only if it is compatible with these
 references; otherwise the B rows become exact residues.
+
+Before accepting a prime part, a final frame audit checks the recorded
+reference versions and precisions, the absorption frame, the target layers
+in the final lower presentations, and the exact atom rows used by A-over-D
+references. A failed audit restarts the whole prime part in the model;
+rows from the two frames are never mixed.
 
 Each light row records `witness.model="light-R"`, its `method` and
 `witness.light` (row type, precision, shortcuts). A completed degree with a
@@ -458,6 +472,10 @@ light row and no measurement in the model has `certificateLevel="light-R"`
 (see "The main calculation"). A resource limit leaves the degree
 unresolved. Any other failure of a light row computes its prime part again
 in the model and lists it in `lightFallbacks` with the failed step.
+`degreeResult.heavyMeasurements` counts entries into the model measurement
+path, including unsuccessful attempts. Zero means that no relation entered
+that path; a worker used only for light residue pairings does not increase
+the count.
 `FERMIONAHSS_LIGHT_RELATIONS=0`, or
 `KOAHSS_EXTENSION_RELATION_OVERRIDE.light:=false` in a GAP session, measures
 these relations in the model. `FERMIONAHSS_NATIVE_RELATIONS=0` and

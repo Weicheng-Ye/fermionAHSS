@@ -264,21 +264,26 @@ layer of `g` and the relation is two-primary, its row is the class of a
 primary operation of the cocycle of `g`, evaluated with the cup-i products
 of the resolution (`D(z)` with `beta_s z=(m/2)[a]` for A over B,
 `(Sq^1+s)b` for B over C, an integral lift of `D(c)` for C over D).
-Otherwise a flat cochain lift of `g` is stacked `m` times and compared with
-a product of lower generators by an exact gauge in the model of the prime:
-the complete model for two-primary relations, the two-layer three-local
-model for three-primary ones (degrees five and six). The rows of all primes
-form one integer presentation, reduced to Smith form. The stacking model,
-the flat lifts and the comparison chains are built only when a relation is
-measured in the model. Degrees -1 and 0 have only the D layer. The
-degree-six correction of two states with nonzero A layers is refused unless
-`FERMIONAHSS_DEGREE_SIX_A_STACKING=1` is set, because its universal pair
-source nests the deepest contraction; the target-layer measurement makes
-this necessary only when a free lower generator lies in the D layer.
+The remaining relations use [light residues](doc/extensions.md#light-rows)
+of transported defining data, with no flat-lift search or reflected gauge
+comparison. Versioned markings and a final frame audit keep their lower
+references consistent. The degree-six A-over-D residue uses a checked table
+of 22 unary constants instead of the upper two-A pair contractor. The rows
+of all primes form one integer presentation, reduced to Smith form.
+Workers and comparison chains are built on demand. Degrees -1 and 0 have
+only the D layer.
 
-The calculation assumes gauge completeness of the native model and that
-stacking is commutative and associative on gauge classes
-(`gaugeCompletenessAssumed`, `abelianQuotientAssumed`); unresolved
+`FERMIONAHSS_LIGHT_RELATIONS=0` restores model measurement: a flat lift is
+stacked and compared with the lower product by an exact native gauge.
+A non-resource failure of a light part also restarts that part in the
+model, recorded in `lightFallbacks`. `heavyMeasurements` counts entries
+into this measurement path. Its degree-six correction of two nonzero A
+states requires `FERMIONAHSS_DEGREE_SIX_A_STACKING=1`.
+
+Light completion records `certificateLevel="light-R"` and
+`gaugeCompletenessAssumed=false`; native model measurement assumes gauge
+completeness. Both assume that stacking is commutative and associative on
+gauge classes (`abelianQuotientAssumed`); unresolved
 searches, missing witnesses and resource limits stay unresolved and are
 never reported as zero, and every result keeps `certified_ko=false`. The
 exact scope and limits are in [extensions.md](doc/extensions.md),
@@ -302,7 +307,7 @@ hash matches the formula sources.
 | `FERMIONAHSS_LAYERED_RELATIONS=0` | Measure relations through the D layer instead of their target layer |
 | `FERMIONAHSS_NATIVE_RELATIONS=0` | Measure the relations whose target layer lies right below the generator's in the model instead of reading them from a primary operation on R |
 | `FERMIONAHSS_LIGHT_RELATIONS=0` | Measure the other relations in the transferred model instead of reading them from light rows (doc/extensions.md, "Light rows") |
-| `FERMIONAHSS_LIGHT_ABSORPTION=0` | Keep every B-over-D light row an exact residue (no absorption) |
+| `FERMIONAHSS_LIGHT_ABSORPTION=0` | Disable absorption of B-row D components into the C markings |
 | `FERMIONAHSS_PRIME_LOCAL=0` | Do not localize at the primes: relations of every prime use the complete model and keep every coordinate of their rows |
 | `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` | Evaluate the degree-six correction of two nonzero A layers (hours to days) |
 | `KOAHSS_COCHAIN_CACHE_ENTRIES`, `KOAHSS_CHAIN_CACHE_ENTRIES` | Memo-table bounds of the page worker (default 256; zero disables) |

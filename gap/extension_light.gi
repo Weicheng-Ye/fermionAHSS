@@ -33,6 +33,7 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         pageRow,exactRow,atomRow,EX,DS,ETA,combine,precisionName,rank,satisfies,
         plan,mode,roles,ensurePlan,marks,rows,needs,issued,remarkedSet,singleAtom,
         defaultMarking,ensureMarking,markingRow,generatorRow,switchExact,flatten,
+        invalidate,setMarking,references,audit,
         response,witnessOf,bRequest,cRequest,leading,kerCache,kerColumns,aLower,lowerCache,
         aEntries,aBuilt,buildAPlan,refData,refB,refD,aGauge,adRow,
         adConverted,acRow,aRequest,p3Request,shortcut;
@@ -353,6 +354,32 @@ BindGlobal("KOAHSS_LightFrame",function(env)
     # The B plan and the markings of the B generators.
     plan:=fail; mode:="exact"; roles:=[];
     marks:=[]; rows:=[]; needs:=[]; issued:=[]; remarkedSet:=[];
+    # Generator terms are live references. Changing a marking invalidates
+    # every row that uses it, including indirect references. Atoms themselves
+    # are immutable; their residue caches remain valid.
+    invalidate:=function(indices)
+        local changed,i,j;
+        changed:=Set(indices); i:=1;
+        while i<=Length(changed) do
+            for j in [1..nB] do
+                if not j in changed and IsBound(marks[j]) and marks[j].terms<>fail
+                   and ForAny(marks[j].terms,t->t[2]="gen" and t[3] in changed) then
+                    Add(changed,j);
+                fi;
+            od;
+            i:=i+1;
+        od;
+        for i in changed do
+            if IsBound(marks[i]) then marks[i].version:=marks[i].version+1;
+            else marks[i]:=rec(terms:=fail,version:=1); fi;
+            Unbind(rows[i]);
+            if IsBound(issued[i]) then AddSet(remarkedSet,i); fi;
+        od;
+    end;
+    setMarking:=function(i,terms)
+        invalidate([i]);
+        marks[i].terms:=terms;
+    end;
     ensurePlan:=function()
         local L,i,pivots,pivotRows,solution;
         if plan<>fail then return plan; fi;
@@ -439,7 +466,13 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         if IsBound(rows[i]) and rows[i].version=mark.version and satisfies(rows[i].precision,need) then
             return rows[i];
         fi;
-        r:=markingRow(i,need); r.version:=mark.version; rows[i]:=r;
+        r:=markingRow(i,need);
+        # A precision upgrade can change the row of a live reference even
+        # though its chosen atom did not change.
+        if IsBound(rows[i]) and (rows[i].entries<>r.entries or rows[i].precision<>r.precision) then
+            invalidate([i]);
+        fi;
+        r.version:=marks[i].version; rows[i]:=r;
         if IsBound(issued[i]) then AddSet(remarkedSet,i); fi;
         return r;
     end;
@@ -447,10 +480,10 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         local i;
         if mode="exact" then return; fi;
         mode:="exact";
+        invalidate(Filtered([1..nB],i->IsBound(marks[i])));
         for i in [1..nB] do
             if IsBound(marks[i]) then
-                marks[i]:=rec(terms:=fail,version:=marks[i].version+1);
-                if IsBound(issued[i]) then AddSet(remarkedSet,i); fi;
+                marks[i].terms:=fail;
             fi;
         od;
     end;
@@ -472,6 +505,9 @@ BindGlobal("KOAHSS_LightFrame",function(env)
 
     # ------------------------------------------------------------------
     # Responses.
+    references:=function(indices,need)
+        return List(indices,i->["B",i,marks[i].version,need]);
+    end;
     response:=function(lower,entries,witness)
         local row,name,stored,j;
         row:=zeros(lower.generatorCount);
@@ -500,7 +536,7 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         return witness;
     end;
     bRequest:=function(index,lower,target,complete,through)
-        local need,r;
+        local need,r,light;
         ensurePlan();
         need:="lower";
         if complete then
@@ -509,8 +545,13 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         fi;
         r:=generatorRow(index,need);
         issued[index]:=true; RemoveSet(remarkedSet,index);
+        light:=rec(rowType:=roles[index].role,mode:=mode,version:=r.version,
+            references:=references([index],need));
+        if not IsEmpty(remarkedSet) then
+            light.remarked:=List(remarkedSet,i->["B",i]); remarkedSet:=[];
+        fi;
         return response(lower,r.entries,witnessOf(2,2,r.method,r.precision,target,
-            rec(rowType:=roles[index].role,mode:=mode,version:=r.version)));
+            light));
     end;
     cRequest:=function(index,lower,target)
         local witness;
@@ -757,7 +798,7 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         if not tier2 then
             for x in pivots do
                 if marks[x.col].terms[1][3]<>x.ref.atom then
-                    marks[x.col]:=rec(terms:=[[1,"atom",x.ref.atom]],version:=marks[x.col].version+1);
+                    setMarking(x.col,[[1,"atom",x.ref.atom]]);
                 fi;
                 needs[x.col]:="element";
                 generatorRow(x.col,"element");
@@ -786,7 +827,7 @@ BindGlobal("KOAHSS_LightFrame",function(env)
                         AddSet(remarkedSet,J[q]);
                     fi;
                 od;
-                marks[x.col]:=rec(terms:=terms,version:=marks[x.col].version+1);
+                setMarking(x.col,terms);
                 needs[x.col]:="basis";
             od;
             for x in pivots do
@@ -806,6 +847,7 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         for i in [1..nB] do
             if x.ell[i]<>0 then
                 if not IsBound(needs[i]) or rank(needs[i])<1 then needs[i]:="lower"; fi;
+                generatorRow(i,"lower");
                 for t in flatten(i,1) do
                     found:=First(terms,y->y[2]=t[2]);
                     if found=fail then Add(terms,ShallowCopy(t)); else found[1]:=found[1]+t[1]; fi;
@@ -851,6 +893,11 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         fi;
         list:=List(remarkedSet,i->["B",i]); remarkedSet:=[];
         light:=rec(rowType:=Concatenation("A over ",target.layer),mode:=mode);
+        if target.layer="C" then
+            light.references:=references(Filtered([1..nB],i->x.ell[i]<>0),"lower");
+        else
+            light.references:=references(Filtered([1..nB],i->IsBound(needs[i])),"basis");
+        fi;
         if not IsEmpty(list) then light.remarked:=list; fi;
         witness:=witnessOf(order,2,method,precision,target,light);
         Unbind(witness.shiftedWithin);
@@ -883,5 +930,51 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         fi;
         return aRequest(index,order,lower,target);
     end;
+    # Audit the rows after all marking changes and precision upgrades, before
+    # the presentation is accepted. It reads only the completed frame and
+    # lower presentations; it never starts a formula evaluation.
+    audit:=function(recorded,lowerOf)
+        local name,i,row,w,ref,target,x,atom;
+        step("final frame audit");
+        if not IsEmpty(remarkedSet) then return "changed B markings were not recorded again"; fi;
+        for name in ["C","B","A"] do
+            for i in part.generators.(name) do
+                if IsBound(recorded.(name)[i]) and recorded.(name)[i].status="computed" then
+                    row:=recorded.(name)[i]; w:=row.witness;
+                    if IsBound(w.light) then
+                        if IsBound(w.light.references) then
+                            for ref in w.light.references do
+                                if not IsBound(marks[ref[2]]) or marks[ref[2]].version<>ref[3]
+                                   or not IsBound(rows[ref[2]])
+                                   or rows[ref[2]].version<>ref[3]
+                                   or not satisfies(rows[ref[2]].precision,ref[4]) then
+                                    return "a row refers to a stale or insufficient B marking";
+                                fi;
+                            od;
+                        fi;
+                        if IsBound(w.light.mode) and w.light.mode<>mode then
+                            return "a row uses a discarded absorption frame";
+                        fi;
+                    fi;
+                    if IsBound(w.sufficiency) and w.sufficiency<>fail then
+                        target:=CallFuncList(ValueGlobal("KOAHSS_ExtensionTargetLayer"),
+                            [lowerOf(name),layers.(name).orders[i]]);
+                        if target.layer<>w.sufficiency.layer then return "a target layer changed"; fi;
+                    fi;
+                fi;
+            od;
+        od;
+        for x in aEntries do
+            if IsBound(x.ref) and x.ref.kind="atom" then
+                atom:=atoms[x.ref.atom];
+                if not IsBound(atom.rows.exact) and not (mode="strong"
+                   and x.col<>fail and IsBound(rows[x.col]) and rows[x.col].precision.eta) then
+                    return "an A-over-D reference has no exact atom row";
+                fi;
+            fi;
+        od;
+        return fail;
+    end;
+    frame.audit:=audit;
     return frame;
 end);

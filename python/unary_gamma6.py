@@ -46,6 +46,10 @@ HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 ROOT = HERE.parent
+# The table validator is also a standalone API. Install the vendored formula
+# import path even when no transfer worker has been imported by the caller.
+from extension_worker import api as _stacking_api  # noqa: E402,F401
+
 TABLE = ROOT / 'data' / 'unary-gamma6-coefficients.json'
 SCHEMA = 1
 CELLS = 22

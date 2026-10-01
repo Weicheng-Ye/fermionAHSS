@@ -284,11 +284,12 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
         liftState,refused,flat,times,flatProduct,boundary,reduce,answer,
         nativeRelations,rowsCache,coboundaryRows,primaryRow,primaryFallbacks,
         context,lightModes,lightFrames,lightFallbacks,aborted,lightMode,startPart,
-        ensureFrame,abortLight,lightRow;
+        ensureFrame,abortLight,lightRow,auditPart,heavyCount;
     model:=fail; built:=fail; refusal:=fail; local3:=fail; liftSolver:=fail; liftFailure:=fail;
     kernelCache:=rec(); partialLifts:=rec(); rowsCache:=rec(); primaryFallbacks:=[];
     context:=fail; if IsBound(options.context) then context:=options.context; fi;
     lightModes:=rec(); lightFrames:=rec(); lightFallbacks:=[]; aborted:=false;
+    heavyCount:=0;
     nativeRelations:=KOAHSS_NativeRelationsEnabled();
     if IsBound(options.nativeRelations) then nativeRelations:=options.nativeRelations=true; fi;
     if IsFunction(source) then
@@ -750,6 +751,20 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
         fi;
         return abortLight(prime,"light-error",frame.lastStep,layer.name,index);
     end;
+    auditPart:=function(part,rows,lowerOf)
+        local entry,attempt,oldBreak,oldSilent,reason;
+        if not lightMode(part.prime) then return; fi;
+        entry:=lightFrames.(String(part.prime));
+        if entry.frame=fail then return; fi;
+        oldBreak:=BreakOnError; oldSilent:=SilentNonInteractiveErrors;
+        BreakOnError:=false; SilentNonInteractiveErrors:=true;
+        attempt:=CALL_WITH_CATCH(entry.frame.audit,[rows,lowerOf]);
+        BreakOnError:=oldBreak; SilentNonInteractiveErrors:=oldSilent;
+        if attempt[1] and attempt[2]=fail then return; fi;
+        reason:="the final frame audit raised an error";
+        if attempt[1] then reason:=attempt[2]; fi;
+        abortLight(part.prime,"frame-audit",reason,fail,fail);
+    end;
     # options.complete measures the relation through D, without the
     # target-layer shortcut (KOAHSS_ExtensionPrimeRows asks for it when a
     # later relation depends on the D components this relation dropped).
@@ -808,6 +823,9 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
             return abortLight(kind.prime,"heavy-entry","a relation would be measured in the model",
                 layer.name,index);
         fi;
+        # Count entry into the old measurement path, including unsuccessful
+        # attempts. A worker used only to pair light residues does not count.
+        heavyCount:=heavyCount+1;
         if kind.model="three-local" then
             # The two-layer measurement of the prime three: the A layer is
             # reduced by coboundaries, the D layer by the marked D generators;
@@ -884,6 +902,8 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
         # light rows: the part decision, the abort flag of the current part,
         # and the light parts computed again in the model
         startPart:=startPart,
+        auditPart:=auditPart,
+        heavyMeasurements:=function() return heavyCount; end,
         lightAborted:=function() return aborted; end,
         resetPart:=function(prime) aborted:=false; end,
         lightFallbacks:=function() return lightFallbacks; end,

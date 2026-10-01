@@ -19,17 +19,28 @@ do not change the row window or the calibrated page differentials. See
 the [extension API](extensions.md).
 
 A supplied integral HAP resolution can replace the group argument.
-Native states and solves on that resolution are the only extension
-mode in degrees 1–6; there is no model-selection option. The comparison
+Defining-cochain solves and presentation matrices use that resolution
+in degrees 1–6. The comparison
 is the group bar when a test on R shows that it retracts (`fg=1` over the
 integral group ring), and otherwise the cell complex on the generators of
 R, on which `fg=1` holds by construction; every comparison chain is
 checked for the strict retraction identity when it is first used, and the
-sparse homotopy is normalized. The model is built only when a relation of
-the degree needs a measurement.
-The calculation assumes gauge completeness: native gauge equivalence
-captures the bar equivalence relation. Results record
+sparse homotopy is normalized. After the split and primary-operation rows,
+the default calculation reads the remaining rows from fixed light residues
+of transported defining data. It checks normalization, tracks live B
+markings and their precisions, and audits the final frame before accepting
+each prime part. Such a completed degree records `certificateLevel="light-R"`
+and `gaugeCompletenessAssumed=false`; abelian gauge classes are still assumed.
+See [light rows](extensions.md#light-rows) for the formulas and checks.
+
+The transferred model supplies the light worker and is built on demand.
+With light rows disabled, or after a non-resource light failure, relations
+are instead measured by stacking flat native states and solving a gauge
+comparison. This path assumes gauge completeness: native gauge equivalence
+captures the bar equivalence relation. It records
 `gaugeCompletenessAssumed=true`; this is an assumption, not a runtime proof.
+`heavyMeasurements` counts entries into that path, and `lightFallbacks`
+records prime parts restarted there. Resource limits leave a degree unresolved.
 There is no complete-bar certification or automatic complete-bar fallback.
 See [resolution extensions](resolution-extensions.md) for the exact scope.
 
@@ -44,7 +55,7 @@ images remain distinguishable.
 
 For degrees 1–6, the production engine retains the marked E6
 representatives in the supplied resolution basis. It solves immutable
-`(A,B,C,D)` lifts when a measurement needs them: the lift of the measured
+`(A,B,C,D)` lifts when a model measurement needs them: the lift of the measured
 generator (only through its target layer when that layer lies right below
 the generator's, since the power through it does not depend on the choice
 there) and the complete lifts of the lower generators that enter the
@@ -105,8 +116,10 @@ primes five and above no k-invariant of `ko` links the rows `q=0` and
 relations are `m*g=0` without a measurement, and a degree none of whose
 relations is measured builds no stacking model; for cyclic groups this
 agrees with the `I`-adic filtration of the representation ring
-(`Z/5+Z/5`, `Z/7+Z/7`, `Z/25+Z/25` in degree five). Three-primary
-relations of degree five are measured in the two-layer model of the rows
+(`Z/5+Z/5`, `Z/7+Z/7`, `Z/25+Z/25` in degree five). Light three-primary rows
+are read from `2*3^(e-1)Y`, where `rho_3 Y=P^1_s rho_3 A`, in degrees five
+and six. With light rows disabled, three-primary relations of degree five
+are measured in the two-layer model of the rows
 `q=0` and `q=-4` with the coefficient-two phase
 `(2/3) lift(P^1_s rho_3 A)`, in degree five the cube modulo three, whose
 stacking correction is the polynomial `-2(AAA'+AA'A')` and whose gauge
@@ -139,13 +152,16 @@ full stacked tuple. Native cohomology lifts prioritize the search but do
 not replace the complete cochain kernel. Unsuccessful bounded searches
 remain unresolved, with their diagnostics retained.
 
-Degree six uses the same engine with the degree-six D-layer terms of the
+Degree six uses the degree-six D-layer terms of the
 [all-cochain note](all_cochain_differential.md): \(J_6\) and the legal
 production \(\gamma_6\) with the pure-C rephasing, evaluated on the
 legal lower locus, which is the only locus the native operations reach.
 The section retraction used by the note outside that locus is not
 evaluated on the resolution; such a request leaves the degree unresolved.
-The stacking correction of degree-six states with a nonzero A layer is
+Light A-over-D residues use a unary primitive whose 22 compiled constants
+are checked against the current formula sources. The upper two-A pair
+contractor is not evaluated on this path. In model measurement,
+the stacking correction of two degree-six states with nonzero A layers is
 refused for its running time unless `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` is
 set, again leaving the degree unresolved; see [extensions.md](extensions.md).
 The degree-six section of the complete-bar model serves only as a test

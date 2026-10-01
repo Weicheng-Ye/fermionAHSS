@@ -1,10 +1,10 @@
 # Cup-i formulas for the extension relations
 
-`koFull` measures the relation \(m\widetilde q=t\) of a layer generator in
+The relation \(m\widetilde q=t\) of a layer generator is defined in
 the stacking model on the normalized group bar. The relation engine
 (`KOAHSS_ExtensionRelationEngine` in
 [gap/extension_relations.gi](../gap/extension_relations.gi)) evaluates
-every product, gauge boundary and reduction of the model through the
+the products, gauge boundaries and reductions used in model measurement through the
 transport of [python/extension_transfer.py](../python/extension_transfer.py):
 a state on the resolution R is embedded into bar cochains, the bar product
 is formed there, and the result is reflected back to R
@@ -23,7 +23,9 @@ formulas describe the classes the engine computes. For a two-primary
 relation whose target layer lies right below the generator's, `koFull`
 evaluates the formula of Sections 3–5 on R instead of measuring the
 relation in the model ([extensions.md](extensions.md), "Primary-operation
-rows"); the other relations are measured in the model.
+rows"); the other relations use the transported defining data and fixed
+residues described in [light rows](extensions.md#light-rows). Model
+measurement is retained when those rows are disabled or a light part fails.
 
 The adjacent pairs A–B, B–C and C–D have primary answers, valid in every
 degree where the pair occurs and for every twist (Sections 3–5). The

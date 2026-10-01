@@ -32,15 +32,18 @@ the boundary, group action, integral contracting homotopy and length
 required by the page calculation; through E6 the length requirement is
 `max(3,k+3)`. No resolution is reconstructed when R is supplied.
 
-Extension states, defining-cochain solves, gauge searches and integer
-matrices use R in package degrees 1–6, for finite and infinite groups and
+Defining-cochain solves and integer matrices use R in package degrees 1–6,
+for finite and infinite groups and
 any number of degree-zero generators. Nonlinear formulas are evaluated on
 simplices of a comparison complex, lazily through sparse comparison
 chains: the normalized group bar when it retracts onto R, and otherwise
 the cell complex described below. No complete-bar model
-is constructed for extension certification or fallback. The model, its
+is constructed for extension certification or fallback. After split and
+primary-operation rows, the default path evaluates
+[light residues](extensions.md#light-rows), without a flat-lift search or
+reflected gauge comparison. The model, its
 worker and the comparison chains are built only when a relation of the
-degree is measured: degrees -1 and 0, which have only D, and degrees whose
+degree needs them: degrees -1 and 0, which have only D, and degrees whose
 relations all split or have zero rows by their lower groups (a line with
 at most one nonzero layer, for example) build none of them. In degree six,
 the cutoff of the all-cochain differential, the D-layer terms \(J_6\) and
@@ -50,7 +53,9 @@ the degree unresolved (see [extensions.md](extensions.md)).
 
 ## Completion and the gauge-completeness assumption
 
-The native calculation assumes gauge completeness: two flat bar states
+The model measurement path, selected when light rows are disabled or a
+light prime part fails for a non-resource reason, assumes gauge completeness:
+two flat bar states
 represented by native states are bar-gauge equivalent exactly when their
 native states are equivalent under the transferred gauge action. This is
 an assumption of the computation, not a theorem established by the runtime
@@ -58,6 +63,14 @@ checks; the [transfer note](transfer.md) gives a counterexample to its
 derivation from those checks alone. `koFull_batch` results and completed
 degree results that measured a relation in the native model record
 `gaugeCompletenessAssumed=true`.
+
+Light completion records `certificateLevel="light-R"` and
+`gaugeCompletenessAssumed=false`. Its checks are the defining equations on
+R, normalized transport, residue integrality and closedness, and a final
+audit of the live marking versions, required precisions and target layers.
+The returned `heavyMeasurements` counts entries into model measurement,
+including failed attempts; light worker pairings do not count. Restarted
+prime parts are recorded in `lightFallbacks`.
 
 The engine retains the following exact checks on R:
 
@@ -83,9 +96,10 @@ errors; they are not treated as split extensions.
 | `batch.gaugeCompletenessAssumed` | `true`; identifies the assumption used for native completion |
 | `degree.modelId` | Identifier of the native model, when a relation of the degree needed it |
 | `degree.gaugeCompletenessAssumed` | `true` when a relation of the completed degree was measured in the native model or read from a primary operation on R |
-| `degree.certificateLevel` | `"transfer-R"` when a relation needed the native model; otherwise `"primary-R"` when a relation row is the class of a primary operation on R, `"prime-split"` when a relation split at an odd prime, and `"direct-sum"` if none of these, every relation row then being zero |
+| `degree.certificateLevel` | `"light-R"` when light rows were used without model measurement; `"transfer-R"` for model measurement; otherwise `"primary-R"` for primary-operation rows, `"prime-split"` for split odd relations, or `"direct-sum"` when every row is zero |
 | `degree.abelianQuotientAssumed` | `true` with `"transfer-R"` and `"primary-R"`; the group law on gauge classes is assumed commutative and associative |
 | `degree.primaryFallbacks` | The relations whose primary-operation row was unavailable and which were measured in the model, when there are any |
+| `degree.heavyMeasurements`, `degree.lightFallbacks` | Number of entries into model measurement; light prime parts restarted in that model, when there are any |
 | `degree.primes`, `degree.primeParts` | Per prime: the relations and their models; the generators and the primary part of the invariants |
 | `degree.singleLayer` | `true` when the line has at most one nonzero layer |
 

@@ -26,6 +26,7 @@ Copyright (c) 2026 koAHSS contributors; MIT license.
 from fractions import Fraction
 import json
 import traceback
+import weakref
 
 from extension_worker import api, BoundedCache
 import extension_native_upper as native
@@ -70,6 +71,7 @@ class LightEvaluator:
         # memo tables between the requests of one relation; keyed by the R
         # vectors that determine them.
         self._memo = BoundedCache(48)
+        self._normalized = weakref.WeakKeyDictionary()
 
     def memo(self, key, build, objects=()):
         """A cached value; a key naming cochains by identity keeps them alive
@@ -88,9 +90,45 @@ class LightEvaluator:
 
     def prim(self, source, vector, signed=False):
         """P(z; r) = Lambda r + H z, with delta P = z for a closed source z."""
-        value = (self.model.lift(source.degree - 1, tuple(vector), signed)
-                 + self.model.homotopy(source, signed))
+        # Preserve the transfer engine's structural-zero rule: H(0)=0.
+        # Wrapping it in an opaque cochain would also hide the zero from
+        # all the formula builders that consume this primitive.
+        if source.degree <= 0 or getattr(source, 'structural_zero', False):
+            return self.lift(source.degree - 1, vector, signed)
+        weight = 1 if signed else 0
+        def h_value(vertices):
+            # A normalized contraction drops degeneracies. Check the source
+            # on the degeneracies of each face it actually consumes, as well
+            # as those of the input, before using that contraction.
+            self.normalized_degeneracies(source, tuple(vertices))
+            terms = self.model.terms('h', vertices)
+            for term in terms:
+                simplex = tuple(term[2])
+                for i in range(len(simplex)):
+                    self.normalized_degeneracies(source, simplex[:i] + simplex[i + 1:])
+            value = sum(t[weight] * source(tuple(t[2])) for t in terms)
+            return value if signed else value % 2
+        homotopy = p.Cochain(source.degree - 1, h_value)
+        # Retain the transfer engine's checked H g = 0 fast path. When that
+        # chain identity holds, no source values are consumed by the pairing.
+        homotopy.homotopy_image = signed
+        value = self.model.lift(source.degree - 1, tuple(vector), signed) + homotopy
         return value if signed else p.binary(value)
+
+    def check_normalized(self, c, vertices):
+        checked = self._normalized.get(c)
+        if checked is None:
+            checked = BoundedCache(4096)
+            self._normalized[c] = checked
+        if vertices not in checked:
+            if c(vertices) != 0:
+                raise ArithmeticError(f'light cochain of degree {c.degree} is not normalized at {vertices}')
+            checked[vertices] = True
+
+    def normalized_degeneracies(self, c, vertices):
+        """Check c on degeneracies of a simplex one degree below it."""
+        for i in range(len(vertices)):
+            self.check_normalized(c, vertices[:i] + (vertices[i],) + vertices[i:])
 
     def bin(self, c):
         return [int(v) % 2 for v in self.model.project(p.binary(c), False)]
@@ -100,11 +138,20 @@ class LightEvaluator:
 
     def rational(self, c):
         n, chain = c.degree, self.model.chain
-        return [sum((Fraction(t[1]) * Fraction(c(t[2])) for t in chain(n, j)), Fraction(0))
+        return [sum((Fraction(t[1]) * Fraction(c(tuple(t[2]))) for t in chain(n, j)), Fraction(0))
                 for j in range(self.model.ranks[n])]
 
     def rational_ds(self, c):
         """Pi(delta_s c) = delta_s^R Pi(c), from the chains of the degree of c."""
+        # The normalized chain boundary omits these faces. A nonzero value
+        # would invalidate the chain-map identity rather than change a residue
+        # by an allowed integral lift.
+        for j in range(self.model.dimension(c.degree + 1)):
+            for term in self.model.chain(c.degree + 1, j):
+                simplex = tuple(term[2])
+                for i in range(1, len(simplex) - 1):
+                    if simplex[i - 1] == simplex[i + 1]:
+                        self.check_normalized(c, simplex[:i] + simplex[i + 1:])
         return [Fraction(v) for v in self.model.coboundary(c.degree, self.rational(c), True)]
 
     @staticmethod

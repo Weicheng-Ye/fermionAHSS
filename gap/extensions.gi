@@ -509,6 +509,10 @@ BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
                 od;
                 if restart then break; fi;
             od;
+            if not restart and not failed and IsBound(engine.auditPart) then
+                engine.auditPart(part,rows,lowerOf);
+                restart:=aborted();
+            fi;
             # A light part that met an error is computed again in the model.
             if restart then
                 for name in parts.names do
@@ -601,7 +605,7 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
         fi;
         if ForAny(candidate.extensionVectors,v->IsBound(v.result.witness.model)
                and v.result.witness.model="light-R")
-           and not ForAny(candidate.extensionVectors,v->IsBound(v.result.witness.reduction)) then
+           and engine.heavyMeasurements()=0 then
             # Light rows (doc/extensions.md, "Light rows"): residues of
             # transported defining data, with abelian gauge classes assumed
             # and no native gauge search.
@@ -657,6 +661,8 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
         Error("koFull: exact extension calculation failed; the original error is reported above");
     fi;
     answer.degree:=degree; answer.layers:=layers;
+    answer.heavyMeasurements:=0;
+    if engine<>fail then answer.heavyMeasurements:=engine.heavyMeasurements(); fi;
     if engine<>fail and engine.model()<>fail and IsBound(engine.model().modelId) then
         answer.modelId:=engine.model().modelId;
     fi;
