@@ -341,8 +341,10 @@ The last two products are the signed ordered cube, with its
 coefficient-system transports; the cubic correction is included exactly
 once, and the three-primary phase is \(\tfrac23\) times the \(0,1,2\) lift
 of the same cube reduced modulo three, since \(P^1\) of a degree-two class
-is its cube. Its coboundary vanishes on cocycles, so it does not change
-\(T_2\) on the page, but its failure of additivity is the three-primary
+is its cube. For integral cocycles its integral coboundary is exact,
+so its Bockstein cohomology class vanishes and it does not change
+\(T_2\) on the page. The chosen coboundary representative can be nonzero;
+its failure of additivity is the three-primary
 part of \(\gamma_5\).
 
 For **k=6**, take \(n=3\), \(A=A_6\), \(b=B_6\), \(C=C_6\). Define

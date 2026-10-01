@@ -376,7 +376,9 @@ fixed A-only source \(V_2\) of \(\Theta_4(p,k)\), the actual phase is
 The last term is \(\tfrac23\) times the \(0,1,2\) lift of the ordered
 cubic \(A^{\cup3}\) reduced modulo three, the reduced power of a
 degree-two class (`mod3_power.tertiary_three_primary_phase`). Its
-coboundary vanishes on cocycles, so \(T_2\) on the page is unchanged; the
+integral coboundary is exact for integral cocycles, so its Bockstein
+cohomology class vanishes and \(T_2\) on the page is unchanged. The
+chosen coboundary representative can be nonzero. The
 A-only part of the degree-five pair source
 (`production_gamma5_comparison.A_phase`) carries the same term, so that
 its failure of additivity enters the universal pair primitive and the

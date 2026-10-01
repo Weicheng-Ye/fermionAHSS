@@ -87,9 +87,11 @@ class TransferFormulaContractTests(unittest.TestCase):
     @unittest.skipUnless(os.environ.get("FERMIONAHSS_SLOW_TRANSFER_TESTS") == "1",
                          "off-shell degree-four universal prism; opt in explicitly")
     def test_degree_four_square_zero_on_nonclosed_integral_a(self):
+        # The degree-two prime-three phase contributes an integral -2
+        # to this D representative; retain it before checking square-zero.
         self.assert_square_zero(c2(0, 0), 4,
             state([-1], [0], [0], [0]),
-            state([-2], [0], [0], [-2]))
+            state([-2], [0], [0], [-4]))
 
 
 if __name__ == "__main__":
