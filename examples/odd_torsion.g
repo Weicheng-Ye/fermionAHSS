@@ -3,8 +3,10 @@
 #
 # Odd torsion at package degree 5, where the layers A (2,0) and D (6,-4) carry
 # the p+ip and bosonic classes. Relations are measured at the prime of their
-# generator: the three-primary ones in the two-layer three-local model, the
-# ones at primes five and above split without a measurement.
+# generator: the three-primary ones by the light row t_D = 2*3^(e-1)*Y with
+# rho_3 Y = (rho_3 A)^3 (in the two-layer three-local model with
+# FERMIONAHSS_LIGHT_RELATIONS=0, whose integers differ within m*D), the ones
+# at primes five and above split without a measurement.
 #   Z/3        Z/9            (3a = 2d modulo three)
 #   Z/9        Z/3 + Z/27     (9a = 6d modulo nine)
 #   Z/3 x Z/3  Z/3^2 + Z/9^2

@@ -33,6 +33,7 @@ CallFuncList(function()
     Read(Filename(directory, "gap/extension_degree_six.gi"));
     Read(Filename(directory, "gap/extension_equivalence.gi"));
     Read(Filename(directory, "gap/extension_relations.gi"));
+    Read(Filename(directory, "gap/extension_light.gi"));
     BindGlobal("KOAHSS_PACKAGE_VERSION", "0.1.0");
     BindGlobal("FERMION_AHSS_PACKAGE_VERSION", "0.1.0");
 end, []);

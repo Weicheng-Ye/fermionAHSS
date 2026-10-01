@@ -301,6 +301,8 @@ hash matches the formula sources.
 | `FERMIONAHSS_BUNDLED_VALUES=0` | Ignore the bundled universal values |
 | `FERMIONAHSS_LAYERED_RELATIONS=0` | Measure relations through the D layer instead of their target layer |
 | `FERMIONAHSS_NATIVE_RELATIONS=0` | Measure the relations whose target layer lies right below the generator's in the model instead of reading them from a primary operation on R |
+| `FERMIONAHSS_LIGHT_RELATIONS=0` | Measure the other relations in the transferred model instead of reading them from light rows (doc/extensions.md, "Light rows") |
+| `FERMIONAHSS_LIGHT_ABSORPTION=0` | Keep every B-over-D light row an exact residue (no absorption) |
 | `FERMIONAHSS_PRIME_LOCAL=0` | Do not localize at the primes: relations of every prime use the complete model and keep every coordinate of their rows |
 | `FERMIONAHSS_DEGREE_SIX_A_STACKING=1` | Evaluate the degree-six correction of two nonzero A layers (hours to days) |
 | `KOAHSS_COCHAIN_CACHE_ENTRIES`, `KOAHSS_CHAIN_CACHE_ENTRIES` | Memo-table bounds of the page worker (default 256; zero disables) |

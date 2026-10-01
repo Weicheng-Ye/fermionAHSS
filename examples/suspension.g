@@ -5,8 +5,10 @@
 # three. The resolution of Z/3 x Z is the HAP direct product of the cyclic
 # resolution with the resolution of Z. The window of package degree 6 of
 # G x Z is the suspension of the window of degree 5 of G, so the E6 line has
-# A=Z/3 at (3,0) and D=Z/3 at (7,-4), and the three-local relation of degree
-# six gives Z/9, the degree-five value of Z/3. Replacing 3 by 9 gives
+# A=Z/3 at (3,0) and D=Z/3 at (7,-4), and the relation of degree six at the
+# prime three (a light row, or the three-local model with
+# FERMIONAHSS_LIGHT_RELATIONS=0) gives Z/9, the degree-five value of Z/3.
+# Replacing 3 by 9 gives
 # Z/3 + Z/27 (the pages then take about an hour).
 if not IsBoundGlobal("FERMION_AHSS_PACKAGE_VERSION") then
     CallFuncList(function()
@@ -25,7 +27,7 @@ CallFuncList(function()
     Assert(0, full.status = "computed" and full.invariants = [9]);
     koAHSSDisplay(full);
     vector := First(full.degreeResult.extensionVectors, v -> v.layer = "A");
-    Assert(0, vector.result.witness.model = "three-local");
+    Assert(0, vector.result.witness.model in ["light-R", "three-local"]);
     Print("3*a = ", vector.result.lowerCoordinates[1], "*d, measured in the ",
         vector.result.witness.model, " model\n");
     Print("Z/3 x Z, untwisted, package degree 6: ", full.invariants, "\n");

@@ -39,6 +39,27 @@ BindGlobal("KOAHSS_NativeRelationsEnabled",function()
     return true;
 end);
 
+# The light rows of the relations that the target-layer shortcut and the
+# primary operations do not settle (doc/extensions.md, "Light rows") are on
+# unless FERMIONAHSS_LIGHT_RELATIONS=0; KOAHSS_EXTENSION_RELATION_OVERRIDE.light
+# takes precedence. FERMIONAHSS_LIGHT_ABSORPTION=0 keeps the pivot B rows of
+# the strong absorption regime exact.
+BindGlobal("KOAHSS_LightRelationsEnabled",function()
+    if IsBound(KOAHSS_EXTENSION_RELATION_OVERRIDE.light) then
+        return KOAHSS_EXTENSION_RELATION_OVERRIDE.light=true;
+    fi;
+    if IsBound(GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_RELATIONS) then
+        return GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_RELATIONS<>"0";
+    fi;
+    return true;
+end);
+BindGlobal("KOAHSS_LightAbsorptionEnabled",function()
+    if IsBound(GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_ABSORPTION) then
+        return GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_ABSORPTION<>"0";
+    fi;
+    return true;
+end);
+
 # Every lower generator e of the recorded presentation with e not in n*G_low
 # is free for a relation of order n: its component of the relation changes
 # the class in Ext(Z/n,G_low)=G_low/nG_low. The target layer is the lowest
@@ -261,9 +282,13 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
     local model,built,refusal,kernelCache,liftSolver,local3,layerLimited,liftFailure,
         ensureModel,ensureLocal3,completeLift,localLift,partialLift,partialLifts,markedState,
         liftState,refused,flat,times,flatProduct,boundary,reduce,answer,
-        nativeRelations,rowsCache,coboundaryRows,primaryRow,primaryFallbacks;
+        nativeRelations,rowsCache,coboundaryRows,primaryRow,primaryFallbacks,
+        context,lightModes,lightFrames,lightFallbacks,aborted,lightMode,startPart,
+        ensureFrame,abortLight,lightRow;
     model:=fail; built:=fail; refusal:=fail; local3:=fail; liftSolver:=fail; liftFailure:=fail;
     kernelCache:=rec(); partialLifts:=rec(); rowsCache:=rec(); primaryFallbacks:=[];
+    context:=fail; if IsBound(options.context) then context:=options.context; fi;
+    lightModes:=rec(); lightFrames:=rec(); lightFallbacks:=[]; aborted:=false;
     nativeRelations:=KOAHSS_NativeRelationsEnabled();
     if IsBound(options.nativeRelations) then nativeRelations:=options.nativeRelations=true; fi;
     if IsFunction(source) then
@@ -425,7 +450,7 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
                     # only, and returns zeros below them: so does a single
                     # factor, which reaches the comparison unmultiplied.
                     if upto<3 then
-                        state:=StructuralCopy(state);
+                        state:=ShallowCopy(state);
                         for field in ["A","B","C","D"]{[upto+2..4]} do
                             state.(field):=List(state.(field),x->0);
                         od;
@@ -648,6 +673,83 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
         return rec(status:="computed",lowerPresentationId:=lower.presentationId,
             lowerCoordinates:=row,witness:=witness);
     end;
+    # Light rows (gap/extension_light.gi). KOAHSS_ExtensionPrimeRows starts
+    # every prime part; the two-primary part, and the three-primary part in
+    # degrees five and six, are light when the switches and the page context
+    # allow it. A light part never reaches the model measurement: a light row
+    # that fails for a reason other than a resource limit aborts the part,
+    # which is recorded in lightFallbacks and computed again in the model.
+    lightMode:=prime->prime<>fail and IsBound(lightModes.(String(prime)))
+        and lightModes.(String(prime))="light";
+    startPart:=function(part)
+        local allowed;
+        aborted:=false;
+        allowed:=KOAHSS_LightRelationsEnabled() and context<>fail and layerLimited and nativeRelations
+            and KOAHSS_LayeredRelationsEnabled() and IsFunction(source)
+            and IsBound(backend.nativePrimary) and IsBound(backend.hasCupMod2) and backend.hasCupMod2=true
+            and IsBound(context.getCell) and IsBound(context.getMap)
+            and (part.prime=2 or (part.prime=3 and k in [5,6] and KOAHSS_PrimeLocalizationEnabled()));
+        if allowed then
+            lightModes.(String(part.prime)):="light";
+            lightFrames.(String(part.prime)):=rec(part:=part,frame:=fail);
+        else
+            lightModes.(String(part.prime)):="heavy";
+        fi;
+    end;
+    ensureFrame:=function(prime)
+        local entry;
+        entry:=lightFrames.(String(prime));
+        if entry.frame=fail then
+            entry.frame:=CallFuncList(ValueGlobal("KOAHSS_LightFrame"),[rec(backend:=backend,k:=k,
+                layers:=layers,context:=context,part:=entry.part,coboundaryRows:=coboundaryRows,
+                call:=function(task,data)
+                    if ensureModel()=fail then return refused(); fi;
+                    if not IsBound(model.light) then
+                        return rec(status:="unresolved",code:="model-setup",
+                            reason:="the stacking model has no light evaluator");
+                    fi;
+                    return model.light(task,data);
+                end)]);
+        fi;
+        return entry.frame;
+    end;
+    abortLight:=function(prime,code,reason,name,index)
+        Add(lightFallbacks,rec(prime:=prime,layer:=name,index:=index,code:=code,reason:=reason));
+        lightModes.(String(prime)):="heavy"; Unbind(lightFrames.(String(prime)));
+        aborted:=true;
+        # A heavy measurement restarts the worker with a fresh setup.
+        if built<>fail and IsRecord(built) and IsBound(built.close) then built.close(); fi;
+        return rec(status:="unresolved",code:="light-aborted",reason:=Concatenation(
+            "the light rows of the prime ",String(prime)," are computed again in the model: ",reason));
+    end;
+    lightRow:=function(layer,index,order,lower,target,options)
+        local prime,frame,before,attempt,oldBreak,oldSilent,refusalAnswer;
+        prime:=KOAHSS_RelationPrime(order);
+        frame:=ensureFrame(prime);
+        before:=fail;
+        if model<>fail and IsBound(model.lastFailure) then before:=model.lastFailure; fi;
+        if IsBound(GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_DEBUG)
+           and GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_DEBUG="raise" then
+            return frame.row(layer.name,index,order,lower,target,options);
+        fi;
+        oldBreak:=BreakOnError; oldSilent:=SilentNonInteractiveErrors;
+        BreakOnError:=false; SilentNonInteractiveErrors:=true;
+        attempt:=CALL_WITH_CATCH(frame.row,[layer.name,index,order,lower,target,options]);
+        BreakOnError:=oldBreak; SilentNonInteractiveErrors:=oldSilent;
+        if attempt[1] then return attempt[2]; fi;
+        if frame.refusal<>fail then
+            refusalAnswer:=frame.refusal; frame.refusal:=fail;
+            if IsBound(refusalAnswer.code) and refusalAnswer.code="model-setup" then return refusalAnswer; fi;
+            if built<>fail and IsRecord(built) and IsBound(built.close) then built.close(); fi;
+            return rec(status:="unresolved",code:="resource-limit",
+                reason:=Concatenation("light row: ",String(refusalAnswer.reason)));
+        fi;
+        if model<>fail and IsBound(model.lastFailure) and not IsIdenticalObj(model.lastFailure,before)
+           and IsBound(model.lastFailure.status) and model.lastFailure.status="unresolved" then
+            return rec(status:="unresolved",code:="resource-limit",reason:=model.lastFailure.reason);
+        fi;
+        return abortLight(prime,"light-error",frame.lastStep,layer.name,index);
+    end;
     # options.complete measures the relation through D, without the
     # target-layer shortcut (KOAHSS_ExtensionPrimeRows asks for it when a
     # later relation depends on the D components this relation dropped).
@@ -659,6 +761,9 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
         fields:=["A","B","C","D"];
         kind:=KOAHSS_ExtensionRelationModel(k,layer.name,order);
         if kind.model="split" then return KOAHSS_ExtensionSplitResponse(order,kind.prime,lower); fi;
+        if complete and lightMode(kind.prime) then
+            return lightRow(layer,index,order,lower,fail,arg[5]);
+        fi;
         position:=Position(fields,layer.name);
         lowerNames:=fields{[position+1..4]};
         # The target-layer shortcut: only the layers down to the lowest free
@@ -685,10 +790,23 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
                 attempt:=CALL_WITH_CATCH(primaryRow,[layer,index,order,lower,target]);
                 BreakOnError:=oldBreak; SilentNonInteractiveErrors:=oldSilent;
                 if attempt[1] and attempt[2]<>fail then return attempt[2]; fi;
+                if lightMode(kind.prime) then
+                    if layer.name="C" then return lightRow(layer,index,order,lower,target,rec()); fi;
+                    return abortLight(kind.prime,"primary-unavailable",
+                        "a primary-operation row is unavailable",layer.name,index);
+                fi;
                 Add(primaryFallbacks,rec(layer:=layer.name,index:=index,
                     reason:=function() if attempt[1] then return "an ingredient was unavailable"; fi;
                         return "the evaluation raised an error"; end()));
             fi;
+            if lightMode(kind.prime) and kind.model in ["complete","three-local"]
+               and target.index>position then
+                return lightRow(layer,index,order,lower,target,rec());
+            fi;
+        fi;
+        if lightMode(kind.prime) then
+            return abortLight(kind.prime,"heavy-entry","a relation would be measured in the model",
+                layer.name,index);
         fi;
         if kind.model="three-local" then
             # The two-layer measurement of the prime three: the A layer is
@@ -763,6 +881,12 @@ BindGlobal("KOAHSS_ExtensionRelationEngine",function(backend,k,layers,source,opt
         model:=function() return model; end,
         # relations whose primary-operation row fell back to the model
         primaryFallbacks:=function() return primaryFallbacks; end,
+        # light rows: the part decision, the abort flag of the current part,
+        # and the light parts computed again in the model
+        startPart:=startPart,
+        lightAborted:=function() return aborted; end,
+        resetPart:=function(prime) aborted:=false; end,
+        lightFallbacks:=function() return lightFallbacks; end,
         # what the model source returned (a refusal included), or fail
         builtModel:=function() return built; end,
         close:=function()

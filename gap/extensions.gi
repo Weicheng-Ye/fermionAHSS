@@ -348,7 +348,8 @@ end);
 # target-layer certificates are restated in the final lower presentations.
 BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
     local rows,restrict,failure,replay,fields,part,prime,position,name,i,failed,
-        record,lastMeasured,shifted,response,measuredAgain,lowers,lowerOf,target,row;
+        record,lastMeasured,shifted,shiftIndex,response,measuredAgain,lowers,lowerOf,target,row,
+        aborted,snapshot,restart;
     rows:=rec(D:=[],C:=[],B:=[],A:=[]);
     restrict:=KOAHSS_PrimeLocalizationEnabled();
     failure:=Length(parts.names)+1;
@@ -374,14 +375,31 @@ BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
         return 3;
     end;
     # Whether a row holds only for a lift shifted by an unknown h: it was
-    # measured only through its target layer, or it is a primary-operation
-    # row determined modulo 2H (shiftedLift).
+    # measured only through its target layer, it is a primary-operation
+    # row determined modulo 2H (shiftedLift), or a light row exact only for
+    # its lower part (shiftedWithin, doc/extensions.md, "Light rows").
     shifted:=row->row.status="computed" and ((IsBound(row.witness.truncatedBelow)
-        and row.witness.truncatedBelow<>fail) or IsBound(row.witness.shiftedLift));
+        and row.witness.truncatedBelow<>fail) or IsBound(row.witness.shiftedLift)
+        or (IsBound(row.witness.shiftedWithin) and row.witness.shiftedWithin<>fail));
+    # A later relation measured through the layer index lastMeasured needs
+    # the row of generator j of layer name again when lastMeasured is at least
+    # this index: the layer of j for a truncated row (h lies below it), the
+    # layer above D for a row shifted within D, and never for a light row exact
+    # for its marking (shiftedWithin=fail).
+    shiftIndex:=function(row,name)
+        if IsBound(row.witness.shiftedWithin) then
+            if row.witness.shiftedWithin=fail then return 4; fi;
+            return Position(fields,row.witness.shiftedWithin)-1;
+        fi;
+        if IsBound(row.witness.shiftedLift) then return Position(fields,row.witness.shiftedLift)-1; fi;
+        return Position(fields,name);
+    end;
+    aborted:=function() return IsBound(engine.lightAborted) and engine.lightAborted(); end;
     # Record the relation of generator i of layer name; complete asks for the
-    # measurement through D.
-    record:=function(name,i,complete)
-        local order,kind,below,keep,lower,response,coordinates,stored,j,again,above,why;
+    # measurement through D, for a relation measured through the layer index
+    # through.
+    record:=function(name,i,complete,through)
+        local order,kind,below,keep,lower,response,coordinates,stored,j,again,above,why,pair;
         order:=layers.(name).orders[i];
         kind:=KOAHSS_ExtensionRelationModel(degree,name,order);
         below:=parts.names{[1..Position(parts.names,name)-1]};
@@ -396,8 +414,26 @@ BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
             return response;
         fi;
         lower:=lowerOf(name);
-        if complete then response:=engine.answer(layers.(name),i,order,lower,rec(complete:=true));
+        if complete then
+            response:=engine.answer(layers.(name),i,order,lower,rec(complete:=true,through:=through));
         else response:=engine.answer(layers.(name),i,order,lower); fi;
+        if aborted() then return response; fi;
+        # A light A row may change the markings of B generators: their rows
+        # are recorded again before anything refers to them.
+        if response.status="computed" and IsBound(response.witness.light)
+           and IsBound(response.witness.light.remarked) then
+            for pair in response.witness.light.remarked do
+                again:=record(pair[1],pair[2],true,3);
+                if aborted() then return again; fi;
+                if again.status<>"computed" then
+                    response:=rec(status:="unresolved",reason:=Concatenation(
+                        "a light relation changed the marking of generator ",String(pair[2]),
+                        " of layer ",pair[1],", whose relation is unresolved: ",String(again.reason)),
+                        pendingRelation:=again);
+                    break;
+                fi;
+            od;
+        fi;
         if response.status="computed" and restrict and not ForAll(keep,x->x) then
             coordinates:=List([1..Length(keep)],j->0);
             for j in [1..Length(keep)] do
@@ -418,13 +454,16 @@ BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
             for j in [1..Length(stored.orders)] do
                 if response.status="computed"
                    and response.lowerCoordinates[stored.startColumn+j-1]<>0
-                   and lastMeasured(response)>=Position(fields,stored.name)
-                   and IsBound(rows.(stored.name)[j]) and shifted(rows.(stored.name)[j]) then
+                   and IsBound(rows.(stored.name)[j]) and shifted(rows.(stored.name)[j])
+                   and lastMeasured(response)>=shiftIndex(rows.(stored.name)[j],stored.name) then
                     why:="is measured only through its target layer";
                     if IsBound(rows.(stored.name)[j].witness.shiftedLift) then
                         why:="is read from a primary operation and holds only modulo 2H";
+                    elif IsBound(rows.(stored.name)[j].witness.shiftedWithin) then
+                        why:="is a light row exact only for the lower part of its marking";
                     fi;
-                    again:=record(stored.name,j,true);
+                    again:=record(stored.name,j,true,lastMeasured(response));
+                    if aborted() then return again; fi;
                     if again.status<>"computed" then
                         response:=rec(status:="unresolved",reason:=Concatenation(
                             "the relation refers to the lift of generator ",String(j)," of layer ",
@@ -451,19 +490,34 @@ BindGlobal("KOAHSS_ExtensionPrimeRows",function(engine,layers,parts,degree)
         return response;
     end;
     for part in parts.parts do
-        prime:=part.prime; failed:=false;
-        for position in [1..Length(parts.names)] do
-            if failed or position>failure then break; fi;
-            name:=parts.names[position];
-            # Over the zero lower group there is no relation to record.
-            if Sum(parts.names{[1..position-1]},n->Length(layers.(n).orders))=0 then continue; fi;
-            for i in part.generators.(name) do
-                response:=record(name,i,false);
-                if response.status<>"computed" then
-                    failed:=true; failure:=Minimum(failure,position); break;
-                fi;
+        prime:=part.prime;
+        if IsBound(engine.startPart) then engine.startPart(part); fi;
+        snapshot:=rec(failure:=failure,measuredAgain:=measuredAgain);
+        repeat
+            failed:=false; restart:=false;
+            for position in [1..Length(parts.names)] do
+                if failed or position>failure then break; fi;
+                name:=parts.names[position];
+                # Over the zero lower group there is no relation to record.
+                if Sum(parts.names{[1..position-1]},n->Length(layers.(n).orders))=0 then continue; fi;
+                for i in part.generators.(name) do
+                    response:=record(name,i,false,3);
+                    if aborted() then restart:=true; break; fi;
+                    if response.status<>"computed" then
+                        failed:=true; failure:=Minimum(failure,position); break;
+                    fi;
+                od;
+                if restart then break; fi;
             od;
-        od;
+            # A light part that met an error is computed again in the model.
+            if restart then
+                for name in parts.names do
+                    for i in part.generators.(name) do Unbind(rows.(name)[i]); od;
+                od;
+                lowers:=rec(); failure:=snapshot.failure; measuredAgain:=snapshot.measuredAgain;
+                engine.resetPart(prime);
+            fi;
+        until not restart;
     od;
     # The target-layer certificates of the rows above a row measured again,
     # in the final lower presentations.
@@ -511,7 +565,7 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
     local layers,engine,model,computeDegree,attempt,oldBreak,answer;
     layers:=fail; engine:=fail;
     computeDegree:=function()
-        local parts,rows,candidate;
+        local parts,rows,candidate,pending;
         layers:=KOAHSS_ExtensionLayers(context,degree);
         if degree<1 then
             # Degrees -1 and 0 have the single layer D: no relation is measured.
@@ -526,7 +580,7 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
                 fi;
                 return CallFuncList(ValueGlobal("KOAHSS_ExtensionTransferredModel"),
                     [context.backend,degree]);
-            end,rec(layerLimited:=true)]);
+            end,rec(layerLimited:=true,context:=context)]);
         rows:=KOAHSS_ExtensionPrimeRows(engine,layers,parts,degree);
         candidate:=koAHSSExtensionFromLayers(layers,KOAHSS_ExtensionReplayOracle(rows));
         if candidate.status<>"computed" then
@@ -534,9 +588,30 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
                and candidate.pendingRelation.code="model-setup" then
                 return rec(status:="unresolved",reason:=candidate.reason,pendingLayer:="model-setup");
             fi;
+            # A light row that met a resource limit, possibly below a relation
+            # that depends on it.
+            pending:=candidate;
+            while IsBound(pending.pendingRelation) do
+                pending:=pending.pendingRelation;
+                if IsBound(pending.code) and pending.code="resource-limit" then
+                    return rec(status:="unresolved",reason:=candidate.reason,pendingLayer:="resource-limit");
+                fi;
+            od;
             return candidate;
         fi;
-        if engine.model()<>fail then
+        if ForAny(candidate.extensionVectors,v->IsBound(v.result.witness.model)
+               and v.result.witness.model="light-R")
+           and not ForAny(candidate.extensionVectors,v->IsBound(v.result.witness.reduction)) then
+            # Light rows (doc/extensions.md, "Light rows"): residues of
+            # transported defining data, with abelian gauge classes assumed
+            # and no native gauge search.
+            candidate.certificateLevel:="light-R";
+            candidate.gaugeCompletenessAssumed:=false;
+            candidate.abelianQuotientAssumed:=true;
+            candidate.lightShortcuts:=Set(Concatenation(List(Filtered(candidate.extensionVectors,
+                v->IsBound(v.result.witness.light) and IsBound(v.result.witness.light.shortcuts)),
+                v->v.result.witness.light.shortcuts)));
+        elif engine.model()<>fail then
             # Gauge completeness is an assumption of this transferred model,
             # as are commutativity and associativity of stacking on gauge
             # classes. No finite multiplication table is audited; the
@@ -589,6 +664,11 @@ BindGlobal("KOAHSS_FullDegree",function(context,degree)
     if engine<>fail and IsBound(engine.primaryFallbacks)
        and not IsEmpty(engine.primaryFallbacks()) then
         answer.primaryFallbacks:=engine.primaryFallbacks();
+    fi;
+    # The light prime parts computed again in the model, with the reason.
+    if engine<>fail and IsBound(engine.lightFallbacks)
+       and not IsEmpty(engine.lightFallbacks()) then
+        answer.lightFallbacks:=engine.lightFallbacks();
     fi;
     return answer;
 end);

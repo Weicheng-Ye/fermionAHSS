@@ -4,15 +4,18 @@
 # B over C, and an integral lift of D(c) for C over D. In its target layer the
 # row agrees with the measurement in the transferred model, exactly in the
 # binary layers and modulo two in D; every other row is the same, and so is
-# the group.
+# the group. The other rows are measured in the model in both runs (light
+# rows off; tst/extension_light_rows.tst compares those).
 gap> PrimaryCompare := function(group,s,omega,k)
 >     local ahss,on,off,rows,primary,v,w,j,id,ok;
 >     ahss:=koAHSS_batch(group,s,omega,k,rec(details:=true));
+>     KOAHSS_EXTENSION_RELATION_OVERRIDE.light:=false;
 >     KOAHSS_EXTENSION_RELATION_OVERRIDE.native:=true;
 >     on:=koFull(ahss);
 >     KOAHSS_EXTENSION_RELATION_OVERRIDE.native:=false;
 >     off:=koFull(ahss);
 >     Unbind(KOAHSS_EXTENSION_RELATION_OVERRIDE.native);
+>     Unbind(KOAHSS_EXTENSION_RELATION_OVERRIDE.light);
 >     ok:=on.status="computed" and off.status="computed" and on.invariants=off.invariants
 >         and not IsBound(on.degreeResult.primaryFallbacks);
 >     for v in on.degreeResult.extensionVectors do

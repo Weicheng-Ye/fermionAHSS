@@ -1082,6 +1082,21 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         model.localModels:=rec(three:=local3);
         return local3;
     end;
+    # A light task (python/extension_light.py, doc/extensions.md "Light
+    # rows"). The worker answers in band: a resource limit is an unresolved
+    # record, any other failure an error; the stream stays open.
+    model.light:=function(task,data)
+        local answer;
+        answer:=request(rec(operation:="light",degree:=k,task:=task,data:=data));
+        if IsBound(answer.refused) then
+            return rec(status:="unresolved",code:="resource-limit",reason:=answer.refused.reason);
+        fi;
+        if IsBound(answer.error) then
+            return rec(status:="error",reason:=Concatenation(answer.error.exception,": ",
+                answer.error.reason),traceback:=answer.error.traceback);
+        fi;
+        return rec(status:="computed",result:=answer.result);
+    end;
     model.debugRequest:=request;
     model.transportData:=transport.terms;
     # Explicit export for developer reference comparisons only. koFull never

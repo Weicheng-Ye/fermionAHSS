@@ -100,7 +100,9 @@ retained without reconstruction. There is no model-selection option. The
 [native-resolution model](resolution-extensions.md) is built only when a
 relation of the degree needs a measurement; a two-primary relation whose
 target layer lies right below its generator's layer is read from a primary
-operation on R instead (see "Primary-operation rows"). The model runs
+operation on R instead (see "Primary-operation rows"), and the other
+relations are light rows (see "Light rows") unless
+`FERMIONAHSS_LIGHT_RELATIONS=0`. The model runs
 higher searches on R,
 checks the exact sparse comparison identity of each comparison chain when
 it first uses it, and assumes gauge completeness. Runtime completion uses
@@ -147,7 +149,11 @@ record, including `full.degreeResult`, also stores `degree:=j` and its
 associated-graded `layers`. When a relation of the degree needed the
 native model, its `modelId` is retained, and the completed calculation has
 `certificateLevel="transfer-R"`, `gaugeCompletenessAssumed=true` and
-`abelianQuotientAssumed=true`. A completed degree of 1–6 that built no
+`abelianQuotientAssumed=true`. A completed degree with light rows and no
+measurement in the model has `certificateLevel="light-R"`,
+`gaugeCompletenessAssumed=false`, `abelianQuotientAssumed=true` and the
+list `lightShortcuts` of the page forms and absorptions its rows used. A
+completed degree of 1–6 that built no
 model has `certificateLevel="primary-R"`, with the same two assumptions,
 when some relation row is the class of a primary operation on R. Otherwise
 it has `"prime-split"` when some relation split at an odd prime and
@@ -169,7 +175,9 @@ also `certificateLevel`, the per-prime summary `primes` and the prime parts
 `primeParts` (see "Localization at the primes"), and `singleLayer=true`
 when its line has at most one nonzero layer. A degree whose
 primary-operation rows fell back to the model lists those relations in
-`primaryFallbacks` (see "Primary-operation rows"). An unresolved
+`primaryFallbacks` (see "Primary-operation rows"), and one whose light
+prime part was computed again in the model lists it in `lightFallbacks`
+(see "Light rows"). An unresolved
 degree stores its reason, pending layer and (when applicable) generator,
 completed stages, measured vectors and lower model. It has no fabricated
 complete group or invariant list. The public `invariants` view uses `[]`
@@ -361,16 +369,100 @@ relations it reads (`gaugeCompletenessAssumed`, `abelianQuotientAssumed`).
 When an ingredient is unavailable (a backend without the operations on R,
 a layer without its E6 cell) or the evaluation fails, the relation is
 measured in the model, and the degree result lists it in
-`primaryFallbacks`. The odd relations keep their split rows or three-local
-measurements. The relations whose target layer lies two or three layers
-below the generator's (A over C or D, B over D), and the measurements
-through D requested by a later relation, are measured in the model; their
-classes involve secondary and tertiary operations
+`primaryFallbacks`. The odd relations keep their split rows. The relations
+whose target layer lies two or three layers below the generator's (A over C
+or D, B over D), and the measurements through D requested by a later
+relation, are light rows (next section); their classes involve secondary
+and tertiary operations
 ([extension_cup_i_formulas.md](extension_cup_i_formulas.md), Section 6).
 The environment variable `FERMIONAHSS_NATIVE_RELATIONS=0` measures every
 relation in the model; in a GAP session,
 `KOAHSS_EXTENSION_RELATION_OVERRIDE.native` set to `false` or `true` takes
 precedence until it is unbound.
+
+## Light rows
+
+A relation that neither its target layer nor a primary operation settles is
+read from one fixed residue cochain of transported defining data
+(`gap/extension_light.gi`, `python/extension_light.py`). Each prime part of a
+degree is light as a whole: the two-primary part, and the three-primary part
+in degrees five and six. The bar cochains are evaluated by the worker of the
+transferred model; no flat lift, reflected product, gauge search or nonzero-A
+D completion is formed.
+
+**Defining data.** Every non-closed defining cochain is the primitive
+`P(z;r)=\Lambda r+Hz` of a closed source `z`, where `\delta r=\Pi z` is solved
+on R, `\Lambda` lifts R-cochains to the bar, `\Pi` pairs with the comparison
+chains and `H` is the comparison homotopy. Then `\delta P(z;r)=z` holds
+literally, so every branch flag of the stacking formulas is known by
+construction; nothing tests a cochain for zero on R. The sources are the
+model's own: `Q_D(\rho A)` for B, `f^\sharp(A,B)` for C, `Q_D(b)` for an A=0
+state. Defining data are selected by linear algebra on the cohomology of R
+with the actual classes: a C cochain of a B atom is corrected by the
+`\widetilde D` image until its curvature class vanishes (flat-admissible),
+the lower system of an A relation by the D image, the A=0 systems of
+`\ker D` and the `\widetilde D` image, a relation gauge by the `\bar D`
+image, and a gauge class by the D image after the page Tau map has
+selected its E3 part. Rational cochains whose coboundary enters a residue
+are paired on the chains of their own degree and the twisted coboundary of
+R is applied (as for T on the pages).
+
+**Residues.**
+
+| Relation | Row |
+| --- | --- |
+| C over D, through D | `2D_c+\gamma_C(c,c)` for the marked C state `(c,D_c)`, `\delta_sD_c=-J(0,0,c)` |
+| B over D, leading C part zero, k=4,5,6 | `\rho[T_b]=[\Phi_{\mathcal P}(b,P;c,\pi)]`, the page form of the B atom with its actual gauge phase; exact for `(b,c)` with some D completion |
+| B over D, otherwise, k=2,3, and an atom an A-over-D row refers to | the exact residue `2D_b+\gamma_k(\hat b,\hat b)-D_C-J_{k-1}(u,y,\pi)-\gamma_k((0,0,t),(0,0,C))` against the pure-C reference of the leading part |
+| A over C, m=2, k=5,6, leading part zero | `[\Phi']+[\omega a]`, `\Phi'=H_{k-1}(U,y'')+S_{page}(A,B_A)` |
+| A over C, m=2, k=4, leading part zero, `\omega=0` | `[h^D(B_A,B_A)]` |
+| A over C, otherwise | the exact `R_C=X_C+H_{k-1}(U,Y)+\beta(mA,X_B+B_0;0,B_0)+C_0` |
+| A over D, k=4,5,6 | `\rho_m\Pi\Psi_{rel}`, with at most five diagonal phases (four in degree six) and, in degree six, the unary primitive with the 22 constants of `data/unary-gamma6-coefficients.json` |
+| A over D at the prime three, k=5,6 | `t_D=2\cdot3^{e-1}Y`, `\rho_3Y=P^1_s\rho_3A` (the cube in degree five) |
+
+A residue that should be an integral class modulo m is lifted by the
+coefficient reduction map and read in the D cell; the Smith form of the
+presentation then takes the quotient `D/(D\cap mH)`.
+
+**Markings.** A C generator denotes its marked state `(c,D_c)`, a B generator
+an integer combination of A=0 atoms `(0,b,c,D_b)` and other B generators.
+A light row records what it is exact for: `truncatedBelow=fail` and
+`shiftedWithin=fail` for the element, `shiftedWithin="D"` for its lower part
+with some D completion, `truncatedBelow="D"` for a row in the absorption
+frame. KOAHSS_ExtensionPrimeRows asks for the row of a lower generator again
+through D (a complete request, answered for the current marking) when a later
+row measured through the layer `lastMeasured` refers to it and
+`lastMeasured` reaches the index of `shiftedWithin` (never for `fail`).
+
+**Absorption.** When every two-primary or free D generator has order two,
+the B rows with independent leading C parts are `(L,0)` (light-transport-proof
+(27)–(28)): a change of the C generators by a homomorphism into `D[2]`
+absorbs their D parts, and a dependent leading part is a formal sum of a
+kernel atom and those pivots. Otherwise, or with
+`FERMIONAHSS_LIGHT_ABSORPTION=0`, every B row is an exact residue.
+
+**The A plan.** At the first A request the A-over-D relations are ordered by
+exponent and adapted (`a_i\mapsto a_i+2^{e_j-e_i}a_j`) until their leading B
+vectors are independent. A relation with one leading B generator refers to
+its atom; otherwise the B basis is changed unitriangularly so that a fresh
+atom with cocycle `\sum_iL_ib_i` is a basis element. The reference atom is
+re-marked by the pure-C state of the relation's relative C class, and a
+relation without leading part refers to that pure-C state (light-transport-proof
+(30)). The changed B generators are listed in `witness.light.remarked` and
+recorded again. Absorption is kept only if it is compatible with these
+references; otherwise the B rows become exact residues.
+
+Each light row records `witness.model="light-R"`, its `method` and
+`witness.light` (row type, precision, shortcuts). A completed degree with a
+light row and no measurement in the model has `certificateLevel="light-R"`
+(see "The main calculation"). A resource limit leaves the degree
+unresolved. Any other failure of a light row computes its prime part again
+in the model and lists it in `lightFallbacks` with the failed step.
+`FERMIONAHSS_LIGHT_RELATIONS=0`, or
+`KOAHSS_EXTENSION_RELATION_OVERRIDE.light:=false` in a GAP session, measures
+these relations in the model. `FERMIONAHSS_NATIVE_RELATIONS=0` and
+`FERMIONAHSS_LAYERED_RELATIONS=0` switch the light rows off as well, and
+`FERMIONAHSS_PRIME_LOCAL=0` those of the prime three.
 
 ## Localization at the primes
 

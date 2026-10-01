@@ -147,6 +147,7 @@ class TransferredModel:
         self.low1 = DegreeOneCommutativeStacking(successor=self.low2)
         # Requests carrying ``prime: 3`` use the two-layer three-local model.
         self.three_local = ThreeLocalModel(self)
+        self.light = None
         self.s_vector = self.check_vector(1, setup["s"], False)
         self.w_vector = self.check_vector(2, setup["omega"], False)
         if any(v % 2 for v in self.coboundary(1, self.s_vector, False)):
@@ -651,6 +652,12 @@ class TransferredModel:
         operation, k = request["operation"], request["degree"]
         if k not in (0, 1, 2, 3, 4, 5, 6) or (k == 0 and operation not in ("d", "phi_values")):
             raise ValueError("transferred states cover degrees 1 through 6; gauges include degree 0")
+        if operation == "light":
+            # Light extension rows (extension_light): answered in band, not cached.
+            if self.light is None:
+                import extension_light
+                self.light = extension_light.LightEvaluator(self)
+            return self.light.calculate(request)
         key = json.dumps(request, sort_keys=True, separators=(",", ":"))
         if key in self._answers:
             return json.loads(self._answers[key])

@@ -30,8 +30,11 @@ gap> transferModel.close();; transferBar.close();;
 gap> # The three-local model in degree six, checked by suspension: the
 gap> # degree-six window of Z/3 x Z is the suspension of the degree-five
 gap> # window of Z/3 (A=Z/3 at (3,0), D=Z/3 at (7,-4)), so the group is Z/9.
+gap> # (The light rows, which read this relation from P^1, are switched off.)
 gap> susR:=ResolutionDirectProduct(ResolutionFiniteGroup(CyclicGroup(3),9),ResolutionAbelianGroup([0],9));;
+gap> KOAHSS_EXTENSION_RELATION_OVERRIDE.light:=false;;
 gap> susFull:=koFull(susR,0,0,6);;
+gap> Unbind(KOAHSS_EXTENSION_RELATION_OVERRIDE.light);
 gap> Assert(0,susFull.invariants=[9]);
 gap> susA:=First(susFull.degreeResult.extensionVectors,v->v.layer="A");;
 gap> Assert(0,susA.result.witness.model="three-local" and susA.result.witness.prime=3);

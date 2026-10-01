@@ -28,6 +28,9 @@ gap> Assert(0,splitResult.invariants=[5,5] and Last(splitResult.extensionVectors
 gap> Assert(0,KOAHSS_ExtensionPrimeSummary(splitResult)=[rec(prime:=5,relations:=1,models:=["split"])]);
 gap> # Z/3, untwisted, degree five: A=Z/3 at (2,0) and D=Z/3 at (6,-4); the
 gap> # three-local relation 3a = 2d (mod 3) gives Z/9, as ko_(3)^2(BZ/3) requires.
+gap> # The three-local model measures the relations here (the light rows of
+gap> # tst/extension_light_rows.tst are switched off).
+gap> KOAHSS_EXTENSION_RELATION_OVERRIDE.light := false;;
 gap> z3 := koFull(CyclicGroup(3),0,0,5);;
 gap> Assert(0,z3.invariants=[9]);
 gap> z3A := First(z3.degreeResult.extensionVectors,v->v.layer="A");;
@@ -55,6 +58,7 @@ gap> Assert(0,ForAll(measured(z6),v->v.result.witness.model in ["complete","thre
 gap> Assert(0,First(measured(z6),v->v.order=3).result.witness.model="three-local");
 gap> Assert(0,List(z6.degreeResult.primeParts,part->part.prime)=[3]);
 gap> Assert(0,z6.degreeResult.primeParts[1].invariants=[9]);
+gap> Unbind(KOAHSS_EXTENSION_RELATION_OVERRIDE.light);
 gap> # A row keeps only its coordinates on the generators of its prime and the
 gap> # free generators; here every measurement returns all ones.
 gap> rowLayers := rec(D:=rec(orders:=[2,3]),C:=rec(orders:=[2]),B:=rec(orders:=[]),A:=rec(orders:=[3,0]));;

@@ -34,7 +34,8 @@ _NOT_SOURCES = {'extension_transfer.py', 'extension_worker.py',
                 'extension_three_local.py',
                 'extension_acceleration.py', 'universal_sources.py',
                 'worker.py', 'runtime_cache.py', 'generate_universal_values.py',
-                'universal_values.py'}
+                'universal_values.py', 'unary_gamma6.py', 'generate_unary_coefficients.py',
+                'extension_light.py'}
 # Values computed with the current sources and shipped with the package; see
 # generate_universal_values.py. A file with other provenance is ignored.
 BUNDLED = ROOT / 'data' / 'universal-values.json'
