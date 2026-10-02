@@ -3,8 +3,9 @@
 # The light frame of one prime part of one degree computes the rows of the
 # relations that the target-layer shortcut and the primary operations do not
 # settle, from fixed residue cochains of transported defining data: every
-# non-closed defining cochain is P(z;r) = Lambda r + H z with delta r = Pi z
-# solved here on R, defining data are selected by linear algebra on the
+# generic non-closed defining cochain is P(z;r) = Lambda r + H z with
+# delta r = Pi z solved here on R. Primary sources instead use Lambda r+K_D,
+# delta r=D_R and delta K_D=Q_D Lambda+Lambda D_R. Defining data are selected on the
 # cohomology of R (the actual classes, never a zero test of a cochain), and
 # the residues are read in the E6 cells. The bar cochains are evaluated by the
 # worker of the transferred model (python/extension_light.py); every request
@@ -36,8 +37,10 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         invalidate,setMarking,references,audit,
         response,witnessOf,bRequest,cRequest,leading,kerCache,kerColumns,aLower,lowerCache,
         aEntries,aBuilt,buildAPlan,refData,refB,refD,aGauge,adRow,
-        adConverted,acRow,aRequest,p3Request,shortcut;
+        adConverted,acRow,aRequest,p3Request,shortcut,reductions;
     backend:=env.backend; k:=env.k; layers:=env.layers; context:=env.context; part:=env.part;
+    reductions:=not (IsBound(GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_TRANSPORT_REDUCTION)
+        and GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_TRANSPORT_REDUCTION="0");
     frame:=rec(lastStep:="start",refusal:=fail,shortcuts:=[],tasks:=0);
     step:=function(text) frame.lastStep:=text; end;
     shortcut:=function(name) AddSet(frame.shortcuts,name); end;
@@ -202,7 +205,8 @@ BindGlobal("KOAHSS_LightFrame",function(env)
     # ------------------------------------------------------------------
     # Flat A=0 atoms (0,b,c,D) and marked C states (C_j,D_j).
     atoms:=[]; atomCache:=rec();
-    # c=fail: solve delta c = Pi Q_D(b) and correct c by the Dtilde image so
+    # c=fail: solve the primary defining equation in the worker's fixed
+    # comparison convention, and correct c by the Dtilde image so
     # that the curvature class vanishes (flat-admissible); otherwise c is a
     # re-marked admissible choice. D solves delta_s D = -Pi J_k(0,b,c).
     makeAtom:=function(b,c)
@@ -246,7 +250,8 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         fi;
         return cMarks[j];
     end;
-    # The exact row of the marked C state: its double is the D state 2D_c+gamma(c,c).
+    # The exact class of the marked C square. The worker may replace gamma
+    # by e+beta_s Sq1(c), differing by an integral coboundary; D_c is unchanged.
     cExact:=function(j)
         local mark,t;
         mark:=cMark(j); t:=2*mark.D+mark.gamma;
@@ -529,6 +534,9 @@ BindGlobal("KOAHSS_LightFrame",function(env)
         light.precision:=precisionName(precision);
         light.shortcuts:=ShallowCopy(frame.shortcuts);
         light.tasks:=frame.tasks;
+        if reductions and IsBound(backend.nativeCoherence) then
+            light.primaryDefiningSystem:="Lambda r + K_D";
+        fi;
         if precision.eta then witness.truncatedBelow:="D"; witness.measuredLayers:=["C"];
         else witness.truncatedBelow:=fail; witness.measuredLayers:=["C","D"]; fi;
         if precision.level=2 then witness.shiftedWithin:=fail;
@@ -909,15 +917,35 @@ BindGlobal("KOAHSS_LightFrame",function(env)
     # The prime three in degrees five and six: t_D = 2*3^(e-1) Y with
     # rho_3 Y = P^1_s rho_3 A (light-transport-proof (31)).
     p3Request:=function(index,order,lower,target)
-        local A,e,Y,witness;
+        local A,e,Y,witness,native,character,method;
         A:=layers.A.cochains[index]; e:=Length(Factors(order));
         step("p=3 row");
-        if k=5 then Y:=call("p3_power",rec(A:=A)).Y;
-        else Y:=liftModular(k+1,call("p3_power",rec(A:=A)).P1,3); fi;
+        Y:=fail; method:="bar";
+        if reductions and k=5 and IsBound(backend.hasIntegralCups) and backend.hasIntegralCups then
+            Y:=backend.cupIntegral(0,2,A,2,A,true,true);
+            if Y<>fail then Y:=backend.cupIntegral(0,4,Y,2,A,false,true); fi;
+            if Y<>fail then method:="native cube"; fi;
+        elif reductions and k=6 and IsBound(backend.nativeCoherence) then
+            native:=backend.nativeCoherence();
+            # The cyclic degree-two diagonal has total tensor degree nine.
+            # A supplied resolution is never silently extended.
+            if native.maxTotalDegree>=9 then
+                character:=native.character(backend.twists.s);
+                Y:=native.evaluateCochains(native.cyclic(2),[3,3,3],
+                    [A,A,A],[character,character,character]);
+                Y:=liftModular(k+1,List(Y,x->x mod 3),3);
+                method:="native cyclic diagonal";
+            fi;
+        fi;
+        if Y=fail then
+            if k=5 then Y:=call("p3_power",rec(A:=A)).Y;
+            else Y:=liftModular(k+1,call("p3_power",rec(A:=A)).P1,3); fi;
+        else shortcut("p3-native"); fi;
         witness:=rec(operation:="xtimes",power:=order,prime:=3,model:="light-R",
             method:="p=3: 2*3^(e-1) Y, rho_3 Y = P^1 rho_3 A [P 31]",
             measuredLayers:=["D"],truncatedBelow:=fail,sufficiency:=target,
-            light:=rec(rowType:="p3",shortcuts:=[],tasks:=frame.tasks));
+            light:=rec(rowType:="p3",shortcuts:=ShallowCopy(frame.shortcuts),
+                powerEvaluation:=method,tasks:=frame.tasks));
         return response(lower,rec(D:=coords("D",k+1,-4,2*3^(e-1)*Y)),witness);
     end;
     frame.row:=function(name,index,order,lower,target,options)

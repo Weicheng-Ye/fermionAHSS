@@ -390,14 +390,28 @@ in degrees five and six. The bar cochains are evaluated by the worker of the
 transferred model; no flat lift, reflected product, gauge search or nonzero-A
 D completion is formed.
 
-**Defining data.** Every non-closed defining cochain is the primitive
+**Defining data.** A generic non-closed defining cochain is the primitive
 `P(z;r)=\Lambda r+Hz` of a closed source `z`, where `\delta r=\Pi z` is solved
 on R, `\Lambda` lifts R-cochains to the bar, `\Pi` pairs with the comparison
 chains and `H` is the comparison homotopy. Then `\delta P(z;r)=z` holds
 literally, so every branch flag of the stacking formulas is known by
 construction; nothing tests a cochain for zero on R. The sources are the
 model's own: `Q_D(\rho A)` for B, `f^\sharp(A,B)` for C, `Q_D(b)` for an A=0
-state. Defining data are selected by linear algebra on the cohomology of R
+state. Primary sources instead use the proved higher-diagonal comparison
+\(Q_D(\Lambda b_R)=\Lambda D_Rb_R+\delta K_D(b_R)\): solve
+\(\delta c_R=D_Rb_R\) and construct \(C=\Lambda c_R+K_D(b_R)\).
+This needs neither the projection nor the normalized homotopy of the
+primary source. The chosen cup Sq1 is used in both parts of this equation;
+it is not replaced by the cochain-level Bockstein representative of
+`nativePrimary`. Every curvature, completion and reference uses the same
+chosen defining system, recorded as `light.primaryDefiningSystem`.
+Integral A relation gauges use \(U=\Lambda_su_R\) since \(H\Lambda_s=0\).
+Their Y sources combine the primary comparison with the diagonal
+Bockstein carry. B gauges retain their original markings with a
+carry homotopy one degree lower. See the
+[construction and precise scope](light-transport-reduction.md#10-implemented-defining-systems).
+`FERMIONAHSS_LIGHT_TRANSPORT_REDUCTION=0` restores the generic evaluation
+paths. Defining data are selected by linear algebra on the cohomology of R
 with the actual classes: a C cochain of a B atom is corrected by the
 `\widetilde D` image until its curvature class vanishes (flat-admissible),
 the lower system of an A relation by the D image, the A=0 systems of
@@ -434,6 +448,15 @@ tuple vertices.
 A residue that should be an integral class modulo m is lifted by the
 coefficient reduction map and read in the D cell; the Smith form of the
 presentation then takes the quotient `D/(D\cap mH)`.
+
+For a marked pure-C square the worker computes the same curvature from
+\(e_R=\Pi_s\widetilde E(\Lambda c_R)\), and uses
+\(e_R+\beta_s^R Sq^1c_R\) for the square correction, up to an integral
+coboundary. This avoids the successor comparison degree and preserves
+the chosen D completion. Ordinary adjacent C-over-D rows already use the
+native primary operation. At the prime three the degree-five cube is
+native; the degree-six cyclic diagonal is native when the supplied
+resolution includes degree ten, and otherwise uses the bar formula.
 
 **Markings.** A C generator denotes its marked state `(c,D_c)`, a B generator
 an integer combination of A=0 atoms `(0,b,c,D_b)` and other B generators.

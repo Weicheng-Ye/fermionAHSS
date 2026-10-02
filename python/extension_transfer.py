@@ -28,7 +28,7 @@ from extension_three_local import ThreeLocalModel
 from coherent_low_commutative import (DegreeOneCommutativeStacking,
                                      DegreeTwoCommutativeStacking)
 from a0_gamma import beta2
-from cochain_tools import LinearCochain
+from cochain_tools import LinearCochain, cut_terms
 
 p = api.p
 structural_zero = acceleration.is_zero
@@ -138,6 +138,11 @@ class TransferredModel:
                     for row in matrices[n]):
                     raise ValueError("invalid resolution coboundary dimensions")
         self.transport = transport
+        # These capabilities are emitted only by the normalized extension
+        # comparison. Raw page comparisons never acquire its side identities.
+        self.strict_identities = setup.get('strictIdentities', False)
+        self.binary_homotopy = setup.get('binaryHomotopy', False)
+        self.primary_comparison = setup.get('primaryComparison', False)
         self._transport = BoundedCache(32768)
         self._answers = BoundedCache(256)
         self._phis = BoundedCache(128)
@@ -303,6 +308,8 @@ class TransferredModel:
         h(g(e_j)) vanishes (kind "homotopy") in degree n, as the pairing of
         that weight sees them; computed once from the f or h terms of every
         simplex of the chains of degree n."""
+        if self.strict_identities:
+            return True
         key = kind, n, weight, signed
         answer = self._identities.get(key)
         if answer is None:
@@ -324,13 +331,16 @@ class TransferredModel:
             self._identities[key] = answer
         return answer
 
+    def homotopy_kind(self, signed):
+        return 'h2' if self.binary_homotopy and not signed else 'h'
+
     def homotopy(self, cochain, signed):
         if cochain.degree <= 0 or structural_zero(cochain):
             return p.zero(cochain.degree - 1)
         weight = 1 if signed else 0
         def value(vertices):
             result = sum(t[weight] * cochain(tuple(t[2]))
-                         for t in self.terms("h", vertices))
+                         for t in self.terms(self.homotopy_kind(signed), vertices))
             return result if signed else result % 2
         answer = p.Cochain(cochain.degree - 1, value)
         answer.homotopy_image = signed
@@ -717,6 +727,16 @@ def serve():
         message = (dict(operation="transport", kind="g", degree=degree, basis=vertices)
                    if kind == "g" else
                    dict(operation="transport", kind=kind, degree=degree, vertices=vertices))
+        if kind.startswith('cupK'):
+            index = int(kind[4:])
+            message['cuts'] = [
+                [[[[v + 1 for v in face] for face in faces]
+                  for left in range(n + i + 1)
+                  for faces, coefficient in cut_terms(
+                      ''.join(str(1 + j % 2) for j in range(i + 2)), (left, n + i - left))
+                  if coefficient % 2]
+                 for n in range(degree + 1)]
+                for i in range(index + 1)]
         print(json.dumps(message), flush=True)
         line = sys.stdin.readline()
         if not line:

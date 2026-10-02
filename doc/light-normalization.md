@@ -36,6 +36,9 @@ the defining equation on R, or the checked comparison identities.
 The resolution lifts and homotopy outputs factor through normalized
 chains: an adjacent repeated vertex gives an empty chain and hence zero.
 This applies to the twists as well as all transported defining data.
+The primary comparison \(K_D\) is also defined on normalized simplices:
+an adjacent repeated vertex returns the zero tensor before any
+contraction. Consequently \(\Lambda c_R+K_D\) is normalized exactly.
 Sums, differences, scalar multiples, pointwise products, reduction modulo
 two or three, exact divisions, and integral carries preserve zero.
 

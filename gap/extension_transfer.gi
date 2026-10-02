@@ -599,12 +599,14 @@ BindGlobal("KOAHSS_EXTENSION_TRANSPORT_OVERRIDE",rec(cells:=false,labels:=false,
 BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
     local bar,override,limits,length,selection,cells,verifier,audit,tr,R,group,elements,unit,
         engine,maximum,used,failure,reduce,append,act,projectComplement,rawHomotopy,boundary,u,
-        normalizedH,cache,order,retained,encode,decode,terms,actVertex,
-        vertexCharacter,vertexGroup,vertexList,labels,label,tableMode,i;
+        normalizedH,cache,order,retained,encode,decode,terms,actVertex,modulus,reductions,
+        vertexCharacter,vertexGroup,vertexList,labels,label,tableMode,i,primary;
     if not IsInt(k) or not k in [1..6] then
         Error("extension transfer preflight supports package degrees 1..6");
     fi;
     override:=KOAHSS_EXTENSION_TRANSPORT_OVERRIDE;
+    reductions:=not (IsBound(GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_TRANSPORT_REDUCTION)
+        and GAPInfo.SystemEnvironment.FERMIONAHSS_LIGHT_TRANSPORT_REDUCTION="0");
     limits:=rec(maxSupport:=override.maxSupport,maxTerms:=override.maxTerms);
     if not IsRecord(backend) or not IsBound(backend.naturalBar) or
        not IsFunction(backend.naturalBar) then
@@ -682,9 +684,10 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
     end;
     engine:=rec(status:="computed",audit:=audit,elements:=vertexList,tableMode:=tableMode,
         comparison:=audit.comparison,vertexLabel:=label,
-        maxDegree:=k+2,stats:=rec(hRequests:=0,hCacheHits:=0,maxExpansionTerms:=0,gRequests:=0));
+        maxDegree:=k+2,binaryHomotopy:=reductions,strictIdentities:=reductions,
+        stats:=rec(hRequests:=0,h2Requests:=0,hCacheHits:=0,maxExpansionTerms:=0,gRequests:=0));
     maximum:=override.maxTerms; cache:=NewDictionary("",true); order:=[]; retained:=0;
-    used:=0; failure:=fail;
+    used:=0; failure:=fail; modulus:=0;
     append:=function(target,source,coefficient)
         local t;
         if source=fail then return false; fi;
@@ -708,6 +711,9 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
                 Last(answer)[1]:=Last(answer)[1]+t[1];
             else Add(answer,[t[1],t[2]]); fi;
         od;
+        if modulus=2 then
+            for t in answer do t[1]:=t[1] mod 2; od;
+        fi;
         return Filtered(answer,t->t[1]<>0);
     end;
     act:=function(chain,g)
@@ -757,15 +763,21 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
         return reduce(answer);
     end;
     u:=chain->projectComplement(rawHomotopy(projectComplement(chain)));
-    normalizedH:=function(vertices)
+    normalizedH:=function(vertices,binary)
         local key,answer,old;
         key:=JoinStringsWithSeparator(List(vertices,v->String(label(v))),"_");
+        if binary then
+            key:=Concatenation("2:",key); engine.stats.h2Requests:=engine.stats.h2Requests+1;
+        fi;
         engine.stats.hRequests:=engine.stats.hRequests+1;
         answer:=LookupDictionary(cache,key);
         if answer<>fail then
             engine.stats.hCacheHits:=engine.stats.hCacheHits+1; return answer;
         fi;
-        used:=0; failure:=fail; answer:=u(boundary(u([[1,vertices]])));
+        used:=0; failure:=fail;
+        if binary then modulus:=2; else modulus:=0; fi;
+        answer:=u(boundary(u([[1,vertices]])));
+        modulus:=0;
         engine.stats.maxExpansionTerms:=Maximum(engine.stats.maxExpansionTerms,used);
         if answer=fail then return fail; fi;
         MakeImmutable(answer);
@@ -794,8 +806,8 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
     terms:=function(kind,indices)
         local simplex,n,answer,first;
         simplex:=decode(indices); n:=Length(simplex)-1;
-        if not kind in ["f","h"] or n>engine.maxDegree or
-           (kind="h" and n>=engine.maxDegree) then
+        if not kind in ["f","h","h2"] or n>engine.maxDegree or
+           (kind in ["h","h2"] and n>=engine.maxDegree) then
             Error("normalized transport request exceeds the available degree");
         fi;
         first:=vertexCharacter(backend.twists.s,simplex[1]);
@@ -807,13 +819,21 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
                     reason:="sparse cochain lift exceeded its term budget");
             fi;
         else
-            answer:=normalizedH(simplex);
+            answer:=normalizedH(simplex,kind="h2");
             if answer=fail then return failure; fi;
             answer:=List(encode(answer),t->[t[1],first*t[2],t[3]]);
         fi;
         return rec(status:="computed",terms:=answer);
     end;
     engine.terms:=terms;
+    primary:=fail;
+    engine.primaryComparison:=reductions and IsBound(backend.nativeCoherence);
+    engine.cupHomotopy:=function(i,indices,patterns)
+        if primary=fail then
+            primary:=KOAHSS_ExtensionPrimaryTransport(tr,backend.nativeCoherence(),maximum);
+        fi;
+        return primary(i,decode(indices),patterns);
+    end;
     # The comparison chain of one basis element (basis is 0-based), verified
     # and encoded when the worker first needs it.
     engine.chain:=function(n,basis)
@@ -831,7 +851,7 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(backend,k)
     end;
     engine.homotopy:=function(simplex)
         local answer;
-        answer:=normalizedH(tr.normalizeSimplex(simplex));
+        answer:=normalizedH(tr.normalizeSimplex(simplex),false);
         if answer=fail then return fail; fi;
         return act(answer,vertexGroup(simplex[1]));
     end;
@@ -905,7 +925,9 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
         maxDegree:=k+2,ranks:=List([0..k+2],model.dimension),
         ordinary:=List([0..k+1],n->model.matrix(n,false)),
         signed:=List([0..k+1],n->model.matrix(n,true)),
-        s:=model.s,omega:=model.omega,gMode:="lazy");
+        s:=model.s,omega:=model.omega,gMode:="lazy",
+        strictIdentities:=transport.strictIdentities,binaryHomotopy:=transport.binaryHomotopy);
+    setup.primaryComparison:=transport.primaryComparison;
     if transport.tableMode then
         setup.vertexMode:="table"; setup.elements:=Length(elements);
         setup.multiplication:=List(elements,g->List(elements,h->transport.vertexLabel(g*h)));
@@ -936,6 +958,13 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(backend,k)
                         model.close(); Error("malformed sparse transport callback");
                     fi;
                     response:=transport.chain(answer.degree,answer.basis);
+                elif answer.kind="cupR" then
+                    response:=rec(status:="computed",terms:=backend.cupMod2(answer.degree,
+                        answer.vertices.degrees[1],answer.vertices.vectors[1],
+                        answer.vertices.degrees[2],answer.vertices.vectors[2]));
+                elif StartsWith(answer.kind,"cupK") then
+                    response:=transport.cupHomotopy(Int(answer.kind{[5..Length(answer.kind)]}),
+                        answer.vertices,answer.cuts);
                 else
                     if not IsBound(answer.vertices) then
                         model.close(); Error("malformed sparse transport callback");

@@ -3,7 +3,7 @@
 The light rows replace the measurement of a relation in the transferred
 stacking model by one fixed residue cochain, evaluated on bar defining data
 built from cochains on the resolution R and paired back to R along the
-comparison chains g(e_j) (doc/extensions.md, "Light rows"). Every
+comparison chains g(e_j) (doc/extensions.md, "Light rows"). A generic
 non-closed defining cochain is the primitive
 
     P(z; r) = Lambda r + H z,   delta_R r = Pi z  (solved in GAP),
@@ -17,6 +17,10 @@ no state between requests besides the transport caches. Rational cochains
 whose coboundary is wanted are paired on the chains of their own degree and
 the twisted coboundary of R is applied to the pairing (Pi delta_s = delta_s Pi
 on normalized invariant cochains), as the page engine does for T.
+
+Primary defining systems instead use Lambda r + K_D, with delta_R r=D_R
+and delta K_D=QD Lambda+Lambda D_R. All later tasks use that same marking;
+the normalized bar homotopy is absent from these defining cochains.
 
 Answers are always computed in band: a resource limit is returned as
 "refused", any other failure as "error"; the stream stays open.
@@ -74,6 +78,7 @@ class LightEvaluator:
         self._memo = BoundedCache(48)
         self._normalized = weakref.WeakKeyDictionary()
         self._audit_normalization = os.environ.get('FERMIONAHSS_LIGHT_NORMALIZATION_CHECKS') == '1'
+        self._reduce_transport = os.environ.get('FERMIONAHSS_LIGHT_TRANSPORT_REDUCTION', '1') != '0'
 
     def memo(self, key, build, objects=()):
         """A cached value; a key naming cochains by identity keeps them alive
@@ -87,8 +92,9 @@ class LightEvaluator:
     # ------------------------------------------------------------------
     # transport and pairings
     def lift(self, n, vector, signed=False):
-        c = self.model.lift(n, tuple(vector), signed)
-        return c if signed else p.binary(c)
+        # Unsigned lifts already have binary values. Retain native_lift so
+        # Pi Lambda can be evaluated without consuming bar cochain values.
+        return self.model.lift(n, tuple(vector), signed)
 
     def prim(self, source, vector, signed=False):
         """P(z; r) for a closed source, checking normalization before using H."""
@@ -110,6 +116,14 @@ class LightEvaluator:
         # all the formula builders that consume this primitive.
         if source.degree <= 0 or getattr(source, 'structural_zero', False):
             return self.lift(source.degree - 1, vector, signed)
+        homotopy = self._homotopy(source, signed, check_normalization)
+        value = self.model.lift(source.degree - 1, tuple(vector), signed) + homotopy
+        return value if signed else p.binary(value)
+
+    def _homotopy(self, source, signed=False, check_normalization=False):
+        """H on a constructed normalized cochain; the source need not be closed."""
+        if source.degree <= 0 or getattr(source, 'structural_zero', False):
+            return p.zero(source.degree - 1)
         weight = 1 if signed else 0
         def h_value(vertices):
             # A normalized contraction drops degeneracies. Check the source
@@ -117,7 +131,7 @@ class LightEvaluator:
             # as those of the input, before using that contraction.
             if check_normalization:
                 self.normalized_degeneracies(source, tuple(vertices))
-            terms = self.model.terms('h', vertices)
+            terms = self.model.terms(self.model.homotopy_kind(signed), vertices)
             if check_normalization:
                 for term in terms:
                     simplex = tuple(term[2])
@@ -129,8 +143,108 @@ class LightEvaluator:
         # Retain the transfer engine's checked H g = 0 fast path. When that
         # chain identity holds, no source values are consumed by the pairing.
         homotopy.homotopy_image = signed
-        value = self.model.lift(source.degree - 1, tuple(vector), signed) + homotopy
-        return value if signed else p.binary(value)
+        return homotopy
+
+    def b_primitive(self, k, bv, P, vector, C=None, primary_gauge=None):
+        """The original P(hD(b,b)+C+P;vector), using a lower-degree carry.
+
+        For the closed b= rho Lambda_s bv, kappa=(Lambda_s bv-b)/2,
+        hD(b,b)=Lambda_2 rho beta_s^R bv + delta rho kappa. Thus
+        H hD(b,b)=rho kappa-Lambda_2 Pi rho kappa-delta H rho kappa.
+        Keeping both correction terms preserves the original marking exactly.
+        C is a binary sum of native lifts, so H C=0.
+        """
+        b = self.lift(k - 2, bv)
+        if not self._reduce_transport:
+            source = p.hD(b, b, self.s) + P
+            if C is not None:
+                source = source + C
+            return self._prim_normalized(p.binary(source), vector)
+        carry, projected, correction, _ = self.b_carry(k, bv)
+        base = self.lift(k - 2, [(a + v) % 2 for a, v in zip(vector, projected)])
+        if primary_gauge is not None and self.model.primary_comparison:
+            # P=QD Lambda y0. Keep its exact H image, using K_D one degree
+            # lower: H P=K_D-Lambda Pi K_D-delta H K_D (binary signs).
+            K, _ = self.primary_comparison(k - 3, primary_gauge)
+            hp_ = p.binary(K + self.lift(k - 2, self.bin(K)) + p.differential(
+                self._homotopy(K, check_normalization=self._audit_normalization)))
+        else:
+            hp_ = self._homotopy(P, check_normalization=self._audit_normalization)
+        return p.binary(base + carry + correction + hp_)
+
+    def b_carry(self, k, bv):
+        """kappa, Pi kappa, delta H kappa and rho beta_s^R b, cached together."""
+        def build():
+            q = self.exact([Fraction(v, 2) for v in
+                            self.model.coboundary(k - 2, bv, True)], 'B Bockstein')
+            lifted = self.lift(k - 2, bv, True)
+            b = self.lift(k - 2, bv)
+            carry = p.binary(p.divide(lifted - b, 2, 'Bockstein comparison carry'))
+            projected = self.bin(carry)
+            hc = self._homotopy(carry, check_normalization=self._audit_normalization)
+            return carry, projected, p.binary(p.differential(hc)), [v % 2 for v in q]
+        return self.memo(('B carry', k, tuple(bv)), build)
+
+    def cup_comparison(self, i, n, a, m, b):
+        """K_i(a,b) for the fixed f and the native binary higher diagonals."""
+        if i < 0 or not any(a) or not any(b):
+            return p.zero(n + m - i - 1)
+        def value(vertices):
+            return sum(a[t[2]] * b[t[4]] for t in
+                       self.model.terms('cupK' + str(i), vertices)
+                       if t[1] == n and t[3] == m) % 2
+        return p.Cochain(n + m - i - 1, value)
+
+    def native_cup(self, i, n, a, m, b):
+        if i < 0 or not any(a) or not any(b):
+            return [0] * self.model.dimension(n + m - i)
+        answer = self.model.transport('cupR', i, dict(degrees=[n, m], vectors=[a, b]))
+        if answer.get('status') != 'computed':
+            from extension_transfer import TransferResourceLimit
+            raise TransferResourceLimit(answer.get('reason', 'native cup refused'))
+        return answer['terms']
+
+    def primary_comparison(self, n, vector):
+        """K_D and D_R using cup Sq1, with delta K_D=QD Lambda+Lambda D_R.
+
+        Both parts of the defining system use this cup representative;
+        neither substitutes the Bockstein representative of nativePrimary.
+        """
+        v = [x % 2 for x in vector]
+        def build():
+            if any(x % 2 for x in self.model.coboundary(n, v, False)):
+                raise ArithmeticError('primary comparison requires a native cocycle')
+            sv, wv = self.model.s_vector, self.model.w_vector
+            K = self.cup_comparison(n - 2, n, v, n, v) + self.cup_comparison(0, 2, wv, n, v)
+            D = [a + b for a, b in zip(self.native_cup(n - 2, n, v, n, v),
+                                       self.native_cup(0, 2, wv, n, v))]
+            if any(sv):
+                sq1 = self.native_cup(n - 1, n, v, n, v)
+                K = K + self.cup_comparison(0, 1, sv, n + 1, sq1) + p.cup(
+                    self.s, self.cup_comparison(n - 1, n, v, n, v))
+                D = [a + b for a, b in zip(D, self.native_cup(0, 1, sv, n + 1, sq1))]
+            K = p.binary(K)
+            return K, [x % 2 for x in D]
+        return self.memo(('primary comparison', n, tuple(v)), build)
+
+    def qd_source(self, n, vector):
+        """The defining right-hand side, native D_R or the generic Pi QD."""
+        if not self._reduce_transport or not self.model.primary_comparison:
+            return self.bin(p.QD(self.lift(n, vector), self.s, self.w))
+        _, D = self.primary_comparison(n, vector)
+        return D
+
+    def qd_primitive(self, n, vector, primitive):
+        """Construct a primary defining cochain with no normalized bar H.
+
+        The native vector solves delta primitive=D_R vector. This is a
+        coherent choice of marking, used by every atom, reference and gauge;
+        it is not the old P with a homotopy correction simply discarded.
+        """
+        if not self._reduce_transport or not self.model.primary_comparison:
+            return self._prim_normalized(p.QD(self.lift(n, vector), self.s, self.w), primitive)
+        K, _ = self.primary_comparison(n, vector)
+        return p.binary(self.lift(n + 1, primitive) + K)
 
     def check_normalized(self, c, vertices):
         checked = self._normalized.get(c)
@@ -148,15 +262,15 @@ class LightEvaluator:
             self.check_normalized(c, vertices[:i] + (vertices[i],) + vertices[i:])
 
     def bin(self, c):
-        return [int(v) % 2 for v in self.model.project(p.binary(c), False)]
+        # Projection already reduces modulo two; an opaque binary wrapper
+        # would hide native lifts and homotopy images from the SDR identities.
+        return [int(v) % 2 for v in self.model.project(c, False)]
 
     def integer(self, c):
         return [int(v) for v in self.model.project(c, True)]
 
     def rational(self, c):
-        n, chain = c.degree, self.model.chain
-        return [sum((Fraction(t[1]) * Fraction(c(tuple(t[2]))) for t in chain(n, j)), Fraction(0))
-                for j in range(self.model.ranks[n])]
+        return [Fraction(v) for v in self.model._pairing(c, 1)]
 
     def rational_ds(self, c):
         """Pair a rational coboundary, checking omitted degenerate faces."""
@@ -205,7 +319,7 @@ class LightEvaluator:
     def atom(self, k, d):
         def build():
             b = self.lift(k - 2, d['b'])
-            c = self._prim_normalized(p.QD(b, self.s, self.w), d['c']) if 'c' in d else None
+            c = self.qd_primitive(k - 2, d['b'], d['c']) if 'c' in d else None
             return b, c
         return self.memo(('atom', k, tuple(d['b']), tuple(d.get('c', ()))), build)
 
@@ -273,7 +387,7 @@ class LightEvaluator:
         s, w = self.s, self.w
         if g.get('u'):
             u = self.lift(k - 4, g['u'], True)
-            y = self._prim_normalized(p.QD(p.binary(u), s, w), g['yR'])
+            y = self.qd_primitive(k - 4, g['u'], g['yR'])
             if g.get('y1'):
                 y = p.binary(y + self.lift(k - 3, g['y1']))
             return u, y, sharp.fsharp(u, y, s, w), 'tau'
@@ -325,7 +439,7 @@ class LightEvaluator:
         s, w = self.s, self.w
         A = self.lift(k - 3, d['A'], True)
         a = p.binary(A)
-        B = self._prim_normalized(p.QD(a, s, w), d['BR']) if 'BR' in d else None
+        B = self.qd_primitive(k - 3, d['A'], d['BR']) if 'BR' in d else None
         C = self._prim_normalized(sharp.fsharp(A, B, s, w), d['CR']) if 'CR' in d else None
         star = d.get('star')
         if star:
@@ -355,21 +469,39 @@ class LightEvaluator:
         s, w = self.s, self.w
         m, e = d['m'], d['e']
         g = d['U']
-        U = self._prim_normalized(_times(A, m), g['u'], True)
+        # delta_s u=m A_R and H Lambda_s=0, literally for the fixed SDR.
+        U = (self.lift(k - 4, g['u'], True) if self._reduce_transport else
+             self._prim_normalized(_times(A, m), g['u'], True))
         if g.get('v'):
             U = U + self.lift(k - 4, g['v'], True)
         XB = hp.hD(a, a, s) if e == 1 else p.zero(k - 2)
         B0 = ref[0]
         source = p.binary(p.QD(p.binary(U), s, w) + XB + B0)
-        Y = self._prim_normalized(source, g['YR']) if 'YR' in g else None
+        native_source = None
+        if self._reduce_transport and self.model.primary_comparison:
+            uv = list(g['u'])
+            if g.get('v'):
+                uv = [x + y for x, y in zip(uv, g['v'])]
+            K, D = self.primary_comparison(k - 4, uv)
+            carry, q = p.zero(k - 3), [0] * self.model.dimension(k - 2)
+            if e == 1:
+                av = [x % 2 for x in d['A']]
+                carry = p.binary(p.divide(self.lift(k - 3, av, True) - a, 2,
+                                          'A polarization comparison carry'))
+                q = [x % 2 for x in self.exact([Fraction(x, 2) for x in
+                     self.model.coboundary(k - 3, av, True)], 'A polarization Bockstein')]
+            native_source = [(x + y + z) % 2 for x, y, z in zip(D, q, self.bin(B0))]
+            Y = p.binary(self.lift(k - 3, g['YR']) + K + carry) if 'YR' in g else None
+        else:
+            Y = self._prim_normalized(source, g['YR']) if 'YR' in g else None
         if Y is not None and g.get('tau'):
             v = self.lift(k - 4, g['tau']['v'], True)
-            yv = self._prim_normalized(p.QD(p.binary(v), s, w), g['tau']['yR'])
+            yv = self.qd_primitive(k - 4, g['tau']['v'], g['tau']['yR'])
             Y = p.binary(Y + yv + hp.hD(p.binary(U), p.binary(v), s))
             U = U + v
         if Y is not None and g.get('yD'):
             Y = p.binary(Y + self.lift(k - 3, g['yD']))
-        return U, Y, XB, source
+        return U, Y, XB, source, native_source
 
     def r_c(self, k, A, a, B, U, Y, ref, m, e):
         """R_C = X_C + H_{k-1}(U,Y) + beta(mA, X_B+B0; 0, B0) + C0 (relative note (4.3))."""
@@ -392,7 +524,7 @@ class LightEvaluator:
         (14) with the bounded tail (25)); the D marking is added in GAP."""
         s, w = self.s, self.w
         m, e = d['m'], d['e']
-        U, Y, _, _ = self.a_gauge(k, d, A, a, ref)
+        U, Y, _, _, _ = self.a_gauge(k, d, A, a, ref)
         R = self.r_c(k, A, a, B, U, Y, ref, m, e)
         W = self._prim_normalized(R, d['U']['WR'])
         B0, C0, carry, pure = ref
@@ -440,8 +572,7 @@ class LightEvaluator:
     # ------------------------------------------------------------------
     # tasks
     def task_qd(self, k, d):
-        b = self.lift(k - 2, d['b'])
-        return {'QD': self.bin(p.QD(b, self.s, self.w))}
+        return {'QD': self.qd_source(k - 2, d['b'])}
 
     def task_atom_curvature(self, k, d):
         """Pi J_k(0,b,c) in degree k+2 (integral)."""
@@ -457,9 +588,23 @@ class LightEvaluator:
         return {'J': self.integer(J)}
 
     def task_c_mark(self, k, d):
-        """Pi J(0,0,C) (degree k+2) and Pi gamma_C(C,C) (degree k+1) of a closed C."""
+        """The unchanged pure-C curvature and the cohomology class of its square.
+
+        gamma is consumed only in the closed row 2D+gamma. Replacing it by
+        e+beta_s Sq1(c), e=Pi tilde E(Lambda c), changes that row by an
+        integral coboundary and leaves the chosen D completion unchanged.
+        """
         s, w = self.s, self.w
         C = self.lift(k - 1, d['c'])
+        if self._reduce_transport:
+            e = self.integer(p.E(C, w))
+            curvature = self.model.coboundary(k + 1, e, True)
+            sq1 = self.exact([Fraction(x, 2) for x in
+                             self.model.coboundary(k - 1, d['c'], False)], 'Sq1 lift')
+            beta = self.model.coboundary(k, [x % 2 for x in sq1], True)
+            return {'J': self.exact([Fraction(x, 2) for x in curvature], 'pure-C curvature'),
+                    'gamma': self.exact([x + Fraction(y, 2) for x, y in zip(e, beta)],
+                                        'pure-C square class')}
         z = [p.zero(j) for j in range(k + 2)]
         if k >= 3:
             T = upper.Triple(z[k - 3], z[k - 2], C, True, True)
@@ -479,21 +624,27 @@ class LightEvaluator:
     def task_gauge(self, k, d):
         """Projections that select a B relation gauge (u, y, pi)."""
         s, w = self.s, self.w
-        b, _ = self.atom(k, d)
-        x = p.hD(b, b, s)
-        C, _ = self.pure_c(k, d.get('Cref', []))
-        base = p.binary(x + C)
+        if self._reduce_transport:
+            _, projected, _, q = self.b_carry(k, d['b'])
+            base = [x + y for x, y in zip(q, self.model.coboundary(k - 2, projected, False))]
+            for v in d.get('Cref', []):
+                base = [x + y for x, y in zip(base, v)]
+            base = [x % 2 for x in base]
+        else:
+            b, _ = self.atom(k, d)
+            C, _ = self.pure_c(k, d.get('Cref', []))
+            base = self.bin(p.binary(p.hD(b, b, s) + C))
         g = d.get('gauge', {})
         out = {}
         want = d['want']
         if 'xC' in want:
-            out['xC'] = self.bin(base)
+            out['xC'] = base
         if 'QDu' in want:
-            u = self.lift(k - 4, g['u'], True)
-            out['QDu'] = self.bin(p.QD(p.binary(u), s, w))
+            out['QDu'] = self.qd_source(k - 4, g['u'])
         if 'xCp' in want or 'target' in want:
             _, _, P, _ = self.b_gauge(k, g)
-            out['xCp' if 'xCp' in want else 'target'] = self.bin(p.binary(base + P))
+            out['xCp' if 'xCp' in want else 'target'] = [(x + y) % 2 for x, y in
+                                                       zip(base, self.bin(P))]
         return out
 
     def task_bd_page(self, k, d):
@@ -502,8 +653,7 @@ class LightEvaluator:
         b, c = self.atom(k, d)
         g = d['gauge']
         u, y, P, kind = self.b_gauge(k, g)
-        x = p.hD(b, b, s)
-        pi = self._prim_normalized(p.binary(x + P), g['pi'])
+        pi = self.b_primitive(k, d['b'], P, g['pi'], primary_gauge=g.get('y0'))
         n = b.degree
         A = p.Cochain(n, lambda f, b=b, pi=pi: b(f) % 2 + 2 * (pi(f) % 2))
         if kind == 'pure':
@@ -527,7 +677,7 @@ class LightEvaluator:
         u, y, P, kind = self.b_gauge(k, g) if k >= 3 else (None, None, p.zero(k - 1), 'pure')
         x = p.hD(b, b, s)
         C, half = self.pure_c(k, d.get('Cref', []))
-        pi = self._prim_normalized(p.binary(x + C + P), g['pi'])
+        pi = self.b_primitive(k, d['b'], P, g['pi'], C, primary_gauge=g.get('y0'))
         t = p.binary(p.differential(pi) + P)
         z = [p.zero(j) for j in range(k + 2)]
         L = api.local
@@ -571,7 +721,7 @@ class LightEvaluator:
         A, a, B, C = self.a_data(k, d)
         out = {}
         if 'QDa' in want:
-            out['QDa'] = self.bin(p.QD(a, s, w))
+            out['QDa'] = self.qd_source(k - 3, d['A'])
         if 'fsharp' in want:
             out['fsharp'] = self.bin(sharp.fsharp(A, B, s, w))
         if 'pot' in want:
@@ -580,23 +730,25 @@ class LightEvaluator:
             out['pot'] = self.exact(self._rational_ds_normalized(potential), 'the A curvature')
         ref = self.reference(k, d['ref']) if 'ref' in d else None
         if 'Ysrc' in want or 'RC' in want or 'QDv' in want:
-            U, Y, XB, source = self.a_gauge(k, d, A, a, ref)
+            U, Y, XB, source, native_source = self.a_gauge(k, d, A, a, ref)
             if 'Ysrc' in want:
-                out['Ysrc'] = self.bin(source)
+                out['Ysrc'] = self.bin(source) if native_source is None else native_source
             if 'QDv' in want:
-                v = self.lift(k - 4, d['U']['tau']['v'], True)
-                out['QDv'] = self.bin(p.QD(p.binary(v), s, w))
+                out['QDv'] = self.qd_source(k - 4, d['U']['tau']['v'])
             if 'RC' in want:
                 out['RC'] = self.bin(self.r_c(k, A, a, B, U, Y, ref, d['m'], d['e']))
         if 'ypp' in want or 'page' in want:
-            U = self._prim_normalized(_times(A, d['m']), d['U']['u'], True)
+            U = (self.lift(k - 4, d['U']['u'], True) if self._reduce_transport else
+                 self._prim_normalized(_times(A, d['m']), d['U']['u'], True))
             if d['U'].get('v'):
                 U = U + self.lift(k - 4, d['U']['v'], True)
-            source = p.QD(p.binary(U), s, w)
+            uv = list(d['U']['u'])
+            if d['U'].get('v'):
+                uv = [x + y for x, y in zip(uv, d['U']['v'])]
             if 'ypp' in want:
-                out['ypp'] = self.bin(source)
+                out['ypp'] = self.qd_source(k - 4, uv)
             if 'page' in want:
-                ypp = self._prim_normalized(source, d['U']['ypp'])
+                ypp = self.qd_primitive(k - 4, uv, d['U']['ypp'])
                 t = p.binary(p.divide(A - a, 2, 'A carry'))
                 ea = p.binary(p.divide(p.differential(a), 2, 'binary Bockstein'))
                 st = p.cup(s, t)

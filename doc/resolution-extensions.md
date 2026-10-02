@@ -211,9 +211,20 @@ formulas are projected only along g-support during native operations.
 A projection to R pairs a cochain with every chain \(g(e_j)\) of its
 degree. The pairing is linear and is computed once per cochain: a sum is
 paired term by term, the lift \(\Lambda v\) pairs to \(v\) (\(fg=1\)) and a
-normalized-homotopy image pairs to zero (\(h'g=0\)), each identity being
-checked once per degree on the chains themselves; otherwise the cochain is
-evaluated on the chains.
+normalized-homotopy image pairs to zero (\(h'g=0\)). The normalized
+extension comparison supplies these identities by construction, so these
+pairings need no g chains. A supplied worker comparison without that
+certificate retains the checks once per degree on the chains themselves.
+Other cochains are evaluated on the chains. Every g chain actually
+requested is still verified integrally. Binary homotopy requests collect
+the same normalized contraction modulo two throughout its linear stages;
+integral and rational evaluations retain their integral chains.
+
+The light primary comparison additionally requests binary tensors
+\(\mathcal K_i:\mathcal B\to(R\otimes R)[i+1]\). It uses f and the
+native tensor contraction with the standard simplex diagonals, and never
+constructs g or normalized H. See
+[the defining-system construction](light-transport-reduction.md#10-implemented-defining-systems).
 
 The formulas branch on whether a cochain vanishes (the legal, pure and
 complete flags). The zero test pairs the cochain with \(g(e_j)\) for every

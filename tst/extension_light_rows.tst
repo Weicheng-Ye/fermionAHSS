@@ -29,6 +29,8 @@ gap> Assert(0,Set(List(Filtered(lightD8.degreeResult.extensionVectors,v->v.layer
 gap> # The prime three in degree five: 3a = 2Y with rho_3 Y = (rho_3 A)^3, Z/9.
 gap> lightZ3 := koFull(CyclicGroup(3),0,0,5);;
 gap> Assert(0,lightZ3.invariants=[9] and lightRow(lightZ3.degreeResult,"A").result.witness.model="light-R");
+gap> Assert(0,lightRow(lightZ3.degreeResult,"A").result.witness.light.powerEvaluation="native cube");
+gap> Assert(0,lightRow(lightZ3.degreeResult,"A").result.witness.light.tasks=0);
 gap> # The switch restores the measurement in the model.
 gap> KOAHSS_EXTENSION_RELATION_OVERRIDE.light := false;;
 gap> heavySix := koFull(CyclicGroup(4),[1],0,6);;
