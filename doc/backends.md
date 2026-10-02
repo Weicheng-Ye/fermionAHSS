@@ -68,6 +68,18 @@ product. For backend calls, `true` and `false` abbreviate the configured
 `s` and the zero sign twist. A bare matrix complex does not determine
 coherent higher operations; missing capabilities remain unavailable.
 
+Binary cup products and extension primary comparisons share an exact
+arity-two tensor engine. A tensor term stores the two degrees, basis
+indices and group-element indices; equal terms cancel modulo two.
+For a cup product of degrees p and q, both tensor factors are capped at
+`max(p,q)`. This leaves the requested component unchanged: the contraction
+only raises factor degrees, and the swap preserves their maximum. The
+extension comparison retains full tensors for its boundary checks.
+The supplied resolution's signed contraction words and group products are
+cached with bounded capacity. Explicit element lists use a synchronized
+index, while HAP lazy lists retain their own inverse indexing operation.
+These caches do not change contraction words or cochain representatives.
+
 Common backend methods are:
 
 ```gap

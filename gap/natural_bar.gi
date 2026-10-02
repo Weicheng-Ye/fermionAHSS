@@ -1,11 +1,12 @@
 # Sparse comparison with the normalized homogeneous bar resolution.
 # Chain maps are integral and equivariant. Cochain-facing methods use LOCAL
 # values in the fiber at the first vertex, so binary lifts stay binary.
-BindGlobal("KOAHSS_NaturalBarTransport", function(R)
-    local identity, length, dimension, index, checkSimplex, anchor, degenerate,
+BindGlobal("KOAHSS_NaturalBarTransport", function(arg)
+    local R,memo,identity, length, dimension, index, checkSimplex, anchor, degenerate,
           reduceR, reduceBar, actR, actBar, barCone, fCache, gCache, hCache,
           key, f, g, homotopy, character, characterCache, evaluateR, pullback,
           result;
+    R:=arg[1];
     if not IsBoundGlobal("IsHapResolution")
        or not CallFuncList(ValueGlobal("IsHapResolution"),[R])
        or not IsBound(R!.homotopy) then
@@ -25,17 +26,8 @@ BindGlobal("KOAHSS_NaturalBarTransport", function(R)
         fi;
         return R!.dimension(n);
     end;
-    index := function(element)
-        local position;
-        position := Position(R!.elts,element);
-        if position = fail then
-            if IsBound(R!.appendToElts) then R!.appendToElts(element);
-            else Add(R!.elts,element); fi;
-            position := Position(R!.elts,element);
-            if position = fail then Error("koAHSS: could not index a bar vertex"); fi;
-        fi;
-        return position;
-    end;
+    if Length(arg)=2 then memo:=arg[2]; else memo:=KOAHSS_ResolutionMemo(R); fi;
+    index:=memo.index;
     # Plain loops: these checks run on every evaluation of a lifted cochain.
     checkSimplex := function(simplex)
         local element;
@@ -122,7 +114,7 @@ BindGlobal("KOAHSS_NaturalBarTransport", function(R)
                 od;
                 answer := [];
                 for term in reduceR(rhs) do
-                    contraction := R!.homotopy(n-1,[term[1],index(term[2])]);
+                    contraction := memo.contract(n-1,term[1],index(term[2]));
                     for j in contraction do
                         Add(answer,[AbsInt(j[1]),R!.elts[j[2]],term[3]*SignInt(j[1])]);
                     od;
@@ -186,7 +178,7 @@ BindGlobal("KOAHSS_NaturalBarTransport", function(R)
         cacheKey := Concatenation(JoinStringsWithSeparator(List(sign,String),""),
             "_",String(index(element)));
         if not IsBound(characterCache.(cacheKey)) then
-            contraction := R!.homotopy(0,[1,index(element)]);
+            contraction := memo.contract(0,1,index(element));
             characterCache.(cacheKey) := (-1)^(
                 Sum(contraction,t -> SignInt(t[1])*sign[AbsInt(t[1])]) mod 2);
         fi;

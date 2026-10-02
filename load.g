@@ -23,7 +23,7 @@ CallFuncList(function()
     fi;
     Read(Filename(directory, "gap/pages.gi"));
     Read(Filename(directory, "gap/display.gi"));
-    for component in ["cochains.gi", "natural_words.gi", "natural_bar.gi", "native_coherence.gi", "hap.gi", "adem.gi", "integer_equations.gi", "secondary.gi", "natural_secondary.gi", "defining_systems.gi", "tertiary_correction.gi", "natural_tertiary.gi", "group_api.gi"] do
+    for component in ["cochains.gi", "natural_words.gi", "resolution_memo.gi", "natural_bar.gi", "binary_tensors.gi", "native_coherence.gi", "hap.gi", "adem.gi", "integer_equations.gi", "secondary.gi", "natural_secondary.gi", "defining_systems.gi", "tertiary_correction.gi", "natural_tertiary.gi", "group_api.gi"] do
         Read(Filename(directory, Concatenation("gap/", component)));
     od;
     Read(Filename(directory, "gap/extensions.gi"));

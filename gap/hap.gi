@@ -29,8 +29,8 @@ BindGlobal("KOAHSS_HAP_ReduceIntegral", function(terms)
 end);
 
 InstallGlobalFunction(koAHSSHAPSpace, function(arg)
-    local R, operations, length, dimension, identity, index, contract, property,
-          sign, differential, diagonals, diagonal, action, tensorH, cup, data,
+    local R, operations, length, dimension, identity, index, contract, property, memo,
+          sign, differential, binary, cup, data,
           integralDiagonals, integralDiagonal, integralH, integralAction,
           integralCup, naturalBar, naturalBarFactory, native, nativeFactory;
     if Length(arg) < 1 or Length(arg) > 2 then
@@ -66,23 +66,13 @@ InstallGlobalFunction(koAHSSHAPSpace, function(arg)
         fi;
         return R!.dimension(n);
     end;
-    index := function(g)
-        local k;
-        k := Position(R!.elts, g);
-        if k = fail then
-            if IsBound(R!.appendToElts) then R!.appendToElts(g);
-            else Add(R!.elts, g); fi;
-            k := Position(R!.elts, g);
-            if k = fail then Error("could not index resolution group element"); fi;
-        fi;
-        return k;
-    end;
+    memo := KOAHSS_ResolutionMemo(R); index := memo.index;
     # Every degree-zero generator has augmentation 1, and the homotopy
     # contracts to the first generator at the identity. Multiple vertex
     # orbits, as in SGC resolutions, are allowed under this convention.
     # Always use positive basis indices: not every HAP homotopy handles signs.
     contract := function(n, j, g)
-        return R!.homotopy(n, [j, index(g)]);
+        return memo.contract(n,j,index(g));
     end;
     sign := function(s, g)
         local word;
@@ -101,76 +91,17 @@ InstallGlobalFunction(koAHSSHAPSpace, function(arg)
         od;
         return mat;
     end;
-    # Tensor terms [p,j,g,q,k,h] represent g e_j^p tensor h e_k^q.
-    # Cropping either factor beyond the resolution length cannot affect any
-    # retained component: tensor H only raises degrees, and swaps preserve max.
-    tensorH := function(terms)
-        local result, term, u;
-        result := [];
-        for term in terms do
-            if term[1] < length then
-                for u in contract(term[1], term[2], term[3]) do
-                    Add(result, [term[1]+1, AbsInt(u[1]), R!.elts[u[2]],
-                                 term[4], term[5], term[6]]);
-                od;
-            fi;
-            if term[1] = 0 and term[4] < length then
-                for u in contract(term[4], term[5], term[6]) do
-                    Add(result, [0, 1, identity,
-                                 term[4]+1, AbsInt(u[1]), R!.elts[u[2]]]);
-                od;
-            fi;
-        od;
-        return KOAHSS_HAP_Reduce(result);
-    end;
-    action := function(terms, g)
-        return List(terms, t -> [t[1],t[2],g*t[3],t[4],t[5],g*t[6]]);
-    end;
-    diagonals := [];
-    diagonal := function(i, n, j)
-        local rhs, t, prev;
-        if i < 0 or n < 0 then return []; fi;
-        if not IsBound(diagonals[i+1]) then diagonals[i+1] := []; fi;
-        if not IsBound(diagonals[i+1][n+1]) then diagonals[i+1][n+1] := []; fi;
-        if IsBound(diagonals[i+1][n+1][j]) then
-            return diagonals[i+1][n+1][j];
-        fi;
-        if i = 0 and n = 0 then
-            rhs := [[0,j,identity,0,j,identity]];
-        else
-            rhs := [];
-            if n > 0 then
-                for t in R!.boundary(n,j) do
-                    Append(rhs, action(diagonal(i,n-1,AbsInt(t[1])), R!.elts[t[2]]));
-                od;
-            fi;
-            if i > 0 then
-                prev := diagonal(i-1,n,j);
-                Append(rhs, prev);
-                Append(rhs, List(prev, t -> [t[4],t[5],t[6],t[1],t[2],t[3]]));
-            fi;
-            rhs := tensorH(KOAHSS_HAP_Reduce(rhs));
-        fi;
-        diagonals[i+1][n+1][j] := rhs;
-        return rhs;
-    end;
+    # The binary higher-diagonal recurrence is shared with the primary
+    # comparison. Capping both factors at max(p,q) preserves this component:
+    # contraction only raises factor degrees, and the swap preserves max.
+    binary := KOAHSS_BinaryTensorEngine(R,memo);
     cup := function(i, p, a, q, b)
-        local n, result, j, t;
+        local n;
         n := p+q-i;
         if n < 0 then return []; fi;
-        result := List([1..dimension(n)], j -> 0);
-        if i < 0 then return result; fi;
-        if Length(a) <> dimension(p) or Length(b) <> dimension(q) then
-            Error("cup input has wrong cochain dimension");
-        fi;
-        for j in [1..Length(result)] do
-            for t in diagonal(i,n,j) do
-                if t[1] = p and t[4] = q then
-                    result[j] := (result[j]+a[t[2]]*b[t[5]]) mod 2;
-                fi;
-            od;
-        od;
-        return result;
+        dimension(n);  # Retain the distinction between zero and unavailable.
+        if i >= 0 then dimension(p); dimension(q); fi;
+        return binary.cup(i,p,a,q,b);
     end;
 
     # The tensor contraction H=h tensor 1 + eta epsilon tensor h respects
@@ -258,7 +189,7 @@ InstallGlobalFunction(koAHSSHAPSpace, function(arg)
             if not IsBoundGlobal("KOAHSS_NaturalBarTransport") then
                 Error("koAHSS: the natural bar transport module is unavailable");
             fi;
-            naturalBar := ValueGlobal("KOAHSS_NaturalBarTransport")(R);
+            naturalBar := ValueGlobal("KOAHSS_NaturalBarTransport")(R,memo);
         fi;
         return naturalBar;
     end;
@@ -266,7 +197,10 @@ InstallGlobalFunction(koAHSSHAPSpace, function(arg)
     # This diagnostic engine is separate from the calibrated simplicial model.
     native := fail;
     nativeFactory := function()
-        if native=fail then native:=koAHSSNativeCoherence(R); fi;
+        if native=fail then
+            native:=koAHSSNativeCoherence(R);
+            native.binaryTensor:=function() return binary; end;
+        fi;
         return native;
     end;
     data := rec(dimension := dimension, differential := differential,

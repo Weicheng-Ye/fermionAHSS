@@ -2,12 +2,12 @@
 CallFuncList(function()
     local patterns,i,n,a,b,word,evaluator,groupOrder,R,backend,native,tr,compare,
         lift,K,p,q,da,db,source,cup,vertices,sigma,lhs,rhs,cells,engine,
-        labels,integral,binary,reduceEncoded,chain,limited;
+        labels,integral,binary,reduceEncoded,chain,limited,reference,expected,actual;
     patterns:=[];
-    for i in [0..1] do
+    for i in [0..3] do
         patterns[i+1]:=[];
         word:=List([0..i+1],j->1+j mod 2);
-        for n in [0..3] do
+        for n in [0..5] do
             patterns[i+1][n+1]:=[];
             for a in Filtered(Combinations([1..n+1]),x->not IsEmpty(x)) do
                 for b in Filtered(Combinations([1..n+1]),x->not IsEmpty(x)) do
@@ -28,6 +28,7 @@ CallFuncList(function()
             if cells then tr:=KOAHSS_ExtensionCellTransport(R,5);
             else tr:=backend.naturalBar(); fi;
             compare:=KOAHSS_ExtensionPrimaryTransport(tr,native,2000000);
+            reference:=KOAHSS_ExtensionPrimaryTransportReference(tr,native,2000000);
             lift:=function(v,sigma) return Sum(tr.f(sigma),t->t[3]*v[t[1]]) mod 2; end;
             K:=function(i,p,a,q,b,sigma)
                 local answer;
@@ -38,6 +39,18 @@ CallFuncList(function()
             end;
             vertices:=AsList(R!.group);
             if cells then vertices:=List(vertices,g->[g,1]); fi;
+            # Literal pair forms, including asymmetric bidegrees and all
+            # cup indices used by the low-degree A and B defining systems.
+            for i in [0..3] do
+                for n in [0..5] do
+                    if n+i+1>native.maxTotalDegree then continue; fi;
+                    sigma:=List([0..n],j->vertices[1+j mod Length(vertices)]);
+                    expected:=reference(i,sigma,patterns);
+                    actual:=compare(i,sigma,patterns);
+                    Assert(0,expected.status="computed" and actual.status="computed");
+                    Assert(0,native.binaryTensor().reduce(expected.terms)=actual.terms);
+                od;
+            od;
             for i in [0..1] do
                 p:=i+1; q:=p; n:=p+q-i; a:=[1]; b:=[1];
                 da:=List(backend.coboundary(p,a,false),x->x mod 2);

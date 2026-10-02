@@ -121,9 +121,28 @@ class UniversalTable:
     def __init__(self, name, function):
         self.name = name
         self.function = function
-        self.values = {}
+        self._values = {}
+        self._stored_entries = []
         self.pending = {}
         functools.update_wrapper(self, function)
+
+    @property
+    def values(self):
+        # Decode a table only when it is used. Low-degree calculations do
+        # not need the large dataclass keys of the higher universal phases.
+        # Preserve insertion order: existing values, bundled values, then
+        # cache entries, with the first value of a key winning as before.
+        if not self._stored_entries:
+            return self._values
+        entries, self._stored_entries = self._stored_entries, []
+        for rows, classes in entries:
+            for key, value in rows:
+                try:
+                    self._values.setdefault(_decode(key, classes),
+                                            _decode(value, classes))
+                except (KeyError, TypeError, ValueError):
+                    continue
+        return self._values
 
     def __call__(self, key):
         try:
@@ -198,12 +217,7 @@ class UniversalStore:
             table = self.tables.get(name)
             if table is None:
                 continue
-            for key, value in entries:
-                try:
-                    table.values.setdefault(_decode(key, self.classes),
-                                            _decode(value, self.classes))
-                except (KeyError, TypeError, ValueError):
-                    continue
+            table._stored_entries.append((entries, self.classes))
 
     def load(self):
         if self.directory is None:

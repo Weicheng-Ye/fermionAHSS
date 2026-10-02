@@ -299,11 +299,15 @@ extension problem; both keep their universal source values in a store and
 load the values bundled in
 [data/universal-values.json](data/universal-values.json) when its recorded
 hash matches the formula sources.
+Each table's stored keys are decoded on first use, so low-degree requests
+do not initialize unused higher-phase tables. The stored values and their
+precedence are unchanged.
 
 | Variable | Effect |
 | --- | --- |
 | `FERMIONAHSS_CACHE_DIR` | Directory of the universal-value store (default `$XDG_CACHE_HOME/fermionAHSS` or `~/.cache/fermionAHSS`); empty disables it |
 | `FERMIONAHSS_BUNDLED_VALUES=0` | Ignore the bundled universal values |
+| `FERMIONAHSS_PRIMARY_TENSOR_REFERENCE=1` | Use the integral tensor implementation reduced modulo two for primary-comparison checks |
 | `FERMIONAHSS_LAYERED_RELATIONS=0` | Measure relations through the D layer instead of their target layer |
 | `FERMIONAHSS_NATIVE_RELATIONS=0` | Measure the relations whose target layer lies right below the generator's in the model instead of reading them from a primary operation on R |
 | `FERMIONAHSS_LIGHT_RELATIONS=0` | Measure the other relations in the transferred model instead of reading them from light rows (doc/extensions.md, "Light rows") |

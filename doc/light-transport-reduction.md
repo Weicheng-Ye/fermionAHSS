@@ -592,6 +592,18 @@ system, closed integral inputs to D/Tau gauges, and the A-page `ypp` input.
 The native tensor contraction checks its cycle and filler equations. The
 simplex cuts come from the existing interval-cut engine.
 
+The primary comparison evaluates (12) with flat binary tensors, retaining
+group actions through contraction and both full boundary checks. It
+collects equal pairing terms only after the contractions, since the final
+binary coefficients have trivial group action. Its contraction and native
+diagonal caches are shared with binary primary operations on R. This
+applies wherever \(K_D\) occurs: B atoms, A defining systems, and their
+gauge corrections, including A-over-C and A-over-D relations. Adjacent
+primary-operation rows use the shared native diagonals directly. Higher
+secondary and tertiary sources keep their calibrated formulas.
+`FERMIONAHSS_PRIMARY_TENSOR_REFERENCE=1` selects the integral tensor
+implementation reduced modulo two for an independent comparison.
+
 These are chosen defining systems, not literal copies of the generic
 \(P\) primitive. Each atom's curvature is evaluated on the chosen C,
 its D completion is solved from that curvature, and every product,

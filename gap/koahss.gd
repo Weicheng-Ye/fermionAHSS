@@ -10,6 +10,8 @@ DeclareGlobalFunction("koAHSSPageData");
 DeclareGlobalFunction("koAHSSCochainSpace");
 DeclareGlobalFunction("koAHSSHAPSpace");
 DeclareGlobalFunction("koAHSSNativeCoherence");
+DeclareGlobalFunction("KOAHSS_BinaryTensorEngine");
+DeclareGlobalFunction("KOAHSS_ResolutionMemo");
 DeclareGlobalFunction("koAHSSTertiaryCorrection");
 DeclareGlobalFunction("koAHSSSolveMod2System");
 DeclareGlobalFunction("koAHSSSolveCochainEquation");

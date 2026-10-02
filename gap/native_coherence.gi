@@ -12,7 +12,7 @@ InstallGlobalFunction(koAHSSNativeCoherence, function(arg)
           operationBoundary, combination, compose, fillCell, engine,
           identityOp, augmentationOp, diagonals, diagonal, cyclics, cyclic,
           associatorOp, associator, pentagonOp, pentagon, leftUnitOp,
-          rightUnitOp, unit, character, evaluateCochains, property;
+          rightUnitOp, unit, character, evaluateCochains, property, binaryTensor;
     if Length(arg)<1 or Length(arg)>2 then
         Error("koAHSSNativeCoherence(resolution[,options])");
     fi;
@@ -429,6 +429,11 @@ InstallGlobalFunction(koAHSSNativeCoherence, function(arg)
         augmentation:=augmentationOp,diagonal:=diagonal,associator:=associator,
         pentagon:=pentagon,cyclic:=cyclic,character:=character,
         evaluateCochains:=evaluateCochains);
+    binaryTensor:=fail;
+    engine.binaryTensor:=function()
+        if binaryTensor=fail then binaryTensor:=KOAHSS_BinaryTensorEngine(R); fi;
+        return binaryTensor;
+    end;
     engine.leftUnit:=function()
         if leftUnitOp=fail then leftUnitOp:=unit(1); fi;
         return leftUnitOp;

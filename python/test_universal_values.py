@@ -1,8 +1,10 @@
 """The universal values shipped in data/universal-values.json are current."""
 import json
+from fractions import Fraction
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import extension_transfer  # noqa: E402,F401  (installs the worker's exact policy)
@@ -37,6 +39,28 @@ class BundledUniversalValues(unittest.TestCase):
             nonzero = [(key, value) for key, value in values if value != 0]
             for key, value in nonzero[::max(1, len(nonzero) // 3)][:3]:
                 self.assertEqual(table.recompute(universal._decode(key, classes)), value)
+
+
+class DeferredUniversalValues(unittest.TestCase):
+    def test_unused_tables_are_not_decoded_and_first_value_wins(self):
+        first = universal.UniversalTable('first', lambda key: Fraction(key, 4))
+        unused = universal.UniversalTable('unused', lambda key: 1 / 0)
+        store = universal.UniversalStore(None, 'test', {'first': first, 'unused': unused})
+        first.values[2] = Fraction(1, 2)
+        store._insert({'first': [(1, {'f': '1/4'}), (2, {'f': '9/4'})],
+                       'unused': [(1, {'d': 'unknown.Class', 'v': []})]})
+        store._insert({'first': [(1, {'f': '7/4'}), (3, {'f': '3/4'})]})
+        with patch.object(universal, '_decode', wraps=universal._decode) as decode:
+            self.assertEqual(first(1), Fraction(1, 4))
+            self.assertEqual(first.values, {1: Fraction(1, 4), 2: Fraction(1, 2),
+                                            3: Fraction(3, 4)})
+            count = decode.call_count
+            self.assertEqual(first(3), Fraction(3, 4))
+            self.assertEqual(decode.call_count, count)
+        self.assertEqual(first.pending, {})
+        self.assertTrue(unused._stored_entries)
+        self.assertEqual(first(4), 1)
+        self.assertEqual(first.pending, {4: 1})
 
 
 if __name__ == '__main__':
