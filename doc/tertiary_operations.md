@@ -266,6 +266,81 @@ The signed integer \(K\) and the separate quarter-input carry \(q\) are
 both retained. Reducing \(K\) to its parity loses part of the formula.
 At \(A=0\), all additional terms vanish literally.
 
+### Native page classes with trivial sign
+
+Suppose \(s=0\), \(A=2\), and the choice \(b=0\) admits a second
+defining cochain. Put \(W=\widetilde\omega\), \(r=dW/2\), and
+\(C=\widetilde c\), where \(dc=-\rho r\). Formula (R0e) specializes to
+
+\[
+\mathcal O_0=\tfrac12\widetilde{E(c)}-\tfrac18P_W,
+\qquad P_W=W\smile W+W\smile_1dW.
+\]
+
+The cochain \(z=W+2C\) is closed modulo four. Its Pontryagin square is
+
+\[
+P_4(z)=z\smile z+z\smile_1dz\pmod8.
+\]
+
+The integral cup identities give
+\(dP_4(z)=2z\smile dz+dz\smile_1dz\), divisible by eight. Expanding
+the square gives
+
+\[
+P_4(z)-(P_W+4\widetilde{E(c)})
+\equiv 2d(W\smile_1C)
+ +4(C\smile_1r-r\smile_1C)\pmod8.
+\]
+
+The cup-two identity and \(dC\equiv r\pmod2\) identify the last term,
+up to a coboundary modulo eight, with \(4r\smile_2r\). Its Bockstein
+class is \(\beta_2\operatorname{Sq}^1(\rho r)=0\), since \(r\) is an
+integral cocycle. Consequently the original phase gives
+
+\[
+\boxed{[T_0(2)]=[-\beta_8 P_4(z)]}
+\]
+
+in the target page. A different mod-four lift of \(\omega\) changes
+this class by
+\(\beta_2(\operatorname{Sq}^2[h]+\omega[h])=\widetilde D[h]\),
+which is already zero in that page. Thus primary Pontryagin squares on
+the supplied resolution compute this class with no bar comparison and
+no choice of a universal higher primitive.
+
+More generally, for \(A=2K\) with K odd the same reduction gives
+\(-K\beta_8P_4(z)\): the coefficient of \(\mathsf h(Ec)\) can be
+multiplied by K modulo integral cochains, and
+\(\lambda=\rho((K-1)/2)\omega\) has \(E\lambda=0\).
+For \(A=4m\), choose \(b=c=0\). Then \(\tau_0=0\),
+\(\lambda=\rho m\,\omega\), and again \(E\lambda=0\), giving
+
+\[
+[T_0(4m)]=-m\beta_4 P_2(\omega).
+\]
+
+This branch needs no mod-four lift of omega. Here \(P_2\) denotes the
+ordinary mod-four Pontryagin square of a binary degree-two class.
+For positive odd A, existence of the first defining cochain means
+\(db=\omega\). With \(t=\rho((A-1)/2)\), the binary
+\(\lambda_+=b^2+tQ^1b\) satisfies \(d\lambda_+=\tau_0(A,b)\).
+Taking \(c=\lambda_+\) in (R0o) cancels the two half-lifts and leaves
+the rational coboundary \((3+2\widetilde t)d(\widetilde b^3)/8\).
+Thus the page class is zero whenever defined.
+
+For A twice an odd integer, the page callback solves
+\(d_Rc=-\rho(d_RW/2)\), forms \(z=W+2c\), and returns
+\(-K d_RP_4(z)/8\), checking both divisions and the final cocycle.
+Failure of this particular defining equation retains the full
+calibrated calculation, which may need to adjust \(b\); it is not a
+vanishing test. Multiples of four use \(-m d_RP_2(W)/4\); positive odd
+inputs check the primary defining equation on R and return zero.
+Nontrivial sign, negative odd A, and positive input degrees retain the
+calibrated calculation. These are page-class reductions;
+the direct `koAHSSNaturalTertiary` API retains its literal phase and
+matched defining-system records.
+
 ### Odd A: canonical sign gauge and its prism
 
 Let \(N=|A|\), \(\epsilon_A(v)=\mathbf1_{A(v)<0}\), and
@@ -549,14 +624,19 @@ the supplied space. In particular, the nonzero V2 source values
 \((0,3/4,0,3/4,1/4)\) and the R3 universal source table remain part of
 the operation.
 
-GAP solves only the allowed defining-system equations for \(b,c\). It
-then transports the **full phase** to and from the normalized bar model,
+The direct calibrated cochain evaluator solves only the allowed
+defining-system equations for \(b,c\). It then transports the **full phase**
+to and from the normalized bar model,
 including the homotopy corrections to both defining cochains, and takes
 the signed boundary in the resolution model. The kernel checks
 \(ds=d\omega=0\), \(d_sA=0\), \(db=Da\), \(dc=\tau_n(A,b)\) on all
 relevant faces; GAP checks exact divisibility and closure of the resulting
 integral cochain. A failed identity is an error, not a request for a
 different local R.
+
+The native degree-zero page reductions above bypass this transport where
+their hypotheses hold. They preserve the page class; the direct evaluator
+retains the full phase and its audit data.
 
 The universal choice and normalization are mathematical inputs to this
 implementation. The five-row AHSS output is an associated-graded

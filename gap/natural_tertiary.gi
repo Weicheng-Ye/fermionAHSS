@@ -191,17 +191,93 @@ InstallGlobalFunction(koAHSSNaturalTertiary,function(arg)
     return result;
 end);
 
+# Page classes of T_0, with trivial sign. Odd positive inputs give zero
+# when defined, and multiples of four give a primary Pontryagin Bockstein.
+# In our R0 formula b=0 and O=E(c)/2-P(omega)/8. If dc=-d(omega)/2
+# modulo two, z=omega+2c is closed modulo four and the same page class is
+# -beta_8 P_4(z). The difference is a coboundary and beta_2 Sq^1(rho r),
+# r=d(omega)/2, which vanishes because r is an integral cocycle. Changing
+# the Z/4 lift adds Dtilde(h), killed in the target page. This uses only
+# primary Pontryagin squares on R; it does not choose a universal primitive.
+# See the native page-class reduction in doc/tertiary_operations.md.
+InstallGlobalFunction(KOAHSS_NativeT0Page,function(backend,n,A)
+    local W,dW,r,solution,c,z,dz,P,numerator,value,K,modulus,coefficient,
+        defining,operation;
+    if n<>0 or not ForAll(backend.twists.s,x->x=0) then return fail; fi;
+    KOAHSS_CC_CheckVector(A,backend.dimension(0),"native T0 input");
+    if IsEmpty(A) or not ForAll(A,x->x=A[1]) then return fail; fi;
+    W:=backend.twists.omega; dW:=backend.coboundary(2,W,false);
+    if ForAny(dW,x->x mod 2<>0) then Error("native T0 needs a binary omega cocycle"); fi;
+    defining:=rec(A:=ShallowCopy(A));
+    if IsOddInt(A[1]) then
+        if A[1]<0 then return fail; fi;
+        solution:=koAHSSSolveCochainEquation(backend,1,W);
+        if solution=fail then return fail; fi;
+        # On the bar, c=lambda_+ makes O a rational coboundary (R0o).
+        # Only its zero page class, not that literal c, is returned here.
+        defining.b:=solution.primitive; defining.bSolutions:=solution;
+        numerator:=List([1..backend.dimension(4)],j->0);
+        modulus:=1; operation:="degree-zero-odd";
+    else
+        K:=A[1]/2; defining.b:=List([1..backend.dimension(1)],j->0);
+        if IsEvenInt(K) then
+            # tau_0(4m,0)=0 and E((m mod 2)*omega)=0 on the bar.
+            # Thus O=-m P_omega/4 with c=0, a primary operation.
+            defining.c:=List([1..backend.dimension(2)],j->0);
+            z:=W; dz:=dW; modulus:=4; coefficient:=-K/2;
+            operation:="-beta4-P2";
+        else
+            r:=List(dW,x->x/2);
+            solution:=koAHSSSolveCochainEquation(backend,2,List(r,x->(-x) mod 2));
+            # Some surviving inputs need a nonzero b. Retain their calibrated
+            # calculation rather than treating a failed mod-four lift as zero.
+            if solution=fail then return fail; fi;
+            c:=solution.primitive; z:=W+2*c; dz:=backend.coboundary(2,z,false);
+            if ForAny(dz,x->x mod 4<>0) then Error("native T0 Z/4 lift is not closed"); fi;
+            defining.c:=c; defining.cSolutions:=solution;
+            defining.omegaLiftModFour:=z;
+            modulus:=8; coefficient:=-K; operation:="-beta8-P4";
+        fi;
+        P:=backend.cupIntegral(0,2,z,2,z,false,false)
+            +backend.cupIntegral(1,2,z,3,dz,false,false);
+        numerator:=coefficient*P;
+    fi;
+    value:=backend.coboundary(4,numerator,false);
+    if ForAny(value,x->x mod modulus<>0) then
+        Error("native T0 phase has a nonintegral boundary");
+    fi;
+    value:=List(value,x->x/modulus);
+    if ForAny(backend.coboundary(5,value,true),x->x<>0) then
+        Error("native T0 output is not an integral cocycle");
+    fi;
+    return rec(status:="computed",cochain:=value,inputDegree:=0,
+        phase:=numerator/modulus,phaseNumerator:=numerator,modulus:=modulus,
+        definingSystem:=defining,
+        referenceConvention:="Danus-degree0to3-chi7_tail-epsilon100-eta101-mu0",
+        pageClassOnly:=true,isLocalChoice:=false,isNormalizedOperation:=true,
+        transportModel:="native-R",inputGroupBarUsed:=false,modelSamples:=0,
+        nativeOperation:=operation,oldCorrectionApplied:=false,muR:=0,
+        oddPrimaryCoefficient:=2,
+        kernelAudit:=rec(phaseBoundaryIntegral:=true,outputClosed:=true));
+end);
+
 InstallGlobalFunction(koAHSSNaturalTCallback,function(arg)
     local options;
     if Length(arg)>1 then Error("koAHSSNaturalTCallback([options])"); fi;
     options:=rec(); if Length(arg)=1 then options:=arg[1]; fi;
-    if not IsRecord(options) or ForAny(RecNames(options),n->n<>"evaluations")
-       or (IsBound(options.evaluations) and not IsList(options.evaluations)) then
-        Error("koAHSS: natural T callback accepts an optional evaluations list");
+    if not IsRecord(options) or ForAny(RecNames(options),n->not n in ["evaluations","nativePages"])
+       or (IsBound(options.evaluations) and not IsList(options.evaluations))
+       or (IsBound(options.nativePages) and not IsBool(options.nativePages)) then
+        Error("koAHSS: natural T callback accepts an evaluations list and a nativePages boolean");
     fi;
     return function(ctx)
         local result;
-        result:=koAHSSNaturalTertiary(ctx.backend,ctx.degree,ctx.cochain);
+        result:=fail;
+        if IsBound(options.nativePages) and options.nativePages
+           and IsBound(ctx.backend.usesNativePages) and ctx.backend.usesNativePages then
+            result:=KOAHSS_NativeT0Page(ctx.backend,ctx.degree,ctx.cochain);
+        fi;
+        if result=fail then result:=koAHSSNaturalTertiary(ctx.backend,ctx.degree,ctx.cochain); fi;
         if not IsBound(ctx.backend.tertiaryEvaluations) then ctx.backend.tertiaryEvaluations:=[]; fi;
         Add(ctx.backend.tertiaryEvaluations,result);
         if IsBound(options.evaluations) then Add(options.evaluations,result); fi;

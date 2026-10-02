@@ -205,7 +205,8 @@ InstallGlobalFunction(koAHSSHAPSpace, function(arg)
     end;
     data := rec(dimension := dimension, differential := differential,
                 cupMod2 := cup, cupIntegral := integralCup, operations := operations,
-                untwistedConstantsLift := true,naturalBar:=naturalBarFactory,
+                untwistedConstantsLift := true,nativePageOperations := true,
+                naturalBar:=naturalBarFactory,
                 nativeCoherence:=nativeFactory,naturalTransport:=naturalBarFactory);
     return koAHSSCochainSpace(data);
 end);

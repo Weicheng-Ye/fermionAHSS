@@ -21,6 +21,14 @@ over \(\mathbf F_2\) and \(n+4\) over \(\mathbf Z_s\).
 The other \(d_3\), from row \(-2\) to row \(-4\), is the primary
 \(\operatorname{Dtilde}=\beta_s(\operatorname{Sq}^2+\omega)\).
 
+The page callbacks use two native reductions: for an even integral input,
+\([\operatorname{Tau}(2U)]=[\rho\operatorname{Dtilde}_R(\rho U)]\)
+modulo the D indeterminacy; and on BG, defined \(\operatorname{Psi}_0\)
+is zero. Their derivations are in the
+[transport audit](transport-reduction-audit.md#6-low-degree-secondary-and-tertiary-opportunities).
+These shortcuts apply only to page classes. The direct secondary evaluator
+and the matched defining systems used by T retain the following formulas.
+
 ## 1. Common input and the first defining cochain
 
 Start with \(a\in Z^n(X;\mathbf F_2)\). For integral input take

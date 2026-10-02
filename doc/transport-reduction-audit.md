@@ -410,10 +410,12 @@ With \(\omega=0\), the known A-over-C formula still contains
 \(h^D(B,B)\) with \(\delta B=s^3\). B is not closed, so the
 closed-input Bockstein shortcut does not apply to it.
 
-T in input degree zero already has explicit even and odd R0 formulas;
-it does not call V1–V3. The remaining opportunity is to specialize its
-finite cup/carry formula on the native resolution together with the
-primary comparison for b and the matched secondary comparison for c.
+T in input degree zero has explicit even and odd R0 formulas;
+it does not call V1–V3. With trivial sign its page callback uses the
+[native Pontryagin-square reductions](tertiary_operations.md#native-page-classes-with-trivial-sign)
+for multiples of four and for twice-odd inputs whose omega has a mod-four
+lift. Defined positive odd inputs give zero. The other sectors retain
+their finite cup/carry formula and defining-cochain comparisons.
 Vanishing negative-index cups and \(\chi_0=\zeta_{1,0}
 =\zeta_{2,0}=0\) make this the smallest higher-comparison problem.
 It is not a consequence of the primary comparison alone.
@@ -495,7 +497,7 @@ Implementations: [natural_secondary.gi](../gap/natural_secondary.gi),
 | Tau: projections of F, q, G, the matched lift and \(s^3a\) | (A13) eliminates transport for even input at page precision; otherwise quotient characters, binary precision and a calibrated native secondary comparison | General Tau is not determined by primary cup products alone |
 | Psi: \(\delta_s^R\Pi(2\widetilde F+q+2Z)/4\) | Zero class in input degree zero; pair the potential with \(g(M\ell)\) in other degrees | Retain modulus \(4m\) for a residue modulo m; preserve the matched lift when used elsewhere |
 | T defining cochain \(c=\Lambda c_R+H\tau'\) | Apply (A3) once a calibrated comparison for Tau is known; even-input Tau is a useful first sector | A representative of the same Tau class is insufficient without its defining-system change |
-| T0 phase \(\mathsf h(Ec)+R_0\) | Compile the explicit degree-zero cups and carries, with the two comparisons above | No V contraction exists here to remove; the missing part is higher coherence |
+| T0 phase \(\mathsf h(Ec)+R_0\) | With trivial sign: native Pontryagin Bocksteins for multiples of four and twice-odd inputs with a mod-four omega lift; zero for defined positive odd inputs | The other sectors retain their defining-cochain comparisons; direct phase audits retain the bar formula |
 | T1 phase \(\mathsf h(Ec)+R_1\) | Quotient pairings; specialize the sign A torsion sector where applicable; aggregate the V1 unit-edge sums | The prescribed odd normalization and R1 universal periods |
 | T2 phase, including \(-A^3/4\) and \(\tfrac23P^1\rho_3A\) | Native cube for the three-primary class; quotient pairings and direct finite formulas for the dyadic part | The full dyadic V2 and prism phases; the three-primary stacking carry even though its page map vanishes |
 | T3 phase, including V3 and \(\tfrac23P^1\rho_3A\) | Native cyclic diagonal for the three-primary class; functional projection and fixed-source contraction optimizations for the dyadic part | Calibrated R3 and V3; no general native dyadic replacement established |

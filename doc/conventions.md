@@ -177,8 +177,11 @@ GAP functions `D`, `Dbar`, and `Dtilde`. Their cohomological expressions
 are \(D=\operatorname{Sq}^2+s\operatorname{Sq}^1+\omega\),
 \(\operatorname{Dbar}=D\rho\), and
 \(\operatorname{Dtilde}=\beta_s(\operatorname{Sq}^2+\omega)\).
-They are evaluated on normalized group-bar cochains in the same convention
-as the secondary formulas, then transferred to the supplied resolution.
+Primary page arrows evaluate these classes directly with the cup-i products
+and Bocksteins of the supplied resolution. `backend.primary` retains the
+normalized group-bar representative, transferred to the resolution, when
+the natural operations are selected: higher defining systems use that
+fixed representative rather than a merely cohomologous native one.
 
 The integral Pontryagin-square cochain used in the tertiary normalization is
 

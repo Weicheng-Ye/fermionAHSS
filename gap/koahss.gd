@@ -29,3 +29,4 @@ DeclareGlobalFunction("koAHSSNaturalSecondary");
 DeclareGlobalFunction("koAHSSNaturalOperations");
 DeclareGlobalFunction("koAHSSNaturalTertiary");
 DeclareGlobalFunction("koAHSSNaturalTCallback");
+DeclareGlobalFunction("KOAHSS_NativeT0Page");

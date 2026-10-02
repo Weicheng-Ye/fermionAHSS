@@ -33,13 +33,29 @@ boundaries and the strict retraction identity, which is checked on each
 comparison chain when it is first used.
 
 The factory installs matching primary, secondary, and final tertiary
-conventions. It always compares with the normalized homogeneous group-bar
-resolution. `backend.naturalTransport()` and `backend.naturalBar()` access
-that lazy comparison. Whole formulas are lifted, evaluated, and projected,
-with homotopy corrections for both defining cochains; see
-[conventions](conventions.md). A local primitive is not a replacement for
-this fixed operation. The separate `backend.nativeCoherence()` tensor
-interface is a research utility and does not select the higher callbacks.
+conventions. Primary page arrows use `backend.nativePrimary` on R. The
+secondary page callbacks also use native `rho Dtilde(rho U)` for
+`Tau(2U)`, and zero for defined degree-zero `Psi`. For `T_0` with
+trivial sign they use the native Pontryagin-square and odd-input reductions
+in [the tertiary formulas](tertiary_operations.md), retaining the full
+calculation when twice-odd inputs need a nonzero b.
+These are identities of page classes; the defining systems of the other
+higher operations retain the fixed representatives.
+
+`backend.naturalTransport()` and `backend.naturalBar()` access the lazy
+normalized homogeneous group-bar comparison. The remaining formulas are
+lifted, evaluated, and projected, with homotopy corrections for both
+defining cochains; see [conventions](conventions.md). A local primitive is
+not a replacement for this fixed operation. The separate
+`backend.nativeCoherence()` tensor interface does not select general
+calibrated higher callbacks.
+
+`operations.useNativePages := false`, or `FERMIONAHSS_NATIVE_PAGES=0`
+before constructing the factory, restores bar evaluation of all page
+arrows. This is separate from `useNaturalPrimary`, which retains the
+primary representatives used in calibrated defining systems. Native page
+dispatch requires the HAP adapter's `nativePageOperations` capability;
+custom cochain backends are not opted in merely by selecting the factory.
 
 ## Cochains and exact arithmetic
 
@@ -90,6 +106,7 @@ backend.coboundary(n,a,sign)   # true: Z_s; false: ordinary integers
 backend.cupMod2(i,p,a,q,b)
 backend.cupIntegral(i,p,a,q,b,sFirst,sSecond)
 backend.primary(name,n,a)      # "Dbar", "D", or "Dtilde"
+backend.nativePrimary(name,n,a) # native representative of the same class
 backend.twists                # s and omega
 ```
 
@@ -137,6 +154,16 @@ This preserves the factory's reference metadata. The backend also retains
 audits, while releasing the internal secondary evaluation graph. A supplied
 valid `c` can skip a redundant full solution-family calculation; in that
 case `solutionFamilyComputed=false` does not mean zero ambiguity.
+
+The factory's default T callback enables `nativePages`. A native result
+records `transportModel="native-R"`, `inputGroupBarUsed=false`, and
+`pageClassOnly=true`; its phase is the native representative and its
+defining data include the checked native defining equation where needed.
+It has no bar carry audit.
+`koAHSSNaturalTCallback(rec(evaluations:=evaluations))` as above requests
+the full calibrated records. Add `nativePages:=true` to include the native
+page branch in that audit. Direct `koAHSSNaturalTertiary` calls always
+retain the calibrated cochain calculation.
 
 ## Current-page backend
 

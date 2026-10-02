@@ -495,6 +495,20 @@ InstallGlobalFunction(koAHSSNaturalOperations,function()
     callback:=function(name)
         return function(ctx)
             local options,result;
+            if IsBound(ctx.backend.usesNativePages) and ctx.backend.usesNativePages then
+                # These identities hold in the page quotient, not as the
+                # literal secondary cochains used to define the next lift.
+                if name="Tau" and ForAll(ctx.cochain,x->x mod 2=0) then
+                    if ForAny(ctx.backend.coboundary(ctx.degree,ctx.cochain,true),x->x<>0) then
+                        Error("natural integral secondary input is not a sign cocycle");
+                    fi;
+                    return List(ctx.backend.nativePrimary("Dtilde",ctx.degree,
+                        List(ctx.cochain,x->(x/2) mod 2)),x->x mod 2);
+                elif name="Psi" and ctx.degree=0 and
+                     IsOne(ctx.backend.data(2,-2).class(ctx.backend.nativePrimary("D",0,ctx.cochain))) then
+                    return List([1..ctx.backend.dimension(4)],i->0);
+                fi;
+            fi;
             options:=rec(inputType:="mod2");
             if name="Tau" then options.inputType:="integral"; fi;
             result:=koAHSSNaturalSecondary(ctx.backend,ctx.degree,ctx.cochain,options);
@@ -503,7 +517,9 @@ InstallGlobalFunction(koAHSSNaturalOperations,function()
         end;
     end;
     operations:=rec(Tau:=callback("Tau"),Psi:=callback("Psi"),
-        T:=koAHSSNaturalTCallback(),useNaturalPrimary:=true,
+        T:=koAHSSNaturalTCallback(rec(nativePages:=true)),useNaturalPrimary:=true,
+        useNativePages:=not (IsBound(GAPInfo.SystemEnvironment.FERMIONAHSS_NATIVE_PAGES)
+            and GAPInfo.SystemEnvironment.FERMIONAHSS_NATIVE_PAGES="0"),
         usesNaturalT:=true,
         tertiaryReference:="Danus-degree0to3-chi7_tail-epsilon100-eta101-mu0");
     return operations;

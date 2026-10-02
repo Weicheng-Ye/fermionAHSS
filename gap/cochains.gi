@@ -293,6 +293,11 @@ InstallGlobalFunction(koAHSSCochainSpace, function(data)
         fi;
         backend.usesNaturalPrimary:=IsBound(operations.useNaturalPrimary)
             and operations.useNaturalPrimary=true;
+        # Page arrows consume cohomology classes. Their native representatives
+        # do not replace the fixed representatives in higher defining systems.
+        backend.usesNativePages:=IsBound(data.nativePageOperations)
+            and data.nativePageOperations=true
+            and IsBound(operations.useNativePages) and operations.useNativePages=true;
         primaryInput := function(name, n, input)
             local a, value;
             KOAHSS_CC_CheckVector(input,dimension(n),"primary input");
@@ -347,6 +352,9 @@ InstallGlobalFunction(koAHSSCochainSpace, function(data)
             elif r = 5 and q = 0 then name := "T";
             else return List([1..dimension(n+r)],i -> 0); fi;
             if name in ["Dbar","D","Dtilde"] then
+                if backend.usesNativePages then
+                    return backend.nativePrimary(name,n,cochain);
+                fi;
                 return backend.primary(name,n,cochain);
             fi;
             # The untwisted coefficient classes in column zero pull back from

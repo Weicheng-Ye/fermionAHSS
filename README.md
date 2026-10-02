@@ -245,8 +245,10 @@ The page calculation covers the rows `q=-4,-3,-2,-1,0` through E6 for
 `-1 <= k <= 6`. The differentials `Tau` (d3 from row 0 to -2), `Psi` (d4
 from row -1 to -4) and `T` (d5 from row 0 to -4) are fixed cochain formulas
 with the helper family `chi7_tail`, evaluated on the group bar resolution
-and transferred to the supplied resolution; their explicit forms are in the
-[formula sheet](doc/README.md#formula-sheet).
+and transferred to the supplied resolution. Primary page arrows and the
+proven low-degree page-class reductions are evaluated directly on that
+resolution. Their explicit forms are in the
+[formula sheet](doc/README.md#formula-sheet) and [backend interface](doc/backends.md).
 
 `koFull` assembles the E6 layers `A=(k-3,0)`, `B=(k-2,-1)`, `C=(k-1,-2)`
 and `D=(k+1,-4)` of a degree in the native stacking model on the supplied
@@ -307,6 +309,7 @@ precedence are unchanged.
 | --- | --- |
 | `FERMIONAHSS_CACHE_DIR` | Directory of the universal-value store (default `$XDG_CACHE_HOME/fermionAHSS` or `~/.cache/fermionAHSS`); empty disables it |
 | `FERMIONAHSS_BUNDLED_VALUES=0` | Ignore the bundled universal values |
+| `FERMIONAHSS_NATIVE_PAGES=0` | Evaluate all page arrows through the fixed bar comparison instead of using native primary and proven low-degree page-class reductions |
 | `FERMIONAHSS_PRIMARY_TENSOR_REFERENCE=1` | Use the integral tensor implementation reduced modulo two for primary-comparison checks |
 | `FERMIONAHSS_LAYERED_RELATIONS=0` | Measure relations through the D layer instead of their target layer |
 | `FERMIONAHSS_NATIVE_RELATIONS=0` | Measure the relations whose target layer lies right below the generator's in the model instead of reading them from a primary operation on R |

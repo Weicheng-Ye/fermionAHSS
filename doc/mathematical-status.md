@@ -1,7 +1,10 @@
 # Mathematical status and provenance
 
-fermionAHSS uses fixed formulas on the normalized group bar resolution,
-evaluated through resolution comparison maps. Its page calculation covers rows `q=-4,-3,-2,-1,0`
+fermionAHSS uses fixed formulas on the normalized group bar resolution.
+Primary page arrows and the proven low-degree page-class reductions in
+[the backend interface](backends.md) are evaluated directly on the supplied
+resolution; the other formulas use resolution comparison maps.
+Its page calculation covers rows `q=-4,-3,-2,-1,0`
 through E6 and physical cutoff `p+q+3 <= k <= 6`. E6 is terminal within
 this strip; it is not automatically the full ko E-infinity page. Other ko
 rows remain outside the implementation. The extension assembler and

@@ -1,4 +1,5 @@
-# Finite groups or supplied integral HAP resolutions use fixed bar transport.
+# Finite groups or supplied integral HAP resolutions use the fixed formulas,
+# with native page-class reductions and bar transport for the other arrows.
 # Nonzero twist vectors are coordinates in this resolution, not abstract
 # cohomology-class labels; use the explicit-resolution API to control a basis.
 InstallGlobalFunction(koAHSS_batch, function(arg)
