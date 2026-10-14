@@ -1,0 +1,15 @@
+{
+ "schema": 2,
+ "provenance": "8547700966fc5a5f52c97af6c49f16b15b65e0069209f9ce60f9283f3efdbbba",
+ "tables": {
+  "a0_high_gamma.HigherA0Stacking.evaluate": 1724,
+  "closed_a_upper._high_source_value": 0,
+  "low_phases.V1_pair": 1031,
+  "low_phases.V2_pair": 9364,
+  "production_gamma4.source_value": 1129,
+  "production_gamma5.source_value": 22453,
+  "production_gamma6.source_value": 0,
+  "v3_pair_shared.primitive_value": 31,
+  "v3_pair_shared.source_value": 1440
+ }
+}

@@ -1,0 +1,236 @@
+# Human-readable view of raw and tagged koAHSS invariant tables.  Storage
+# remains q=-4,...,0; only the display reverses rows to q=0,...,-4.
+
+# One invariant cell: 0, Z, Z/n and their sums and powers; ? if unresolved.
+BindGlobal("KOAHSS_CellText", function(cell)
+    local factors, pair, term;
+    if IsRecord(cell) then return "?"; fi;
+    if IsEmpty(cell) then return "0"; fi;
+    factors := [];
+    # Collected sorts a copy and preserves the caller's invariants.
+    for pair in Collected(cell) do
+        if pair[1]=0 then term := "Z";
+        else term := Concatenation("Z/",String(pair[1])); fi;
+        if pair[2]>1 then
+            if pair[1]<>0 then term := Concatenation("(",term,")"); fi;
+            term := Concatenation(term,"^",String(pair[2]));
+        fi;
+        Add(factors,term);
+    od;
+    return JoinStringsWithSeparator(factors," + ");
+end);
+
+# The line p+q=k-3 of each page of a koAHSS result, rows q=0,...,-4 with p>=0.
+BindGlobal("KOAHSS_FormatLine", function(line, selected)
+    local pages, lines, index, header, rows, q, widths, centered, format,
+        output;
+    pages := line.pageNumbers; lines := line.lines;
+    if selected<>fail then
+        index := Position(pages,selected);
+        if index=fail then
+            Error("koAHSSFormat: the requested page is absent from result");
+        fi;
+        pages := [selected]; lines := [lines[index]];
+    fi;
+    header := Concatenation(["q","p"],
+        List(pages, r -> Concatenation("E",String(r))));
+    rows := [];
+    for q in [0,-1..-4] do
+        if line.k-3-q>=0 then
+            Add(rows,Concatenation([String(q),String(line.k-3-q)],
+                List(lines, l -> KOAHSS_CellText(l[q+5]))));
+        fi;
+    od;
+    widths := List([1..Length(header)], j -> Maximum(Concatenation(
+        [Length(header[j])], List(rows, r -> Length(r[j])))));
+    centered := function(text,width)
+        local left;
+        left := QuoInt(width-Length(text),2);
+        return Concatenation(ListWithIdenticalEntries(left,' '),text,
+            ListWithIdenticalEntries(width-Length(text)-left,' '));
+    end;
+    format := r -> Concatenation("|",Concatenation(List([1..Length(r)],
+        j -> Concatenation(" ",centered(r[j],widths[j])," |"))));
+    output := [Concatenation("Line p+q=",String(line.k-3)," (degree ",
+        String(line.k),")"), Concatenation("+",Concatenation(List(widths,
+        w -> Concatenation(ListWithIdenticalEntries(w+2,'-'),"+"))))];
+    Append(output,[format(header),output[2]]);
+    Append(output,List(rows,format));
+    Add(output,output[2]);
+    Add(output,"0 = zero group.");
+    if ForAny(rows, r -> "?" in r) then
+        Add(output,"? = unresolved; inspect the original entry for details.");
+    fi;
+    return Concatenation(JoinStringsWithSeparator(output,"\n"),"\n");
+end);
+
+InstallGlobalFunction(koAHSSFormat, function(arg)
+    local result, selected, isCell, isTable, cellText, centered, formatTable,
+        tables, pageNumbers, width, index;
+    if not Length(arg) in [1,2] then
+        Error("usage: koAHSSFormat(result[, r])");
+    fi;
+    result := arg[1];
+    selected := fail;
+    if Length(arg)=2 then
+        selected := arg[2];
+        if not IsInt(selected) or not selected in [2..6] then
+            Error("koAHSSFormat: page r must be an integer in [2..6]");
+        fi;
+    fi;
+    if IsRecord(result) and IsBound(result.kind) and result.kind="koAHSSLine" then
+        return KOAHSS_FormatLine(result,selected);
+    fi;
+    if IsRecord(result) and IsBound(result.kind) and result.kind="koFullDegreeResult" then
+        if result.status="computed" then
+            return Concatenation(KOAHSS_FormatLine(result.line,fail),"Degree ",
+                String(result.k),": ",KOAHSS_CellText(result.invariants),"\n");
+        fi;
+        return Concatenation(KOAHSS_FormatLine(result.line,fail),"Degree ",
+            String(result.k),": unresolved (",result.reason,")\n");
+    fi;
+    isCell := function(cell)
+        if IsRecord(cell) then
+            return IsBound(cell.status) and cell.status="unresolved";
+        fi;
+        return IsList(cell) and IsDenseList(cell) and
+            ForAll(cell, x -> IsInt(x) and (x=0 or x>=2));
+    end;
+    isTable := function(table)
+        local columns, row;
+        if not IsList(table) or not IsDenseList(table) or Length(table)<>5
+            or not ForAll(table, x -> IsList(x) and IsDenseList(x)) then
+            return false;
+        fi;
+        columns := Length(table[1]);
+        # Raw tables have the physical cutoffs k=-1,...,6.  Checking the
+        # complete shape also distinguishes a table from a five-page list.
+        if not columns in [1..8] then return false; fi;
+        for row in [1..5] do
+            if Length(table[row])<>Maximum(0,columns-row+1)
+                or not ForAll(table[row],isCell) then return false; fi;
+        od;
+        return true;
+    end;
+    if IsRecord(result) and IsBound(result.kind)
+        and result.kind in ["koAHSSResult", "koFullResult"] then
+        if not IsBound(result.pages) or not IsRecord(result.pages)
+            or not IsBound(result.pages.kind) or result.pages.kind<>"koAHSSPages" then
+            Error("koAHSSFormat: detailed results must contain tagged koAHSSPages");
+        fi;
+        if result.kind="koFullResult" and selected=fail then selected:=6; fi;
+        result := result.pages;
+    fi;
+    if IsRecord(result) and IsBound(result.kind) and result.kind="koAHSSPages" then
+        if not IsBound(result.pageNumbers) or not IsList(result.pageNumbers)
+            or not IsDenseList(result.pageNumbers)
+            or not Length(result.pageNumbers) in [1..5]
+            or not ForAll(result.pageNumbers, r -> IsInt(r) and r in [2..6])
+            or Length(Set(result.pageNumbers))<>Length(result.pageNumbers)
+            or not IsBound(result.tables) or not IsList(result.tables)
+            or not IsDenseList(result.tables)
+            or Length(result.tables)<>Length(result.pageNumbers)
+            or not ForAll(result.tables,isTable) then
+            Error("koAHSSFormat: malformed tagged pages; expected distinct page labels in [2..6] and matching valid tables");
+        fi;
+        width := Length(result.tables[1][1]);
+        if not ForAll(result.tables, table -> Length(table[1])=width) then
+            Error("koAHSSFormat: all pages must have the same display window");
+        fi;
+        if selected=fail then
+            tables := result.tables;
+            pageNumbers := result.pageNumbers;
+        else
+            index := Position(result.pageNumbers,selected);
+            if index=fail then
+                Error("koAHSSFormat: the requested page is absent from result");
+            fi;
+            tables := [result.tables[index]];
+            pageNumbers := [selected];
+        fi;
+    elif isTable(result) then
+        tables := [result];
+        if selected=fail then pageNumbers := [6];
+        else pageNumbers := [selected]; fi;
+    elif IsList(result) and IsDenseList(result) and Length(result) in [1..5]
+        and ForAll(result,isTable) then
+        width := Length(result[1][1]);
+        if not ForAll(result, table -> Length(table[1])=width) then
+            Error("koAHSSFormat: all pages must have the same display window");
+        fi;
+        if selected=fail then
+            tables := result;
+            pageNumbers := [2..Length(result)+1];
+        else
+            if selected>Length(result)+1 then
+                Error("koAHSSFormat: the requested page is absent from result");
+            fi;
+            tables := [result[selected-1]];
+            pageNumbers := [selected];
+        fi;
+    else
+        Error("koAHSSFormat: expected a raw five-row table, E2-first list, tagged pages, or detailed result with valid invariant cells");
+    fi;
+    cellText := KOAHSS_CellText;
+    centered := function(text,width)
+        local left;
+        left := QuoInt(width-Length(text),2);
+        return Concatenation(ListWithIdenticalEntries(left,' '),text,
+            ListWithIdenticalEntries(width-Length(text)-left,' '));
+    end;
+    formatTable := function(table,page)
+        local columns, cells, widths, row, column, labels, line, border,
+            lines, unresolved;
+        columns := Length(table[1]);
+        cells := List([1..5], row -> List([1..columns], column -> "."));
+        unresolved := false;
+        for row in [1..5] do
+            for column in [1..Length(table[6-row])] do
+                cells[row][column] := cellText(table[6-row][column]);
+                if cells[row][column]="?" then unresolved := true; fi;
+            od;
+        od;
+        labels := List([0..columns-1],String);
+        widths := List([1..columns], column -> Maximum(
+            Concatenation([Length(labels[column])],
+                List(cells,row -> Length(row[column])))));
+        border := "+-------+";
+        for column in [1..columns] do
+            Append(border,ListWithIdenticalEntries(widths[column]+2,'-'));
+            Append(border,"+");
+        od;
+        lines := [Concatenation("E",String(page)),border];
+        line := "| q \\ p |";
+        for column in [1..columns] do
+            Append(line,Concatenation(" ",centered(labels[column],widths[column])," |"));
+        od;
+        Add(lines,line);
+        Add(lines,border);
+        for row in [1..5] do
+            line := Concatenation("| ",centered(String(1-row),5)," |");
+            for column in [1..columns] do
+                Append(line,Concatenation(" ",centered(cells[row][column],widths[column])," |"));
+            od;
+            Add(lines,line);
+        od;
+        Add(lines,border);
+        Add(lines,"0 = zero group; . = outside the displayed window.");
+        if unresolved then
+            Add(lines,"? = unresolved; inspect the original entry for details.");
+        fi;
+        return Concatenation(JoinStringsWithSeparator(lines,"\n"),"\n");
+    end;
+    return JoinStringsWithSeparator(List([1..Length(tables)],
+        i -> formatTable(tables[i],pageNumbers[i])),"\n");
+end);
+
+InstallGlobalFunction(koAHSSDisplay, function(arg)
+    local text, output;
+    text := CallFuncList(koAHSSFormat,arg);
+    # Use a separate unformatted stream so wide entries are not split by
+    # GAP's pretty printer, and the caller's output settings stay intact.
+    output := OutputTextUser();
+    SetPrintFormattingStatus(output,false);
+    PrintTo(output,text);
+    CloseStream(output);
+end);
