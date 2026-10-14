@@ -80,6 +80,56 @@ a time, when a table is first used.
   sources vanish identically (space group 147 at degree four spent two
   thirds of its page phase there).
 
+## The normalized homotopy and the cell comparison
+
+The extension rows need the comparison homotopy with the side conditions
+of a strong deformation retraction. With $q = 1 - gf$ and $u = q h q$ the
+package ships $H = u\,\partial\,u$ (`KOAHSS_ExtensionNormalizedTransport`).
+Since $f$ and $g$ are chain maps with $fg = 1$, $q$ is an idempotent chain
+map with $qg = 0$, and $\partial h + h\partial = 1 - gf$ gives
+$\partial u = q(q - h\partial)q = q - u\partial$; hence
+$H = u(q - u\partial) = u - u^2\partial = u\,(1 - u\partial)$. The package
+evaluates this form: the outer $u$ acts on $\sigma - u(\partial\sigma)$,
+built from the faces of $\sigma$, instead of on $\partial(u\sigma)$,
+which has $(n+2)\,|u\sigma|$ terms each expanding through $h$ again. The
+answer is the same chain; on space group 30 with the pin twist the degree-3
+requests of the A row took 4176 of the case's 5055 seconds in the former
+form. In page mode (group bar without a retraction) the former form is
+kept, since $fg = 1$ is not available there.
+
+The cell comparison (`gap/cell_transport.gi`) works on integers: a vertex
+$[g, \text{type}]$ is the number $\text{index}(g)\cdot 2^{20} + \text{type}$
+with the first position of $g$ in `R!.elts` as index (the index of the
+resolution's boundary and homotopy words, of the contraction memo and of
+the binary tensor engine), R terms carry element indices, and products,
+inverses and the converted contraction words `R!.homotopy(n,[j,index])`
+are memoized in dictionaries keyed by one integer (a simplex or a pair
+is encoded in base $2^{40}$; GAP's sorted-list dictionaries then search in
+the kernel, whereas its hash tables run interpreted code per lookup), so
+translation, anchoring, sorting and lookups never touch a group element
+after its first product or inverse. The verifier, the normalized transport and the primary
+comparison read `indexedElements` on the comparison record; the group-bar
+comparison keeps its element-valued contract. Two choices of the modified
+contraction depend on an order, the right inverse of the boundary
+coordinates (`SmithNormalFormIntegerMatTransforms`) and the gcd
+representation of a private boundary; both keep the previous order, by
+basis and then by the group element itself, since another right inverse
+is another valid contraction and moves the presentation of an extension
+within its gauge (space group 30 with the pin twist changed one B
+coordinate of its A row when the keys were ordered by index). The testing
+switch `KOAHSS_NORMALIZED_H_FORM` (also read from the environment) selects
+the direct form $u\,\partial\,u$; `bench/dev_hcheck.g` compares the two
+forms on the simplices of the comparison chains.
+
+The transport bounds (`KOAHSS_EXTENSION_TRANSPORT_LIMITS`) are the
+budgets of the previous package's campaigns, `maxSupport` 131072 and
+`maxTerms` 20000000 (the former 8192 and 2000000 refused space groups 115
+and 194 with the pin twist), and the retained normalized answers are
+bounded by `answerCacheEntries` 4096, `answerCacheTerms` 8000000 and
+`answerCacheMaxTerms` 2000000, the encoded answers by
+`encodedCacheTerms` 20000000 (formerly 128 answers, 200000 terms and
+`maxTerms`, which computed large answers twice).
+
 ## Characters and contractions on space groups
 
 The sign character of a vertex, $(-1)^{s(\text{path})}$ along the

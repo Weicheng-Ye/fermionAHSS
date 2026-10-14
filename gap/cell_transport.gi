@@ -13,14 +13,37 @@
 # inductively, f g = 1 on every generator. A degree whose boundaries do not
 # split off over Z instead gives each generator e_j a private cone vertex
 # x_j with its own contraction k_j = h + boundary psi_j - psi_j boundary,
-# psi_j(x) = pi_j(x) h(e_j), pi_j(boundary e_j) = 1. Vertices are lists
-# [group element, type]; chains and conventions match KOAHSS_NaturalBarTransport.
+# psi_j(x) = pi_j(x) h(e_j), pi_j(boundary e_j) = 1.
+#
+# Representation. A vertex [group element, type] is the single integer
+# index*STRIDE+type, where index is the first position of the element in
+# R!.elts (the index that R's boundary and homotopy words, the contraction
+# memo and the binary tensor engine use) and type < STRIDE. R terms are
+# [basis, element index, integer coefficient]; bar terms are [integer
+# coefficient, vertex list]. Products of elements, inverses and the
+# converted contraction words R!.homotopy(n,[j,index]) are memoized, so the
+# chain arithmetic (translation, anchoring, sorting, dictionary keys) works
+# on small integers; group elements are formed only for a product or an
+# inverse seen for the first time. The record says indexedElements:=true and
+# provides elementOf, indexOf, vertexIndex, vertexType, vertexCode,
+# actVertexByIndex and characterByIndex for its consumers; chains and
+# conventions match KOAHSS_NaturalBarTransport otherwise.
+BindGlobal("KOAHSS_EXTENSION_CELL_STRIDE",2^20);
+# Testing only: "direct" evaluates the normalized homotopy as u d u instead
+# of the equal u (1 - u d) (KOAHSS_ExtensionNormalizedTransport).
+KOAHSS_NORMALIZED_H_FORM:="identity";
+if IsBound(GAPInfo.SystemEnvironment.KOAHSS_NORMALIZED_H_FORM) then
+    KOAHSS_NORMALIZED_H_FORM:=GAPInfo.SystemEnvironment.KOAHSS_NORMALIZED_H_FORM;
+fi;
+BindGlobal("KOAHSS_EXTENSION_CELL_KEYBASE",2^40);
 BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
     local identity,length,m0,typeData,privateOf,split,built,ensure,shiftOf,
         coordinates,liftOf,globalContraction,eltsIndex,synced,
-        sync,index,reduceR,reduceBar,actR,actBar,degenerate,anchor,key,hChain,
+        sync,index,identityIndex,STRIDE,code,vertexIndex,vertexType,hashList,listDictionary,elementOrder,column,
+        products,productCount,product,inverses,inverseOf,contractions,contractionTerms,contractionWord,
+        reduceR,reduceBar,actR,actBar,degenerate,anchor,hChain,
         boundaryChain,functional,prepare,contraction,fCache,gCache,hCache,f,g,homotopy,
-        character,vertexCharacter,characterCache,base,n,j,coefficients,result;
+        character,vertexCharacter,characterCaches,base,n,j,coefficients,result;
     identity:=One(R!.group);
     length:=ValueGlobal("EvaluateProperty")(R,"length");
     if not IsInt(length) or length<maxDegree then
@@ -28,6 +51,19 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
             reason:="the cell comparison needs the resolution through the requested degree");
     fi;
     m0:=R!.dimension(0);
+    STRIDE:=KOAHSS_EXTENSION_CELL_STRIDE;
+    code:=function(idx,type) return idx*STRIDE+type; end;
+    vertexIndex:=v->QuoInt(v,STRIDE);
+    vertexType:=v->v mod STRIDE;
+    # Dictionaries keyed by one integer (sorted lists, kernel binary search):
+    # a list of small integers is encoded as the integer sum x_i B^(i-1).
+    hashList:=function(list)
+        local h,i;
+        h:=0;
+        for i in [Length(list),Length(list)-1..1] do h:=h*KOAHSS_EXTENSION_CELL_KEYBASE+list[i]; od;
+        return h;
+    end;
+    listDictionary:=function() return NewDictionary(1,true); end;
     # First-occurrence index of R!.elts; R's own homotopy may append to it.
     eltsIndex:=NewDictionary(identity,true); synced:=0;
     sync:=function()
@@ -49,16 +85,57 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         fi;
         return position;
     end;
-    # R terms are [positive basis index, group element, integer coefficient].
+    identityIndex:=index(identity);
+    products:=listDictionary(); productCount:=0;
+    product:=function(gi,hi)
+        local value;
+        if gi=identityIndex then return hi; fi;
+        if hi=identityIndex then return gi; fi;
+        value:=LookupDictionary(products,gi*KOAHSS_EXTENSION_CELL_KEYBASE+hi);
+        if value<>fail then return value; fi;
+        value:=index(R!.elts[gi]*R!.elts[hi]);
+        if productCount>=4194304 then products:=listDictionary(); productCount:=0; fi;
+        AddDictionary(products,gi*KOAHSS_EXTENSION_CELL_KEYBASE+hi,value); productCount:=productCount+1;
+        return value;
+    end;
+    # The order of the previous, element-valued implementation for the two
+    # choices that depend on an order: by basis, then by the group element
+    # itself (not by its index). It fixes the right inverse of the boundary
+    # coordinates and the gcd representation, hence the chain map f, exactly
+    # as before; a different right inverse is another valid contraction and
+    # changes the presentation of an extension within its gauge.
+    elementOrder:=function(a,b)
+        return a[1]<b[1] or (a[1]=b[1] and R!.elts[a[2]]<R!.elts[b[2]]);
+    end;
+    inverses:=[];
+    inverseOf:=function(gi)
+        if not IsBound(inverses[gi]) then inverses[gi]:=index(R!.elts[gi]^-1); fi;
+        return inverses[gi];
+    end;
+    # The contraction word R!.homotopy(n,[j,gi]) as immutable R terms, once
+    # per (n,j,gi): the resolution's own cache hands out a copy each time.
+    contractions:=listDictionary(); contractionTerms:=0;
+    contractionWord:=function(n,j,gi)
+        local word;
+        word:=LookupDictionary(contractions,(n*KOAHSS_EXTENSION_CELL_KEYBASE+j)*KOAHSS_EXTENSION_CELL_KEYBASE+gi);
+        if word<>fail then return word; fi;
+        word:=Immutable(List(R!.homotopy(n,[j,gi]),t->[AbsInt(t[1]),t[2],SignInt(t[1])]));
+        if contractionTerms+Length(word)>20000000 then
+            contractions:=listDictionary(); contractionTerms:=0;
+        fi;
+        AddDictionary(contractions,(n*KOAHSS_EXTENSION_CELL_KEYBASE+j)*KOAHSS_EXTENSION_CELL_KEYBASE+gi,word);
+        contractionTerms:=contractionTerms+Length(word);
+        return word;
+    end;
     reduceR:=function(terms)
-        local sorted,answer,term;
+        local sorted,answer,term,previous;
         sorted:=ShallowCopy(terms);
-        Sort(sorted,function(a,b) return a{[1,2]}<b{[1,2]}; end);
-        answer:=[];
+        Sort(sorted,function(a,b) return a[1]<b[1] or (a[1]=b[1] and a[2]<b[2]); end);
+        answer:=[]; previous:=fail;
         for term in sorted do
-            if not IsEmpty(answer) and Last(answer){[1,2]}=term{[1,2]} then
-                Last(answer)[3]:=Last(answer)[3]+term[3];
-            else Add(answer,ShallowCopy(term)); fi;
+            if previous<>fail and previous[1]=term[1] and previous[2]=term[2] then
+                previous[3]:=previous[3]+term[3];
+            else previous:=ShallowCopy(term); Add(answer,previous); fi;
         od;
         return Filtered(answer,term->term[3]<>0);
     end;
@@ -69,40 +146,42 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         od;
         return false;
     end;
-    # Bar terms are [integer coefficient, vertex list].
     reduceBar:=function(terms)
-        local sorted,answer,term;
+        local sorted,answer,term,previous;
         sorted:=Filtered(terms,term->term[1]<>0 and not degenerate(term[2]));
         Sort(sorted,function(a,b) return a[2]<b[2]; end);
-        answer:=[];
+        answer:=[]; previous:=fail;
         for term in sorted do
-            if not IsEmpty(answer) and Last(answer)[2]=term[2] then
-                Last(answer)[1]:=Last(answer)[1]+term[1];
-            else Add(answer,[term[1],ShallowCopy(term[2])]); fi;
+            if previous<>fail and previous[2]=term[2] then
+                previous[1]:=previous[1]+term[1];
+            else previous:=[term[1],ShallowCopy(term[2])]; Add(answer,previous); fi;
         od;
         return Filtered(answer,term->term[1]<>0);
     end;
-    actR:=function(terms,element,coefficient)
-        return List(terms,t->[t[1],element*t[2],coefficient*t[3]]);
+    actR:=function(terms,gi,coefficient)
+        return List(terms,t->[t[1],product(gi,t[2]),coefficient*t[3]]);
     end;
-    actBar:=function(terms,element,coefficient)
-        return List(terms,t->[coefficient*t[1],List(t[2],v->[element*v[1],v[2]])]);
+    actBar:=function(terms,gi,coefficient)
+        if gi=identityIndex then
+            if coefficient=1 then return List(terms,t->[t[1],t[2]]); fi;
+            return List(terms,t->[coefficient*t[1],t[2]]);
+        fi;
+        return List(terms,t->[coefficient*t[1],
+            List(t[2],v->product(gi,QuoInt(v,STRIDE))*STRIDE+(v mod STRIDE))]);
     end;
     anchor:=function(simplex)
         local inverse;
-        if simplex[1][1]=identity then return simplex; fi;
-        inverse:=simplex[1][1]^-1;
-        return List(simplex,v->[inverse*v[1],v[2]]);
+        if QuoInt(simplex[1],STRIDE)=identityIndex then return simplex; fi;
+        inverse:=inverseOf(QuoInt(simplex[1],STRIDE));
+        return List(simplex,v->product(inverse,QuoInt(v,STRIDE))*STRIDE+(v mod STRIDE));
     end;
-    key:=simplex->JoinStringsWithSeparator(List(simplex,
-        v->Concatenation(String(index(v[1])),":",String(v[2]))),"_");
     # h on an R chain of degree n, as an R chain of degree n+1.
     hChain:=function(n,chain)
         local answer,term,t;
         answer:=[];
         for term in chain do
-            for t in R!.homotopy(n,[term[1],index(term[2])]) do
-                Add(answer,[AbsInt(t[1]),R!.elts[t[2]],term[3]*SignInt(t[1])]);
+            for t in contractionWord(n,term[1],term[2]) do
+                Add(answer,[t[1],t[2],term[3]*t[3]]);
             od;
         od;
         return reduceR(answer);
@@ -113,7 +192,7 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         if n<=0 then return []; fi;
         for term in chain do
             for t in R!.boundary(n,term[1]) do
-                Add(answer,[AbsInt(t[1]),term[2]*R!.elts[t[2]],term[3]*SignInt(t[1])]);
+                Add(answer,[AbsInt(t[1]),product(term[2],t[2]),term[3]*SignInt(t[1])]);
             od;
         od;
         return reduceR(answer);
@@ -128,8 +207,9 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         if degree>maxDegree then Error("cell transport degree exceeds its capacity"); fi;
         while built<degree do
             n:=built+1;
-            chains:=List([1..R!.dimension(n)],j->boundaryChain(n,[[j,identity,1]]));
+            chains:=List([1..R!.dimension(n)],j->boundaryChain(n,[[j,identityIndex,1]]));
             keys:=Set(Concatenation(List(chains,c->List(c,t->t{[1,2]}))));
+            Sort(keys,elementOrder);
             X:=fail;
             if IsEmpty(chains) then X:=[];
             elif not IsEmpty(keys) then
@@ -143,12 +223,17 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
                 fi;
             fi;
             if X<>fail then
-                split[n]:=rec(keys:=keys,inverse:=X,lift:=[],chains:=chains,shift:=[]);
+                column:=listDictionary();
+                for i in [1..Length(keys)] do
+                    AddDictionary(column,keys[i][1]*KOAHSS_EXTENSION_CELL_KEYBASE+keys[i][2],i);
+                od;
+                split[n]:=rec(keys:=keys,column:=column,inverse:=X,lift:=[],chains:=chains,shift:=[]);
             else
                 privateOf[n]:=[];
                 for j in [1..R!.dimension(n)] do
                     Add(typeData,[n,j]); privateOf[n][j]:=Length(typeData);
                 od;
+                if Length(typeData)>=STRIDE then Error("cell transport vertex types exceed the stride"); fi;
             fi;
             built:=n;
         od;
@@ -156,7 +241,7 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
     # c_j = e_j - h(boundary e_j) = boundary h(e_j).
     shiftOf:=function(n,j)
         if not IsBound(split[n].shift[j]) then
-            split[n].shift[j]:=reduceR(Concatenation([[j,identity,1]],
+            split[n].shift[j]:=reduceR(Concatenation([[j,identityIndex,1]],
                 List(hChain(n-1,split[n].chains[j]),t->[t[1],t[2],-t[3]])));
         fi;
         return split[n].shift[j];
@@ -165,7 +250,7 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         local vector,t,i;
         vector:=List(data.keys,k0->0);
         for t in chain do
-            i:=PositionSet(data.keys,t{[1,2]});
+            i:=LookupDictionary(data.column,t[1]*KOAHSS_EXTENSION_CELL_KEYBASE+t[2]);
             if i<>fail then vector[i]:=vector[i]+t[3]; fi;
         od;
         if IsEmpty(vector) then return []; fi;
@@ -173,7 +258,7 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
     end;
     liftOf:=function(n,j)
         if not IsBound(split[n].lift[j]) then
-            split[n].lift[j]:=hChain(n,[[j,identity,1]]);
+            split[n].lift[j]:=hChain(n,[[j,identityIndex,1]]);
         fi;
         return split[n].lift[j];
     end;
@@ -206,8 +291,9 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         local data,m,j,eJ,boundaryJ,coefficients;
         if not IsBound(functional[type]) then
             data:=typeData[type]; m:=data[1]; j:=data[2];
-            eJ:=[[j,identity,1]];
+            eJ:=[[j,identityIndex,1]];
             boundaryJ:=boundaryChain(m,eJ);
+            Sort(boundaryJ,elementOrder);
             coefficients:=List(boundaryJ,t->t[3]);
             if IsEmpty(coefficients) or Gcd(coefficients)<>1 then
                 functional[type]:=rec(status:="unresolved",
@@ -255,59 +341,59 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
         fi;
         return answer;
     end;
-    fCache:=NewDictionary("",true); gCache:=[]; hCache:=NewDictionary("",true);
+    fCache:=listDictionary(); gCache:=[]; hCache:=listDictionary();
     f:=function(simplex)
-        local normalized,cacheKey,n,rhs,i,face,answer,type;
+        local normalized,n,rhs,i,face,answer,type;
         n:=Length(simplex)-1;
         if n>maxDegree then Error("cell transport degree exceeds its capacity"); fi;
         if degenerate(simplex) then return []; fi;
-        normalized:=anchor(simplex); cacheKey:=key(normalized);
-        answer:=LookupDictionary(fCache,cacheKey);
+        normalized:=anchor(simplex);
+        answer:=LookupDictionary(fCache,hashList(normalized));
         if answer=fail then
-            type:=normalized[1][2];
+            type:=vertexType(normalized[1]);
             if n=0 then
-                if typeData[type][1]=0 then answer:=[[typeData[type][2],identity,1]];
-                else answer:=[[1,identity,1]]; fi;
+                if typeData[type][1]=0 then answer:=[[typeData[type][2],identityIndex,1]];
+                else answer:=[[1,identityIndex,1]]; fi;
             else
                 rhs:=[];
                 for i in [1..n+1] do
                     face:=normalized{Filtered([1..n+1],x->x<>i)};
-                    Append(rhs,actR(f(face),identity,(-1)^(i-1)));
+                    Append(rhs,actR(f(face),identityIndex,(-1)^(i-1)));
                 od;
                 answer:=contraction(type,n,reduceR(rhs));
             fi;
-            MakeImmutable(answer); AddDictionary(fCache,cacheKey,answer);
+            MakeImmutable(answer); AddDictionary(fCache,hashList(normalized),answer);
         fi;
-        if simplex[1][1]=identity then return answer; fi;
-        return actR(answer,simplex[1][1],1);
+        if vertexIndex(simplex[1])=identityIndex then return answer; fi;
+        return actR(answer,vertexIndex(simplex[1]),1);
     end;
     g:=function(n,j)
         local rhs,t,answer,cone;
         if not IsBound(gCache[n+1]) then gCache[n+1]:=[]; fi;
         if not IsBound(gCache[n+1][j]) then
-            if n=0 then answer:=[[1,[[identity,j]]]];
+            if n=0 then answer:=[[1,[code(identityIndex,j)]]];
             else
                 ensure(n);
                 rhs:=[];
                 for t in R!.boundary(n,j) do
-                    Append(rhs,actBar(g(n-1,AbsInt(t[1])),R!.elts[t[2]],SignInt(t[1])));
+                    Append(rhs,actBar(g(n-1,AbsInt(t[1])),t[2],SignInt(t[1])));
                 od;
-                if IsBound(privateOf[n]) then cone:=[identity,privateOf[n][j]];
-                else cone:=[identity,1]; fi;
+                if IsBound(privateOf[n]) then cone:=code(identityIndex,privateOf[n][j]);
+                else cone:=code(identityIndex,1); fi;
                 answer:=reduceBar(List(reduceBar(rhs),t->[t[1],Concatenation([cone],t[2])]));
             fi;
             MakeImmutable(answer); gCache[n+1][j]:=answer;
         fi;
         return gCache[n+1][j];
     end;
-    base:=[identity,1];
+    base:=code(identityIndex,1);
     # 1-gf = boundary h + h boundary, with the cone at base on anchored simplices.
     homotopy:=function(simplex)
-        local normalized,cacheKey,n,rhs,term,i,face,answer;
+        local normalized,n,rhs,term,i,face,answer;
         n:=Length(simplex)-1;
         if degenerate(simplex) then return []; fi;
-        normalized:=anchor(simplex); cacheKey:=key(normalized);
-        answer:=LookupDictionary(hCache,cacheKey);
+        normalized:=anchor(simplex);
+        answer:=LookupDictionary(hCache,hashList(normalized));
         if answer=fail then
             rhs:=[[1,normalized]];
             for term in f(normalized) do
@@ -316,40 +402,49 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
             if n>0 then
                 for i in [1..n+1] do
                     face:=normalized{Filtered([1..n+1],x->x<>i)};
-                    Append(rhs,actBar(homotopy(face),identity,(-1)^i));
+                    Append(rhs,actBar(homotopy(face),identityIndex,(-1)^i));
                 od;
             fi;
             answer:=reduceBar(List(reduceBar(rhs),t->[t[1],Concatenation([base],t[2])]));
-            MakeImmutable(answer); AddDictionary(hCache,cacheKey,answer);
+            MakeImmutable(answer); AddDictionary(hCache,hashList(normalized),answer);
         fi;
-        if simplex[1][1]=identity then return answer; fi;
-        return actBar(answer,simplex[1][1],1);
+        if vertexIndex(simplex[1])=identityIndex then return answer; fi;
+        return actBar(answer,vertexIndex(simplex[1]),1);
     end;
     # Local sign of a group element and of a vertex: the twist summed along
-    # the contraction path from e_1 to g e_1, respectively to f(vertex).
-    characterCache:=NewDictionary("",true);
-    character:=function(sign,element)
-        return vertexCharacter(sign,[element,1]);
-    end;
+    # the contraction path from e_1 to g e_1, respectively to f(vertex); one
+    # cache per sign vector, keyed by [element index, generator].
+    characterCaches:=[];
     vertexCharacter:=function(sign,vertex)
-        local generator,cacheKey,path,answer;
+        local generator,entry,idx,answer,path;
         if IsInt(sign) and sign=0 then return 1; fi;
-        if typeData[vertex[2]][1]=0 then generator:=typeData[vertex[2]][2];
+        if typeData[vertexType(vertex)][1]=0 then generator:=typeData[vertexType(vertex)][2];
         else generator:=1; fi;
-        cacheKey:=Concatenation(JoinStringsWithSeparator(List(sign,String),""),"_",
-            String(index(vertex[1])),"_",String(generator));
-        answer:=LookupDictionary(characterCache,cacheKey);
+        entry:=First(characterCaches,e->e[1]=sign);
+        if entry=fail then
+            entry:=[Immutable(ShallowCopy(sign)),listDictionary()]; Add(characterCaches,entry);
+        fi;
+        idx:=vertexIndex(vertex);
+        answer:=LookupDictionary(entry[2],idx*KOAHSS_EXTENSION_CELL_KEYBASE+generator);
         if answer=fail then
-            path:=R!.homotopy(0,[generator,index(vertex[1])]);
+            path:=R!.homotopy(0,[generator,idx]);
             answer:=(-1)^(Sum(path,t->SignInt(t[1])*sign[AbsInt(t[1])]) mod 2);
-            AddDictionary(characterCache,cacheKey,answer);
+            AddDictionary(entry[2],idx*KOAHSS_EXTENSION_CELL_KEYBASE+generator,answer);
         fi;
         return answer;
     end;
+    character:=function(sign,element)
+        return vertexCharacter(sign,code(index(element),1));
+    end;
     result:=rec(status:="computed",resolution:=R,f:=f,g:=g,homotopy:=homotopy,
         character:=character,vertexCharacter:=vertexCharacter,
-        normalizeSimplex:=anchor,actVertex:=function(element,v) return [element*v[1],v[2]]; end,
-        vertexGroup:=v->v[1],baseVertex:=base,
+        characterByIndex:=function(sign,gi) return vertexCharacter(sign,code(gi,1)); end,
+        normalizeSimplex:=anchor,
+        actVertex:=function(element,v) return code(product(index(element),vertexIndex(v)),vertexType(v)); end,
+        actVertexByIndex:=function(gi,v) return product(gi,QuoInt(v,STRIDE))*STRIDE+(v mod STRIDE); end,
+        vertexGroup:=v->R!.elts[vertexIndex(v)],vertexIndex:=vertexIndex,vertexType:=vertexType,
+        vertexCode:=code,indexedElements:=true,indexOf:=index,elementOf:=i->R!.elts[i],
+        identityIndex:=identityIndex,hashList:=hashList,baseVertex:=base,
         convention:="normalized-homogeneous-bar-local-cochains",comparison:="cells");
     # Refuse up front if some generator needs a private contraction that
     # does not exist; later requests would otherwise fail during a product.
@@ -358,7 +453,7 @@ BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
     # inverse, so its degree is private: no degree needs to be built here.
     for n in [1..maxDegree] do
         for j in [1..R!.dimension(n)] do
-            coefficients:=List(boundaryChain(n,[[j,identity,1]]),t->t[3]);
+            coefficients:=List(boundaryChain(n,[[j,identityIndex,1]]),t->t[3]);
             if IsEmpty(coefficients) or Gcd(coefficients)<>1 then
                 return rec(status:="unresolved",code:="non-primitive-boundary",
                     reason:=Concatenation("the boundary of resolution generator ",String(j),
@@ -377,7 +472,7 @@ end);
 # Otherwise it returns the refusal record, which is final: every later call
 # returns it. The audit counts only the basis elements verified so far.
 BindGlobal("KOAHSS_ExtensionTransportVerifier",function(transport,k,limits)
-    local R,unit,audit,verified,supports,refusal,refuse,eltsIndex,synced,sync,position,verify;
+    local R,unit,audit,verified,supports,refusal,refuse,eltsIndex,synced,sync,position,verify,indexed;
     R:=transport.resolution; unit:=One(R!.group);
     audit:=rec(status:="unresolved",kind:="transfer-preflight",packageDegree:=k,
         checkedThrough:=-1,requestedThrough:=k+2,transferReady:=false,
@@ -387,7 +482,10 @@ BindGlobal("KOAHSS_ExtensionTransportVerifier",function(transport,k,limits)
             gTerms:=0,comparisonTerms:=0,basesChecked:=0)),
         gTerms:=0,comparisonTerms:=0,processedTerms:=0,comparison:="group-bar");
     if IsBound(transport.comparison) then audit.comparison:=transport.comparison; fi;
-    verified:=List([0..k+2],n->[]); supports:=List([0..k+2],n->NewDictionary([],true));
+    verified:=List([0..k+2],n->[]);
+    indexed:=IsBound(transport.indexedElements) and transport.indexedElements=true;
+    if indexed then supports:=List([0..k+2],n->NewDictionary(1,true));
+    else supports:=List([0..k+2],n->NewDictionary([],true)); fi;
     refusal:=fail;
     refuse:=function(code,reason)
         audit.status:="unresolved"; audit.code:=code; audit.reason:=reason;
@@ -428,6 +526,7 @@ BindGlobal("KOAHSS_ExtensionTransportVerifier",function(transport,k,limits)
         coefficients:=NewDictionary([],true); keys:=[];
         for term in chain do
             simplex:=transport.normalizeSimplex(term[2]);
+            if indexed then simplex:=transport.hashList(simplex); fi;
             if LookupDictionary(supports[n+1],simplex)=fail then
                 if degreeAudit.uniqueSupport>=limits.maxSupport then
                     audit.failure:=rec(degree:=n,basis:=j,stage:="support");
@@ -447,7 +546,7 @@ BindGlobal("KOAHSS_ExtensionTransportVerifier",function(transport,k,limits)
             audit.comparisonTerms:=audit.comparisonTerms+Length(lifted);
             degreeAudit.comparisonTerms:=degreeAudit.comparisonTerms+Length(lifted);
             for entry in lifted do
-                p:=position(entry[2]);
+                if indexed then p:=entry[2]; else p:=position(entry[2]); fi;
                 if p=fail then
                     Error("bar comparison returned an unindexed resolution group element");
                 fi;
@@ -460,7 +559,8 @@ BindGlobal("KOAHSS_ExtensionTransportVerifier",function(transport,k,limits)
         Sort(keys);
         image:=List(Filtered(keys,key->LookupDictionary(coefficients,key)<>0),
             key->[key[1],key[2],LookupDictionary(coefficients,key)]);
-        expected:=[[j,position(unit),1]];
+        if indexed then expected:=[[j,transport.indexOf(unit),1]];
+        else expected:=[[j,position(unit),1]]; fi;
         if image<>expected then
             audit.failure:=rec(degree:=n,basis:=j,image:=image,expected:=expected,
                 coordinateConvention:="[basis,R.elts-index,integer-coefficient]");
@@ -592,8 +692,16 @@ end);
 # Internal transport options. cells:=true forces the cell comparison and
 # labels:=true vertex labels without a multiplication table (testing only).
 # maxSupport and maxTerms are the resource bounds of the sparse comparison
-# and of the normalized homotopy expansion.
-BindGlobal("KOAHSS_EXTENSION_TRANSPORT_LIMITS",rec(maxSupport:=8192,maxTerms:=2000000));
+# and of the normalized homotopy expansion (the budgets of the previous
+# package's space-group campaigns: 8192 and 2000000 refused space groups
+# 115 and 194 with the pin twist). answerCacheEntries, answerCacheTerms and
+# answerCacheMaxTerms bound the retained normalized homotopy answers (number
+# of answers, their total terms, the largest answer kept), encodedCacheTerms
+# the encoded answers kept for the worker: a large answer requested twice
+# was computed twice under the former bounds of 128, 200000 and maxTerms.
+BindGlobal("KOAHSS_EXTENSION_TRANSPORT_LIMITS",rec(maxSupport:=131072,maxTerms:=20000000,
+    answerCacheEntries:=4096,answerCacheTerms:=8000000,answerCacheMaxTerms:=2000000,
+    encodedCacheTerms:=20000000));
 
 # mode "extension" (default): the normalized comparison with the side
 # conditions, verified chains and the primary comparison tensors, on the
@@ -606,7 +714,7 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         engine,maximum,used,failure,reduce,append,act,projectComplement,rawHomotopy,boundary,u,
         normalizedH,cache,order,retained,encode,decode,terms,actVertex,modulus,reductions,
         vertexCharacter,vertexGroup,vertexList,labels,label,tableMode,i,primary,pageMode,
-        characters,labelCharacter,encoded,encodedTerms;
+        characters,labelCharacter,encoded,encodedTerms,indexed,translate,inner,cacheLimit,degenerate;
     backend:=arg[1]; k:=arg[2]; mode:="extension";
     if Length(arg)>=3 then mode:=arg[3]; fi;
     pageMode:=mode="page";
@@ -663,6 +771,7 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
     if pageMode then audit.mode:="page mode: unverified group-bar chains"; fi;
     audit.selection:=selection;
     group:=R!.group; unit:=One(group);
+    indexed:=IsBound(tr.indexedElements) and tr.indexedElements=true;
     actVertex:=function(element,v) return element*v; end;
     vertexCharacter:=tr.character; vertexGroup:=v->v;
     if IsBound(tr.actVertex) then actVertex:=tr.actVertex; fi;
@@ -697,6 +806,11 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         maxDegree:=k+2,binaryHomotopy:=reductions,strictIdentities:=reductions,
         stats:=rec(hRequests:=0,h2Requests:=0,hCacheHits:=0,maxExpansionTerms:=0,gRequests:=0));
     maximum:=override.maxTerms; cache:=NewDictionary("",true); order:=[]; retained:=0;
+    cacheLimit:=rec(answerCacheEntries:=4096,answerCacheTerms:=8000000,
+        answerCacheMaxTerms:=2000000,encodedCacheTerms:=maximum);
+    for i in RecNames(cacheLimit) do
+        if IsBound(override.(i)) then cacheLimit.(i):=override.(i); fi;
+    od;
     used:=0; failure:=fail; modulus:=0;
     append:=function(target,source,coefficient)
         local t;
@@ -710,16 +824,22 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         for t in source do Add(target,[coefficient*t[1],t[2]]); od;
         return true;
     end;
+    degenerate:=function(simplex)
+        local i;
+        for i in [2..Length(simplex)] do
+            if simplex[i]=simplex[i-1] then return true; fi;
+        od;
+        return false;
+    end;
     reduce:=function(chain)
-        local sorted,answer,t;
+        local sorted,answer,t,previous;
         if chain=fail then return fail; fi;
-        sorted:=Filtered(chain,t->t[1]<>0 and
-            not ForAny([2..Length(t[2])],i->t[2][i]=t[2][i-1]));
-        Sort(sorted,function(a,b) return a[2]<b[2]; end); answer:=[];
+        sorted:=Filtered(chain,t->t[1]<>0 and not degenerate(t[2]));
+        Sort(sorted,function(a,b) return a[2]<b[2]; end); answer:=[]; previous:=fail;
         for t in sorted do
-            if not IsEmpty(answer) and Last(answer)[2]=t[2] then
-                Last(answer)[1]:=Last(answer)[1]+t[1];
-            else Add(answer,[t[1],t[2]]); fi;
+            if previous<>fail and previous[2]=t[2] then
+                previous[1]:=previous[1]+t[1];
+            else previous:=[t[1],t[2]]; Add(answer,previous); fi;
         od;
         if modulus=2 then
             for t in answer do t[1]:=t[1] mod 2; od;
@@ -729,6 +849,13 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
     act:=function(chain,g)
         return List(chain,t->[t[1],List(t[2],v->actVertex(g,v))]);
     end;
+    # Translation by an element given in the comparison's own convention: an
+    # element index for the cell comparison, the element otherwise.
+    if indexed then
+        translate:=function(chain,gi)
+            return List(chain,t->[t[1],List(t[2],v->tr.actVertexByIndex(gi,v))]);
+        end;
+    else translate:=act; fi;
     projectComplement:=function(chain)
         local answer,t,v,image;
         if chain=fail then return fail; fi;
@@ -741,7 +868,7 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
                     failure:=rec(status:="unresolved",code:=image.code,reason:=image.reason);
                     return fail;
                 fi;
-                if not append(answer,act(image,v[2]),-t[1]*v[3]) then return fail; fi;
+                if not append(answer,translate(image,v[2]),-t[1]*v[3]) then return fail; fi;
             od;
         od;
         return reduce(answer);
@@ -779,6 +906,7 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         if binary then
             key:=Concatenation("2:",key); engine.stats.h2Requests:=engine.stats.h2Requests+1;
         fi;
+        if KOAHSS_NORMALIZED_H_FORM<>"identity" then key:=Concatenation("direct:",key); fi;
         engine.stats.hRequests:=engine.stats.hRequests+1;
         answer:=LookupDictionary(cache,key);
         if answer<>fail then
@@ -786,13 +914,26 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         fi;
         used:=0; failure:=fail;
         if binary then modulus:=2; else modulus:=0; fi;
-        answer:=u(boundary(u([[1,vertices]])));
+        if reductions and KOAHSS_NORMALIZED_H_FORM="identity" then
+            # H = u d u = u (1 - u d). For chain maps f, g with f g = 1 the
+            # projection q = 1 - gf is an idempotent chain map with q g = 0,
+            # and d h + h d = 1 - gf gives d u = q d h q = q (q - h d) q =
+            # q - u d; hence u d u = u (q - u d) = u - u u d. The outer u then
+            # acts on sigma - u(d sigma), built from the faces of sigma,
+            # instead of on d(u sigma), which has (n+2) |u sigma| terms.
+            inner:=u(boundary([[1,vertices]]));
+            if inner=fail then answer:=fail;
+            else answer:=u(reduce(Concatenation([[1,vertices]],List(inner,t->[-t[1],t[2]])))); fi;
+        else
+            answer:=u(boundary(u([[1,vertices]])));
+        fi;
         modulus:=0;
         engine.stats.maxExpansionTerms:=Maximum(engine.stats.maxExpansionTerms,used);
         if answer=fail then return fail; fi;
         MakeImmutable(answer);
-        if Length(answer)<=200000 then
-            while not IsEmpty(order) and (Length(order)>=128 or retained+Length(answer)>200000) do
+        if Length(answer)<=cacheLimit.answerCacheMaxTerms then
+            while not IsEmpty(order) and (Length(order)>=cacheLimit.answerCacheEntries
+                  or retained+Length(answer)>cacheLimit.answerCacheTerms) do
                 old:=Remove(order,1); retained:=retained-Length(LookupDictionary(cache,old));
                 RemoveDictionary(cache,old);
             od;
@@ -839,8 +980,13 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         if answer<>fail then return answer; fi;
         first:=labelCharacter(simplex[1]);
         if kind="f" then
-            answer:=List(tr.f(simplex),t->[t[1]-1,t[3],
-                first*t[3]*tr.character(backend.twists.s,t[2])]);
+            if indexed then
+                answer:=List(tr.f(simplex),t->[t[1]-1,t[3],
+                    first*t[3]*tr.characterByIndex(backend.twists.s,t[2])]);
+            else
+                answer:=List(tr.f(simplex),t->[t[1]-1,t[3],
+                    first*t[3]*tr.character(backend.twists.s,t[2])]);
+            fi;
             if Length(answer)>maximum then
                 return rec(status:="unresolved",code:="lift-term-budget",
                     reason:="sparse cochain lift exceeded its term budget");
@@ -861,13 +1007,14 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
             answer:=List(encode(answer),t->[t[1],first*t[2],t[3]]);
         fi;
         answer:=Immutable(rec(status:="computed",terms:=answer));
-        if encodedTerms+Length(answer.terms)>maximum then
+        if encodedTerms+Length(answer.terms)>cacheLimit.encodedCacheTerms then
             encoded:=NewDictionary("",true); encodedTerms:=0;
         fi;
         AddDictionary(encoded,key,answer); encodedTerms:=encodedTerms+Length(answer.terms);
         return answer;
     end;
     engine.terms:=terms;
+    engine.normalizedH:=normalizedH; engine.vertexList:=vertexList;
     primary:=fail;
     engine.primaryComparison:=reductions and IsBound(backend.nativeCoherence);
     engine.cupHomotopy:=function(i,indices,patterns)
@@ -896,6 +1043,7 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         local answer;
         answer:=normalizedH(tr.normalizeSimplex(simplex),false);
         if answer=fail then return fail; fi;
+        if indexed then return translate(answer,tr.vertexIndex(simplex[1])); fi;
         return act(answer,vertexGroup(simplex[1]));
     end;
     engine.normalization:="q h q boundary q h q, q=1-gf";

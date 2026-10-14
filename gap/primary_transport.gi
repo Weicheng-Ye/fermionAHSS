@@ -6,7 +6,7 @@
 # two exact boundary checks; collect only the final trivial-character pairing.
 BindGlobal("KOAHSS_ExtensionPrimaryTransport",function(tr,native,maximum)
     local R,tensor,cache,order,retained,failure,cuts,used,extend,account,
-        vertexGroup,labels,nextLabel,label,comparison,compute,tensorF;
+        vertexGroup,labels,nextLabel,label,comparison,compute,tensorF,indexed,elementIndex,firstIndex;
     if not IsBound(native.binaryTensor) then
         Error("koFull: the shared binary tensor engine of the resolution is required");
     fi;
@@ -15,6 +15,14 @@ BindGlobal("KOAHSS_ExtensionPrimaryTransport",function(tr,native,maximum)
     failure:=false; cuts:=[]; used:=0; labels:=fail; nextLabel:=0;
     vertexGroup:=v->v;
     if IsBound(tr.vertexGroup) then vertexGroup:=tr.vertexGroup; fi;
+    # The cell comparison carries element indices (the positions in R!.elts
+    # that the tensor engine's index returns); the bar carries elements.
+    indexed:=IsBound(tr.indexedElements) and tr.indexedElements=true;
+    if indexed then
+        elementIndex:=x->x; firstIndex:=sigma->tr.vertexIndex(sigma[1]);
+    else
+        elementIndex:=tensor.index; firstIndex:=sigma->tensor.index(vertexGroup(sigma[1]));
+    fi;
     label:=function(v)
         local value;
         if labels=fail then labels:=NewDictionary(v,true); fi;
@@ -40,8 +48,8 @@ BindGlobal("KOAHSS_ExtensionPrimaryTransport",function(tr,native,maximum)
         y:=Filtered(tr.f(right),b->IsOddInt(b[3]));
         for a in x do
             for b in y do
-                Add(out,[Length(left)-1,a[1],tensor.index(a[2]),
-                         Length(right)-1,b[1],tensor.index(b[2])]);
+                Add(out,[Length(left)-1,a[1],elementIndex(a[2]),
+                         Length(right)-1,b[1],elementIndex(b[2])]);
             od;
         od;
         return tensor.reduce(out);
@@ -64,7 +72,7 @@ BindGlobal("KOAHSS_ExtensionPrimaryTransport",function(tr,native,maximum)
                 AddDictionary(cache,key,value); Add(order,key); retained:=retained+Length(value);
             fi;
         fi;
-        return tensor.act(value,tensor.index(vertexGroup(sigma[1])));
+        return tensor.act(value,firstIndex(sigma));
     end;
     compute:=function(i,sigma)
         local n,rhs,t,faces,lower,j,value;
@@ -75,7 +83,7 @@ BindGlobal("KOAHSS_ExtensionPrimaryTransport",function(tr,native,maximum)
         for t in tr.f(sigma) do
             if IsOddInt(t[3]) then
                 extend(rhs,tensor.act(tensor.diagonal(i,n,t[1],native.maxTotalDegree),
-                    tensor.index(t[2])));
+                    elementIndex(t[2])));
             fi;
         od;
         for faces in cuts[i+1][n+1] do
