@@ -84,18 +84,26 @@ a time, when a table is first used.
 
 The extension rows need the comparison homotopy with the side conditions
 of a strong deformation retraction. With $q = 1 - gf$ and $u = q h q$ the
-package ships $H = u\,\partial\,u$ (`KOAHSS_ExtensionNormalizedTransport`).
-Since $f$ and $g$ are chain maps with $fg = 1$, $q$ is an idempotent chain
-map with $qg = 0$, and $\partial h + h\partial = 1 - gf$ gives
+package ships $H = u\,\partial\,u$ (`KOAHSS_ExtensionNormalizedTransport`),
+evaluated as $H = q\,h\,(1 - h\partial)$. Since $f$ and $g$ are chain
+maps with $fg = 1$ on every verified basis element, $q$ is an idempotent
+chain map with $qg = 0$, and $\partial h + h\partial = 1 - gf$ gives
 $\partial u = q(q - h\partial)q = q - u\partial$; hence
-$H = u(q - u\partial) = u - u^2\partial = u\,(1 - u\partial)$. The package
-evaluates this form: the outer $u$ acts on $\sigma - u(\partial\sigma)$,
-built from the faces of $\sigma$, instead of on $\partial(u\sigma)$,
-which has $(n+2)\,|u\sigma|$ terms each expanding through $h$ again. The
-answer is the same chain; on space group 30 with the pin twist the degree-3
-requests of the A row took 4176 of the case's 5055 seconds in the former
-form. In page mode (group bar without a retraction) the former form is
-kept, since $fg = 1$ is not available there.
+$H = u(q - u\partial) = u\,(1 - u\partial)$. The raw homotopy $h$ of the
+cell comparison vanishes on the image of $g$: it is equivariant, and on
+the anchored chain $g(e_j)$ it is the cone at the base vertex of
+$g(e_j) - gfg(e_j) - h\partial g(e_j) = -hg(\partial e_j)$, which is zero
+by induction on the degree ($hg = 0$ on the degree-zero generators). So
+$hq = h$, $u = qh$, and $H = qh - q(hq)h\partial = q\,h\,(1 - h\partial)$:
+the raw homotopy of the faces, the raw homotopy of
+$\sigma - h(\partial\sigma)$ and one projection at the end, where
+$u\,\partial\,u$ projected four times, each projection expanding every
+term through $f$ and the $g$ chains, and acted on $\partial(u\sigma)$
+with $(n+2)\,|u\sigma|$ terms. The answer is the same chain; on space
+group 30 with the pin twist the degree-3 requests of the A row took 4176 of
+the case's 5055 seconds in the form $u\,\partial\,u$. In page mode (group
+bar without a retraction) $u\,\partial\,u$ is kept, since $fg = 1$ is not
+available there.
 
 The cell comparison (`gap/cell_transport.gi`) works on integers: a vertex
 $[g, \text{type}]$ is the number $\text{index}(g)\cdot 2^{20} + \text{type}$
@@ -116,10 +124,10 @@ representation of a private boundary; both keep the previous order, by
 basis and then by the group element itself, since another right inverse
 is another valid contraction and moves the presentation of an extension
 within its gauge (space group 30 with the pin twist changed one B
-coordinate of its A row when the keys were ordered by index). The testing
-switch `KOAHSS_NORMALIZED_H_FORM` (also read from the environment) selects
-the direct form $u\,\partial\,u$; `bench/dev_hcheck.g` compares the two
-forms on the simplices of the comparison chains.
+coordinate of its A row when the keys were ordered by index). `bench/dev_hcheck.g`
+(working copy only) writes the normalized homotopy of every simplex of the
+comparison chains of a case, so that two builds can be compared term by
+term.
 
 The transport bounds (`KOAHSS_EXTENSION_TRANSPORT_LIMITS`) are the
 budgets of the previous package's campaigns, `maxSupport` 131072 and

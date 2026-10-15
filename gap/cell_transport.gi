@@ -29,12 +29,6 @@
 # actVertexByIndex and characterByIndex for its consumers; chains and
 # conventions match KOAHSS_NaturalBarTransport otherwise.
 BindGlobal("KOAHSS_EXTENSION_CELL_STRIDE",2^20);
-# Testing only: "direct" evaluates the normalized homotopy as u d u instead
-# of the equal u (1 - u d) (KOAHSS_ExtensionNormalizedTransport).
-KOAHSS_NORMALIZED_H_FORM:="identity";
-if IsBound(GAPInfo.SystemEnvironment.KOAHSS_NORMALIZED_H_FORM) then
-    KOAHSS_NORMALIZED_H_FORM:=GAPInfo.SystemEnvironment.KOAHSS_NORMALIZED_H_FORM;
-fi;
 BindGlobal("KOAHSS_EXTENSION_CELL_KEYBASE",2^40);
 BindGlobal("KOAHSS_ExtensionCellTransport",function(R,maxDegree)
     local identity,length,m0,typeData,privateOf,split,built,ensure,shiftOf,
@@ -906,7 +900,6 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         if binary then
             key:=Concatenation("2:",key); engine.stats.h2Requests:=engine.stats.h2Requests+1;
         fi;
-        if KOAHSS_NORMALIZED_H_FORM<>"identity" then key:=Concatenation("direct:",key); fi;
         engine.stats.hRequests:=engine.stats.hRequests+1;
         answer:=LookupDictionary(cache,key);
         if answer<>fail then
@@ -914,17 +907,25 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
         fi;
         used:=0; failure:=fail;
         if binary then modulus:=2; else modulus:=0; fi;
-        if reductions and KOAHSS_NORMALIZED_H_FORM="identity" then
-            # H = u d u = u (1 - u d). For chain maps f, g with f g = 1 the
-            # projection q = 1 - gf is an idempotent chain map with q g = 0,
-            # and d h + h d = 1 - gf gives d u = q d h q = q (q - h d) q =
-            # q - u d; hence u d u = u (q - u d) = u - u u d. The outer u then
-            # acts on sigma - u(d sigma), built from the faces of sigma,
-            # instead of on d(u sigma), which has (n+2) |u sigma| terms.
-            inner:=u(boundary([[1,vertices]]));
+        if reductions then
+            # H = u d u with u = q h q, q = 1 - gf. Here f and g are chain
+            # maps with f g = 1 on every verified basis element, so q is an
+            # idempotent chain map with q g = 0, and d h + h d = 1 - gf gives
+            # d u = q (q - h d) q = q - u d, hence u d u = u (1 - u d). The raw
+            # homotopy vanishes on the image of g: it is equivariant, and on
+            # the anchored chain g(e_j) it is the cone at the base vertex of
+            # g(e_j) - g f g(e_j) - h d g(e_j) = -h g(d e_j), zero by induction
+            # on the degree (h g = 0 on the degree-zero generators). So h q = h,
+            # u = q h, and H = q h (1 - h d): the raw homotopy of the faces, the
+            # raw homotopy of sigma - h(d sigma), and one projection at the end.
+            inner:=rawHomotopy(boundary([[1,vertices]]));
             if inner=fail then answer:=fail;
-            else answer:=u(reduce(Concatenation([[1,vertices]],List(inner,t->[-t[1],t[2]])))); fi;
+            else
+                answer:=projectComplement(rawHomotopy(reduce(
+                    Concatenation([[1,vertices]],List(inner,t->[-t[1],t[2]])))));
+            fi;
         else
+            # Page mode without a retraction: f g = 1 is not available.
             answer:=u(boundary(u([[1,vertices]])));
         fi;
         modulus:=0;
