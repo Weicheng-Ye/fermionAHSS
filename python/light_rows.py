@@ -28,6 +28,7 @@ Answers are always computed in band: a resource limit is returned as
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
 from fractions import Fraction
+from functools import lru_cache
 import json
 import os
 import traceback
@@ -66,6 +67,98 @@ def _product(x, y):
 
 def _binom2(n):
     return (n * (n - 1) // 2) % 2
+
+
+# ---------------------------------------------------------------------------
+# The production pair phase of a square with A = 0, written out.
+#
+# task_bd_exact squares the state (0, b, c) of a B atom. With both A layers
+# zero, every A-source term of production_gamma{4,5,6}.phase is identically
+# zero but is still evaluated by the generic formula: the pair primitive
+# P_k(0,0), the splitting carries lambda, k_0, alpha = h^D(0,0), the
+# transgression, the Theta-pair primitive U^Theta(0,u) inside each of the
+# three comparison gauges (a chain per simplex for a zero value) and the
+# binary pair primitive V_n(0,0) inside beta_sharp on the cylinder (a
+# two-fiber chain per simplex for a zero value). The functions below are that
+# phase with the zero terms removed term by term; with
+# f_0(B) = Q_D(B) + delta(Q^1 B + s cup B) the square phase is
+#
+#   e_k(B,C) = -I[ 2 phi_0(Bl,Cl) - h(E(beta)) - h(h^2(c_u,c_u))
+#                  - U^Theta_{k-1}(delta(Bl), delta(Bl)) ] - mu_k(B) - 2 Q_k(B),
+#   phi_0(B,C) = h(E(C) + h^2(delta C, f_0(B))) - I theta_{k-1}(delta(Bl), f_0(Bl)),
+#   beta = h^D(Bl,Bl) + delta(Bl) cup_{k-1} delta(Bl),   c_u = delta(Cl) + f_0(Bl),
+#   mu_5 = h(s cup h^D(B,B)),   mu_4 = mu_6 = h(j_0(B,B)),
+#   Q_k(B) = h(h^2(Q^1 B, s cup B)) - I h(E(L) + h^2(Q_D(Bl), delta L)),
+#            L = Q^1(Bl) + s cup Bl   [k = 5 adds -I h(E(Q^1(Bl))) + Q_D(B)/4],
+#
+# equal to production_gamma{k}.phase(0,B,C,0,B,C) on every simplex (checked
+# on random inputs in degrees 4, 5 and 6, docs/product_upper_k4_k6.md,
+# Section 7). Only this module uses it, so the formula sources and their
+# provenance hash are untouched.
+
+def _fsharp0(B, s, w):
+    """f#(0, B): Q_D(B) + delta(Q^1 B + s cup B)."""
+    return p.binary(p.QD(B, s, w) + p.differential(p.binary(p.Q(B, 1) + p.cup(s, B))))
+
+
+def _phi0(B, C, s, w):
+    """upper_pair_source.phi_without_A_source at A = 0."""
+    I = hp.interval
+    Bi, si, wi = I(B, True), I(s), I(w)
+    bi = p.binary(p.differential(Bi))
+    return (p.half(p.binary(p.E(C, w) + sharp.hE(p.binary(p.differential(C)), _fsharp0(B, s, w))))
+            - hp.prism(p.theta(bi, _fsharp0(Bi, si, wi), si, wi)))
+
+
+@lru_cache(None)
+def _theta_pair(m):
+    from theta_pair_phase import ThetaPairPhase
+    return ThetaPairPhase(m)
+
+
+def _theta_diag(m, q, v, s, w):
+    """Theta^pair_m(q,v;q,v) = h(h^2(v,v)) + U^Theta_m(q,q)."""
+    U = _theta_pair(m).primitive(_local(q), _local(q), _local(s), _local(w))
+    return p.half(p.binary(p.polarization(v, v))) + p.Cochain(U.degree, U)
+
+
+def _a0_square_source(k, B, C, s, w):
+    """upper_pair_source.reduced_full_source on the cylinder data of (0,B,C) twice."""
+    m = k - 1
+    I = hp.interval
+    Bi, Ci, si, wi = I(B, True), I(C, True), I(s), I(w)
+    dBi = p.binary(p.differential(Bi))
+    cu = p.binary(p.differential(Ci) + _fsharp0(Bi, si, wi))
+    beta = p.binary(hp.hD(Bi, Bi, si) + p.cup(dBi, dBi, m))
+    phi = _phi0(Bi, Ci, si, wi)
+    return phi + phi - p.half(p.E(beta, wi)) - _theta_diag(m, dBi, cu, si, wi)
+
+
+def _a0_gauge(k, B, s, w):
+    """production_gamma{k}_comparison.comparison_gauge(0, B)."""
+    I = hp.interval
+    Bi, si, wi = I(B, True), I(s), I(w)
+    y = p.QD(Bi, si, wi)
+    L = p.binary(p.Q(Bi, 1) + p.cup(si, Bi))
+    transport = p.half(p.binary(p.E(L, wi) + sharp.hE(y, p.binary(p.differential(L)))))
+    gauge = p.half(p.binary(sharp.hE(p.Q(B, 1), p.cup(s, B)))) - hp.prism(transport)
+    if k == 5:
+        gauge = gauge - hp.prism(p.half(p.E(p.Q(Bi, 1), wi))) + p.scale(p.QD(B, s, w), Fraction(1, 4))
+    return gauge
+
+
+def a0_square_phase(k, B, C, s, w):
+    """production_gamma{k}.phase(0,B,C,0,B,C) with its identically zero A terms removed, k = 4, 5, 6."""
+    if k not in (4, 5, 6):
+        raise ValueError('the A = 0 square phase covers degrees four to six')
+    x = hp.hD(B, B, s)
+    if k == 5:
+        middle = p.half(p.cup(s, x))
+    else:
+        import production_upper_binary_comparison as binary
+        middle = p.half(p.binary(binary.j0_homotopy(B, B, s, w)))
+    gauge = _a0_gauge(k, B, s, w)
+    return p.scale(hp.prism(_a0_square_source(k, B, C, s, w)), -1) - middle - gauge - gauge
 
 
 class LightEvaluator:
@@ -190,8 +283,10 @@ class LightEvaluator:
         if i < 0 or not any(a) or not any(b):
             return p.zero(n + m - i - 1)
         def value(vertices):
+            # The answer is restricted to the split (n, m) by the transport;
+            # the filter stays as a guard.
             return sum(a[t[2]] * b[t[4]] for t in
-                       self.model.terms('cupK' + str(i), vertices)
+                       self.model.terms('cupK' + str(i), vertices, (n, m))
                        if t[1] == n and t[3] == m) % 2
         return p.Cochain(n + m - i - 1, value)
 
@@ -702,8 +797,11 @@ class LightEvaluator:
                             True, True, (True, True), s, w, b_zero=True)
         omega_b = self.a0_potential(k, b, c)
         omega_x = self.a0_potential(k, z[k - 2], x)
+        # The production pair phase of the square with both A layers zero,
+        # with its identically vanishing A-source terms removed (module
+        # comment above a0_square_phase).
         phase = self.memo(('eb', k, id(b), id(c)),
-                          lambda: closed.phase(z[k - 3], b, c, z[k - 3], b, c, s, w), (b, c))
+                          lambda: a0_square_phase(k, b, c, s, w), (b, c))
         rx = p.half(p.binary(p.cup(s, x)))
         direct = _times(omega_b, 2) - omega_x - unit - half
         delta = phase + rx

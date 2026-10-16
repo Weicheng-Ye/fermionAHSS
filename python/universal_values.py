@@ -171,6 +171,11 @@ class UniversalTable:
         """Evaluate the function afresh on a stored key, bypassing the table."""
         return self.function(key)
 
+    def put(self, key, value):
+        """Store a value obtained exactly by other means, as if it had been evaluated."""
+        self.values[key] = value
+        self.pending[key] = value
+
 
 class CompactTable(UniversalTable):
     """A table whose stored keys are exact, invertible string encodings.

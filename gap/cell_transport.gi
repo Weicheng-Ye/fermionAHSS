@@ -693,9 +693,19 @@ end);
 # of answers, their total terms, the largest answer kept), encodedCacheTerms
 # the encoded answers kept for the worker: a large answer requested twice
 # was computed twice under the former bounds of 128, 200000 and maxTerms.
+# The primary comparison (gap/primary_transport.gi, gap/binary_tensors.gi)
+# reads its three cache budgets here as [entries, retained terms, largest
+# stored value]: comparisonCache for the comparisons themselves (the
+# recursion of a simplex needs its faces and its lower index, so evictions
+# recompute the tree below), diagonalCache for the native higher diagonals,
+# cellCache for the contraction words. primaryAuditEvery is the cadence of
+# the two exact boundary checks of a computed comparison (1 checks every
+# simplex). Of the order of the homotopy caches; about 100 bytes per term.
 BindGlobal("KOAHSS_EXTENSION_TRANSPORT_LIMITS",rec(maxSupport:=131072,maxTerms:=20000000,
     answerCacheEntries:=4096,answerCacheTerms:=8000000,answerCacheMaxTerms:=2000000,
-    encodedCacheTerms:=20000000));
+    encodedCacheTerms:=20000000,
+    comparisonCache:=[4096,8000000,2000000],diagonalCache:=[4096,4000000,1000000],
+    cellCache:=[4096,4000000,1000000],primaryAuditEvery:=64));
 
 # mode "extension" (default): the normalized comparison with the side
 # conditions, verified chains and the primary comparison tensors, on the
@@ -1018,11 +1028,15 @@ BindGlobal("KOAHSS_ExtensionNormalizedTransport",function(arg)
     engine.normalizedH:=normalizedH; engine.vertexList:=vertexList;
     primary:=fail;
     engine.primaryComparison:=reductions and IsBound(backend.nativeCoherence);
-    engine.cupHomotopy:=function(i,indices,patterns)
+    # The optional fourth argument [p,q] restricts the answer to one split.
+    engine.cupHomotopy:=function(arg)
+        local split;
+        split:=fail;
+        if Length(arg)>=4 then split:=arg[4]; fi;
         if primary=fail then
             primary:=KOAHSS_ExtensionPrimaryTransport(tr,backend.nativeCoherence(),maximum);
         fi;
-        return primary(i,decode(indices),patterns);
+        return primary(arg[1],decode(arg[2]),arg[3],split);
     end;
     # The comparison chain of one basis element (basis is 0-based), verified
     # and encoded when the worker first needs it.

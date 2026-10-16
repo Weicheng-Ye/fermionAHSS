@@ -34,10 +34,12 @@ InstallGlobalFunction(KOAHSS_ResolutionMemo,function(R)
         return position;
     end;
     identity:=index(One(R!.group));
-    words:=NewDictionary([0,1,1],true); order:=[]; retained:=0;
+    # Both memo tables are keyed by one integer (base 2^40 digits): GAP's
+    # sorted-list dictionaries then search in the kernel.
+    words:=NewDictionary(1,true); order:=[]; retained:=0;
     contract:=function(n,j,g)
         local k,word,old;
-        k:=[n,j,g]; word:=LookupDictionary(words,k);
+        k:=(n*2^40+j)*2^40+g; word:=LookupDictionary(words,k);
         if word<>fail then return word; fi;
         # Copy before making immutable: a HAP implementation may own this
         # list. Preserve its signs, order, and multiplicities exactly.
@@ -54,16 +56,16 @@ InstallGlobalFunction(KOAHSS_ResolutionMemo,function(R)
         AddDictionary(words,k,word); Add(order,k); retained:=retained+Length(word);
         return word;
     end;
-    products:=NewDictionary([1,1],true); productCount:=0;
+    products:=NewDictionary(1,true); productCount:=0;
     product:=function(g,h)
         local value;
         if g=identity then return h; fi;
         if h=identity then return g; fi;
-        value:=LookupDictionary(products,[g,h]);
+        value:=LookupDictionary(products,g*2^40+h);
         if value<>fail then return value; fi;
         value:=index(R!.elts[g]*R!.elts[h]);
-        if productCount>=65536 then products:=NewDictionary([1,1],true); productCount:=0; fi;
-        AddDictionary(products,[g,h],value); productCount:=productCount+1;
+        if productCount>=65536 then products:=NewDictionary(1,true); productCount:=0; fi;
+        AddDictionary(products,g*2^40+h,value); productCount:=productCount+1;
         return value;
     end;
     return rec(index:=index,identity:=identity,contract:=contract,product:=product);

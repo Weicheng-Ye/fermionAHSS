@@ -208,13 +208,14 @@ class TransferredModel:
         first = self.inverse[vertices[0]]
         return tuple(self.mul[first][g] for g in vertices)
 
-    def terms(self, kind, vertices):
+    def terms(self, kind, vertices, split=None):
+        """The transport answer of kind at the simplex; a cupK answer restricted to the split (p, q)."""
         sigma = self.normalize(vertices)
         if sigma is None:
             return ()
-        key = kind, sigma
+        key = (kind, sigma) if split is None else (kind, tuple(split), sigma)
         if key not in self._transport:
-            answer = self.transport(kind, len(sigma) - 1, sigma)
+            answer = self.transport(kind, len(sigma) - 1, sigma, split)
             if isinstance(answer, dict):
                 if answer.get("status") != "computed":
                     raise TransferResourceLimit(answer.get("reason", "transport refused"))
@@ -723,21 +724,29 @@ class TransferredModel:
 def serve():
     model = None
     acceleration.persist()
-    def transport(kind, degree, vertices):
+    cut_patterns = {}
+
+    def transport(kind, degree, vertices, split=None):
         # A comparison chain is addressed by its 0-based basis index.
         message = (dict(operation="transport", kind="g", degree=degree, basis=vertices)
                    if kind == "g" else
                    dict(operation="transport", kind=kind, degree=degree, vertices=vertices))
         if kind.startswith('cupK'):
+            # The cut patterns depend on the index and the degree only.
             index = int(kind[4:])
-            message['cuts'] = [
-                [[[[v + 1 for v in face] for face in faces]
-                  for left in range(n + i + 1)
-                  for faces, coefficient in cut_terms(
-                      ''.join(str(1 + j % 2) for j in range(i + 2)), (left, n + i - left))
-                  if coefficient % 2]
-                 for n in range(degree + 1)]
-                for i in range(index + 1)]
+            if (index, degree) not in cut_patterns:
+                cut_patterns[index, degree] = [
+                    [[[[v + 1 for v in face] for face in faces]
+                      for left in range(n + i + 1)
+                      for faces, coefficient in cut_terms(
+                          ''.join(str(1 + j % 2) for j in range(i + 2)), (left, n + i - left))
+                      if coefficient % 2]
+                     for n in range(degree + 1)]
+                    for i in range(index + 1)]
+            message['cuts'] = cut_patterns[index, degree]
+            if split is not None:
+                # Only the (p, q) split that the requesting cochain reads.
+                message['split'] = [int(split[0]), int(split[1])]
         print(json.dumps(message), flush=True)
         line = sys.stdin.readline()
         if not line:

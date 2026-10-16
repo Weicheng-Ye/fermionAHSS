@@ -429,14 +429,63 @@ S^{A0}_k(B,B)=-2\,\mathrm{bp}_k(B)+\mathsf h\Bigl(h^2(Q_DB,Q_DB)+E\bigl(h^D(B,B)
 $$
 
 a one-fiber source on the model of a single binary cocycle with
-$\theta_{k-1}$ leaves, so $\mathcal U^{A0}_k(B,B)$ is a one-fiber primitive
-plus constants on that model's small cells, by the same three-line
-identity (P5). The $\Theta$-pair primitive $\mathcal U^\Theta_m(q,q)$ inside
-$R^{\rm red}$ collapses the same way ($q+q=0$). Neither was measured as a
-bottleneck in the reports, so this is a formula statement, not a timing.
+$\theta_{k-1}$ leaves. The three-line identity (P5) applies, but the
+reduced binary cocycle model keeps its leaves uncontracted, so its "small
+cells" are all leaf simplices and the constants are not finitely many;
+the collapse becomes finite only on the iterated binary bar model of
+$\mathfrak q^{\rm HTC}$. Neither primitive was measured as a bottleneck.
+
+Two facts settled afterwards (2026-10-16). The B-over-D row of the
+package evaluates the *production* pair phase at $A=0$, not $e^{A0}_k$: on
+legal data ($\delta c=Q_Db$) the two differ pointwise by quarter-integers
+($\tfrac{15}4,-\tfrac14,\tfrac{33}4,\dots$ in degree five, $-\tfrac{13}4,\tfrac34,\dots$
+in degree six), so they are different primitives and are not
+interchangeable without a proof that the difference is an integral
+cochain plus an exactly closed one. The production phase at $A=0$ does
+collapse exactly, term by term, to the formula of
+[product_upper_k4_k6.md](product_upper_k4_k6.md), Section 7, which the
+package uses (`a0_square_phase`); its only universal primitive is the
+diagonal $\Theta$-pair primitive on the cylinder.
 
 **What does not collapse.** The binary pair primitive $\mathcal V_n(A,A)$
 in the C layer of a square (Section 5), the curvature prisms on the gauge
 cylinder, and the leaves $\theta_m$. The first is a chain with a cup-word
 source, the second and third are one-fiber words; all three are
 candidates for label tables, not for a further algebraic reduction.
+
+## 12. The undoubled term of the diagonal source
+
+The diagonal source (P3) of a chain term $\tau$ of $Hj_\sigma(A)$ contains
+$-2V_P(A_\tau)$: the one-fiber source primitive at the chain term itself,
+evaluated, as every universal value is, on the re-sectioned simplex
+$jr(\tau)$ with the same cochains as $\tau$. Summed over the chain with
+its coefficients these terms vanish:
+
+$$
+\sum_\tau c_\tau\,V_n\bigl(jr(\tau)\bigr)=0\qquad\text{exactly, for }Hj_\sigma(A)=\sum_\tau c_\tau\tau .
+$$
+
+Two facts enter. First, the contractions of the models of $V_2$ and $V_3$
+satisfy the side conditions $HH=0$ and $FH=0$ exactly (verified on the
+chains of random closed signed cocycles; $H$ of a chain term is even
+empty term by term, as a cone on a cone). Second, $\phi_n$ vanishes on
+every simplex of $H(jr(\tau))$ although $jr(\tau)\ne\tau$ for most terms
+(the section symmetrizes the $\omega$ matrix and skew-symmetrizes $M$,
+which changes the ghost entries that the chain operators read): verified
+term by term in degree five on six random inputs at the production
+dimension (chains of 1000 to 4200 terms, sums exactly zero) and in
+degree six on one input (3447 chain terms, 61650 second-level simplices,
+all zero). No proof of the second fact is recorded; the first is the
+classical normalization $h\mapsto h\partial h$ of a contraction.
+
+The package therefore evaluates the reduced diagonal source
+$S^\Delta_k(A)+2V_P(A)$ on the chain terms (`unary_tables.reduced_diagonal_source`):
+one $V_n$ leaf per term ($2A_\tau$) instead of two. Nothing else in (P4)
+changes, the constants $c_b$ are the same, and a stored pair-source value
+converts exactly to the reduced value when the $V_n$ value of the term is
+stored as well (pair value plus twice the leaf). In the shipped degree-five
+bundle 2248 of the 9364 $V_2$ values served only the undoubled term. The
+doubled term does not vanish (its sums are half-integers, $-\tfrac{111}2$,
+$-\tfrac{63}2$ on the same inputs), and no cohomologous replacement of it or
+of $\mathcal V_n(A,A)$ is admissible: both are evaluated on non-closed
+chains, where a coboundary does not vanish.

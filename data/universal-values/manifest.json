@@ -5,11 +5,13 @@
   "a0_high_gamma.HigherA0Stacking.evaluate": 1724,
   "closed_a_upper._high_source_value": 0,
   "low_phases.V1_pair": 1031,
-  "low_phases.V2_pair": 9364,
+  "low_phases.V2_pair": 9616,
   "production_gamma4.source_value": 1129,
   "production_gamma5.source_value": 22453,
   "production_gamma6.source_value": 0,
   "v3_pair_shared.primitive_value": 31,
-  "v3_pair_shared.source_value": 1440
+  "v3_pair_shared.source_value": 1440,
+  "unary_tables.reduced_source_value_5": 8485,
+  "unary_tables.reduced_source_value_6": 0
  }
 }

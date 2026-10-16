@@ -82,7 +82,7 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(arg)
         if stream<>fail then CloseStream(stream); stream:=fail; fi;
     end;
     readAnswer:=function()
-        local line,answer,response;
+        local line,answer,response,split;
         while true do
             line:=KOAHSS_ReadWorkerLine(stream);
             if line=fail then
@@ -104,8 +104,9 @@ BindGlobal("KOAHSS_ExtensionTransferredModel",function(arg)
                         answer.vertices.degrees[1],answer.vertices.vectors[1],
                         answer.vertices.degrees[2],answer.vertices.vectors[2]));
                 elif StartsWith(answer.kind,"cupK") then
+                    split:=fail; if IsBound(answer.split) then split:=answer.split; fi;
                     response:=transport.cupHomotopy(Int(answer.kind{[5..Length(answer.kind)]}),
-                        answer.vertices,answer.cuts);
+                        answer.vertices,answer.cuts,split);
                 else
                     if not IsBound(answer.vertices) then
                         model.close(); Error("malformed sparse transport callback");

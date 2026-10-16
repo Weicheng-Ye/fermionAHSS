@@ -46,10 +46,29 @@ row, or a light row (`gap/light_rows.gi`, `python/light_rows.py`), which is
 the residue of transported defining data. The A-over-D rows use the
 squaring telescope and the one-fiber primitives of
 [power_relations.md](power_relations.md) in degrees five and six
-(`python/unary_tables.py`, tables in `data/`, generator in `tools/`); the
-diagonal source on a one-fiber simplex $\tau$ is read as the pair source on
-$\Delta\tau$ through the persistent pair-source tables, so the shipped and
-cached pair values serve the one-fiber primitive.
+(`python/unary_tables.py`, tables in `data/`, generator in `tools/`). The
+diagonal source on a one-fiber simplex $\tau$ is evaluated without its
+undoubled term $-2V_n(\tau)$, which sums to exactly zero over the chain
+([power_relations.md](power_relations.md), Section 12): the reduced value
+is kept in the persistent tables `unary_tables.reduced_source_value_{5,6}`,
+and where the shipped pair-source value of $\Delta\tau$ and the shipped
+$V_n$ value of $\tau$ both exist it is their exact combination
+(pair value plus twice the leaf), so the bundled values still serve the
+one-fiber primitive and a new universal term costs one $V_n$ leaf instead
+of two.
+
+The B-over-D exact residue (`task_bd_exact`) squares the state $(0,b,c)$ of
+a B atom. Its pair phase is the production phase of degrees 4 to 6 with
+both A layers zero, written out with the identically vanishing A-source
+terms removed (`a0_square_phase` in `python/light_rows.py`; the formula is
+in [product_upper_k4_k6.md](product_upper_k4_k6.md), Section 7): no pair
+primitive, no splitting carries, no $\Theta$-pair chain for a zero fiber in
+the comparison gauges and no binary pair primitive $\mathcal V_n(0,0)$ on
+the cylinder. It agrees with `closed_ab_upper.phase` on every simplex and
+costs a fourth to a fifth of it. A $\Theta$-pair or $A=0$ pair primitive
+whose fiber vanishes on the simplex returns zero without building its chain
+(`acceleration.install`), which the comparison gauges of every even square
+of an A relation and of the cross term meet.
 
 ## Transport and the worker
 
@@ -58,6 +77,19 @@ group (used when it retracts), `gap/cell_transport.gi` the comparison with
 the cell complex ($fg=1$ by construction) for every other resolution, with
 the normalized homotopy and the primary comparison tensors
 (`gap/primary_transport.gi`, `gap/binary_tensors.gi`, `gap/native_coherence.gi`).
+The tensor engine keeps a term $[p,j,g,q,k,h]$ as one integer in a mixed
+radix ($2^8$ for a degree, $2^{20}$ for a basis index, $2^{40}$ for an
+element index) and its caches keyed by single integers, so that sorting,
+comparing and looking up terms run in the kernel and a tensor is reduced
+over $\mathbb F_2$ by one sort and a parity scan; the comparison cache of
+`primary_transport.gi` is keyed by one integer made of the number of
+vertices, the index $i$ and the vertex labels (an encoding that forgot the
+number of vertices let a cup-1 comparison of an $n$-simplex collide with
+the cup-0 comparison of an $(n+1)$-simplex, caught by the closedness audit
+on space group 30). The worker asks a
+`cupK` callback for the one $(p,q)$ split its cochain reads
+(`split` in the request), the answer is restricted to that split before it
+is encoded, and the cut patterns are built once per index and degree.
 Two Python workers per backend (`gap/worker_model.gi`,
 `python/stacking_worker.py`): one over the group-bar comparison in page
 mode for the page differentials, one over the normalized comparison for
@@ -136,7 +168,16 @@ and 194 with the pin twist), and the retained normalized answers are
 bounded by `answerCacheEntries` 4096, `answerCacheTerms` 8000000 and
 `answerCacheMaxTerms` 2000000, the encoded answers by
 `encodedCacheTerms` 20000000 (formerly 128 answers, 200000 terms and
-`maxTerms`, which computed large answers twice).
+`maxTerms`, which computed large answers twice). The three caches of the
+primary comparison are `comparisonCache` (4096 answers, 8000000 retained
+terms, values up to 2000000 terms), `diagonalCache` and `cellCache`
+(4096, 4000000, 1000000) in the same record (formerly 256 or 2048
+entries, 200000 terms, nothing above 200000 terms, which recomputed the
+face recursion of the large degree-three tensors). `primaryAuditEvery` is
+the cadence of the two exact boundary checks of a computed comparison
+(closedness of the source, exactness of the contraction): the first
+computed simplex of every $(i,n)$ and one in every 64 thereafter; 1 checks
+every simplex, as before.
 
 ## Characters and contractions on space groups
 

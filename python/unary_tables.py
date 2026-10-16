@@ -19,6 +19,20 @@ initial summand -P_k(A, A) replaced by -P^(A).
 Degree four keeps the two-fiber primitive: its pair model (the shared-sign
 degree-one pair) is small and never dominated a measurement.
 
+The undoubled term. The diagonal source S_k(A_tau, A_tau) of every chain
+term contains -V_P(A_tau) - V_P(A_tau) = -2 V_n(tau), the one-fiber source
+primitive at the chain term itself. Summed over the chain H j(A) with the
+chain's coefficients, these terms give exactly zero: H H = 0 and F H = 0
+hold for the contraction, and the source phi_n vanishes on every simplex of
+H applied to a re-sectioned chain term (verified term by term on random
+closed cocycles at the production dimension, degrees five and six;
+docs/power_relations.md). primitive() therefore evaluates the reduced
+source S_k(A,A) + 2 V_n(A), which costs one V_n leaf per chain term instead
+of two, through the persistent tables reduced_source_value_{5,6}; a stored
+pair-source value converts exactly when the V_n value of the term is stored
+as well. Only the H part of (P4) changes; the constants c_b and every result
+are unchanged.
+
 Copyright (c) 2026 koAHSS contributors; MIT license.
 """
 from fractions import Fraction
@@ -180,6 +194,86 @@ def diagonal_source(k, A, s, omega):
             + upper.source_primitive(A + A, s, omega) + local)
 
 
+def reduced_diagonal_source(k, A, s, omega):
+    """S_k(A, A) + 2 V_P(A): the diagonal pair source without its undoubled V_n term."""
+    if k == 5:
+        import production_gamma5 as formula
+        aux = formula.aux
+        upper = aux.upper
+        comparison = formula.comparison
+        p = formula.p
+        B = p.zero(3)
+        alpha = upper.hp.hD(p.binary(A), p.binary(A), s)
+        beta = upper.beta_sharp(A, B, A, B, s, omega)
+        P = upper.primary(A, s, omega)
+        kappa = upper.fsharp(A, B, s, omega)
+        theta = aux.theta_phase(2).phase(*(aux.as_cochain(x) for x in (P, kappa, P, kappa, s, omega)))
+        # upper.phi(2A, alpha, beta) keeps the doubled term -V_P(2A) and its prism.
+        return (p.scale(upper.phi(A + A, alpha, beta, s, omega), -1) - p.Cochain(theta.degree, theta)
+                + p.scale(comparison.A_phase(A, s, omega), 2) - comparison.A_phase(A + A, s, omega)
+                + comparison.affine_B_source(A, A, s, omega) - formula.transgression_source(A, A, s, omega))
+    if k != 6:
+        raise ValueError('the reduced diagonal source covers degrees five and six')
+    import production_gamma6 as formula
+    aux = formula.aux
+    upper = aux.upper
+    p = formula.p
+    B = p.zero(4)
+    alpha = upper.hp.hD(p.binary(A), p.binary(A), s)
+    beta = upper.beta_sharp(A, B, A, B, s, omega)
+    P = upper.primary(A, s, omega)
+    kappa = upper.fsharp(A, B, s, omega)
+    theta = aux.theta_phase(3).phase(*(aux.as_cochain(x) for x in (P, kappa, P, kappa, s, omega)))
+    local = (p.scale(aux.phi_without_A_source(A + A, alpha, beta, s, omega), -1)
+             - p.Cochain(theta.degree, theta)
+             + p.scale(formula.comparison.A_phase(A, s, omega), 2)
+             - formula.comparison.A_phase(A + A, s, omega)
+             + p.half(formula.binary.affine_J0_source(A, A, s, omega)))
+    return upper.source_primitive(A + A, s, omega) + local
+
+
+def _reduced_source_value(k, simplex):
+    """The reduced diagonal source on a raw one-fiber universal simplex of degree k+1; zero on a zero fiber."""
+    from fractions import Fraction as F
+    d = diagonal_simplex(k, simplex)
+    if k == 5:
+        import v2_pair_shared as pair
+        if not any(any(u.edges) for u in d[0].rows):
+            return F(0)
+    else:
+        import v3_pair_shared as pair
+        if not any(x for u in d[0].rows for row in u.matrix for x in row):
+            return F(0)
+    A, _, s = pair.from_diag(d[0])
+    value = reduced_diagonal_source(k, A, s, pair.from_omega(d[1]))
+    return F(value(tuple(range(k + 2))))
+
+
+def reduced_source_value_5(simplex):
+    return _reduced_source_value(5, simplex)
+
+
+def reduced_source_value_6(simplex):
+    return _reduced_source_value(6, simplex)
+
+
+def _normal_form(k, simplex):
+    """The key under which the one-fiber source primitive V_n stores its value at this simplex."""
+    if k == 5:
+        import phase_eval as pe
+        return pe.to_diags(pe.from_diags(simplex))
+    import r3_source as rs
+    return rs.to_diags(rs.from_diags(simplex))
+
+
+def _stored(table, key):
+    """The stored value of a persistent table at key, or None (never evaluates)."""
+    values = getattr(table, 'values', None)
+    if isinstance(values, dict):
+        return values.get(key)
+    return None
+
+
 def diagonal_simplex(k, simplex):
     """The two-fiber universal simplex Delta(tau) of a one-fiber simplex tau: both fibers carry its labels."""
     x, w = simplex
@@ -230,7 +324,35 @@ def primitive(k, A, s, omega):
         raise ValueError(f'the unary primitive of degree {k} expects degrees ({n},1,2)')
     small = coefficients(k)
     Htot, Ftot = _chains(k)
-    value_of = {5: source_value_5, 6: source_value_6}[k]
+    reduced = {5: reduced_source_value_5, 6: reduced_source_value_6}[k]
+    pair_table = {5: source_value_5, 6: source_value_6}[k]
+    if k == 5:
+        import production_gamma5 as formula
+        import low_phases
+        leaf_table = low_phases.V2_pair
+    else:
+        import production_gamma6 as formula
+        import closed_a_upper
+        leaf_table = closed_a_upper._high_source_value
+    pair_store = formula.constructor().source_value
+
+    def value_of(x):
+        # The reduced value: stored (the shipped table covers the shipped
+        # pair values), converted exactly from a stored pair value and the
+        # V_n value of the term (one leaf at the undoubled label when it is
+        # not stored, cheaper than the doubled leaf of the reduced source),
+        # or evaluated.
+        found = _stored(reduced, x)
+        if found is not None:
+            return found
+        pair_value = _stored(pair_store, diagonal_simplex(k, x))
+        if pair_value is not None:
+            converted = pair_value + 2 * leaf_table(_normal_form(k, x))
+            put = getattr(reduced, 'put', None)
+            if put is not None:
+                put(x, converted)
+            return converted
+        return reduced(x)
 
     def value(vertices):
         if not any(A(tuple(vertices[i] for i in f)) for f in combinations(range(len(vertices)), n + 1)):

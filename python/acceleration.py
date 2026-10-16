@@ -38,6 +38,7 @@ Copyright (c) 2026 koAHSS contributors; MIT license.
 """
 from collections import OrderedDict
 import contextlib
+from fractions import Fraction
 import functools
 import gc
 import importlib
@@ -229,7 +230,8 @@ MEMO_LIMIT = 32
 
 UNIVERSAL = (('production_gamma4', 'source_value'), ('low_phases', 'V1_pair'),
              ('v3_pair_shared', 'source_value'), ('v3_pair_shared', 'primitive_value'),
-             ('closed_a_upper', '_high_source_value'))
+             ('closed_a_upper', '_high_source_value'),
+             ('unary_tables', 'reduced_source_value_5'), ('unary_tables', 'reduced_source_value_6'))
 # Universal source values of a memoized method on the module's cached
 # constructor instance: (module, constructor, method). The table is set on
 # that instance, in front of the memoized class method.
@@ -407,6 +409,24 @@ def _rebind(original, replacement):
                 namespace[name] = replacement
 
 
+def _short_circuit_zero_fiber(a0):
+    """HigherA0Stacking.primitive (and its ThetaPairPhase subclass): zero when a fiber vanishes on the simplex."""
+    original = a0.HigherA0Stacking.primitive
+
+    def primitive(self, b, bp, s, omega):
+        inner = original(self, b, bp, s, omega)
+
+        def value(vertices):
+            faces = a0.faces(len(vertices) - 1, b.degree)
+            if (not any(b(tuple(vertices[i] for i in f)) % 2 for f in faces)
+                    or not any(bp(tuple(vertices[i] for i in f)) % 2 for f in faces)):
+                return Fraction(0)
+            return inner(vertices)
+        return a0.Cochain(self.k, value)
+    primitive.__wrapped__ = original
+    a0.HigherA0Stacking.primitive = primitive
+
+
 def persist():
     """Keep universal values and scaffolding in the cache directory across worker processes."""
     global _store
@@ -494,6 +514,13 @@ def install():
         original = getattr(modules[module_name], name)
         _registration_caches.append(original)
         _rebind(original, _in_universal(original))
+    # 7. A Theta-pair or A=0 pair primitive with a zero fiber is identically
+    # zero: every term of its source is a difference of equal boundary phases
+    # or a word with a zero factor, and the relative small basis has no word
+    # of one fiber alone (docs/universal_primitives.md, Section 4). The
+    # generic method builds the chain of the tree homotopy and looks up every
+    # term; this returns the zero without a chain.
+    _short_circuit_zero_fiber(modules['a0_high_gamma'])
     # The tables shared with the page worker, and the theta-pair sources.
     universal_sources.install_theta_values(_tables, _in_universal)
     universal_sources.install_v2_values(_tables, _in_universal)

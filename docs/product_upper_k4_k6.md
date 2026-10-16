@@ -394,6 +394,28 @@ lower-legal triple with $A=0$ and arbitrary $C$,
 $g_k(0,B,C)=\delta_s\bigl[\Omega_k(0,B,C)+\mathsf h(t\smile_{k-1}Q_DB)\bigr]-\mathsf h(E(t))$,
 $t=\delta C+Q_DB$, which is the pure-C rule (P) when $B=0$.
 
+**The production phase at $A=0$, written out.** With both A layers zero
+every A-source term of $e^{\rm prod}_k$ is identically zero: $\mathcal P_k(0,0)$,
+$\lambda$, $k_0$, $\alpha$, the transgression, $\mathcal U^\Theta_m(0,u)$
+inside $Q_k$ and $\mathcal V_n(0,0)$ inside $\beta^\sharp$. With
+$f_0(B)=Q_D(B)+\delta(Q^1B+s\smile B)$ and, on $X\times I$, $\beta=h^D(B\ell,B\ell)+\delta(B\ell)\smile_{k-1}\delta(B\ell)$,
+$c_u=\delta(C\ell)+f_0(B\ell)$, $L=Q^1(B\ell)+s\smile B\ell$:
+
+$$
+\begin{aligned}
+e^{\rm prod}_k(0,B,C;0,B,C)&=-I\Bigl[2\varphi_0(B\ell,C\ell)-\mathsf h(E(\beta))-\mathsf h\bigl(h^2(c_u,c_u)\bigr)-\mathcal U^\Theta_{k-1}\bigl(\delta(B\ell),\delta(B\ell)\bigr)\Bigr]-\mu_k(B)-2Q_k(0,B),\\
+\varphi_0(B,C)&=\mathsf h\bigl(E(C)+h^2(\delta C,f_0(B))\bigr)-I\,\theta_{k-1}\bigl(\delta(B\ell),f_0(B\ell)\bigr),\qquad
+\mu_5=\mathsf h\bigl(s\smile h^D(B,B)\bigr),\quad \mu_4=\mu_6=\mathsf h\bigl(j_0(B,B)\bigr),\\
+Q_k(0,B)&=\mathsf h\bigl(h^2(Q^1B,s\smile B)\bigr)-I\,\mathsf h\bigl(E(L)+h^2(Q_D(B\ell),\delta L)\bigr)\quad\bigl[k=5:\ -I\,\mathsf h(E(Q^1(B\ell)))+\tfrac14\widetilde{Q_D(B)}\bigr],
+\end{aligned}
+$$
+
+equal to the production phase on every simplex (random inputs, $k=4,5,6$;
+`a0_square_phase` of `python/light_rows.py`, used by the B-over-D row).
+On legal data it differs from $e^{A0}_k(B,C;B,C)$ above by quarter-integers
+pointwise, so the two are distinct primitives and the direct form is not a
+substitute for the production one ([power_relations.md](power_relations.md), Section 11).
+
 ## 8. Degree 6 with a non-legal lower pair
 
 $\gamma_6$ and the successor $\gamma_7$ on non-pure images are the section
