@@ -1,0 +1,231 @@
+number,symbol,point group order,twist,"p+ip (1,0)","Kitaev (2,-1)","complex fermion (3,-2)","bosonic (5,-4)",full group,status,certificate,package commit,wall seconds,host,source,"FSPT_AHSS p+ip (1,0)","FSPT_AHSS Kitaev (2,-1)","FSPT_AHSS complex fermion (3,-2)","FSPT_AHSS bosonic (5,-4)",FSPT_AHSS full group,agreement with FSPT_AHSS
+1,P1,1,"s=w1, omega=0",Z^3,Z2^3,Z2,0,Z2^4 x Z^3,computed,primary-R,2ccde64,9,phoenix12,campaign,Z^3,Z2^3,Z2,0,Z2^4 x Z^3,identical
+2,P-1,2,"s=w1, omega=0",Z^3,0,Z2^4,Z2,Z2^5 x Z^3,computed,primary-R,2ccde64,8,phoenix10,campaign,Z^3,0,Z2^4,Z2,Z2^5 x Z^3,identical
+3,P2,2,"s=w1, omega=0",Z,Z2^3,Z2^4,Z2^4,Z4 x Z8^3 x Z,computed,primary-R,2ccde64,8,phoenix10,campaign,Z,Z2^3,Z2^4,Z2^4,Z4 x Z8^3 x Z,identical
+4,P2_1,2,"s=w1, omega=0",Z,Z2^3,Z2,0,Z2^4 x Z,computed,primary-R,2ccde64,7,phoenix10,campaign,Z,Z2^3,Z2,0,Z2^4 x Z,identical
+5,C2,2,"s=w1, omega=0",Z,Z2^2,Z2^2,Z2^2,Z2 x Z4 x Z8 x Z,computed,primary-R,2ccde64,9,phoenix10,campaign,Z,Z2^2,Z2^2,Z2^2,Z2 x Z4 x Z8 x Z,identical
+6,Pm,2,"s=w1, omega=0",Z,Z2,Z2^2,Z2^2,Z4 x Z8 x Z,computed,primary-R,2ccde64,5,phoenix14,campaign,Z,Z2,Z2^2,Z2^2,Z4 x Z8 x Z,identical
+7,Pc,2,"s=w1, omega=0",Z2 x Z,Z2^3,Z2,0,Z2^5 x Z,computed,light-R,2ccde64,5,phoenix14,campaign,Z2 x Z,Z2^3,Z2,0,Z2^5 x Z,identical
+8,Cm,2,"s=w1, omega=0",Z,Z2,Z2,Z2,Z2 x Z4 x Z,computed,primary-R,2ccde64,10,phoenix12,campaign,Z,Z2,Z2,Z2,Z2 x Z4 x Z,identical
+9,Cc,2,"s=w1, omega=0",Z2 x Z,Z2^2,Z2,0,Z2^4 x Z,computed,light-R,2ccde64,10,phoenix12,campaign,Z2 x Z,Z2^2,Z2,0,Z2^4 x Z,identical
+10,P2/m,4,"s=w1, omega=0",Z,0,Z2^5,Z2^6,Z2 x Z4^5 x Z,computed,primary-R,2ccde64,35,phoenix12,campaign,Z,0,Z2^5,Z2^6,Z2 x Z4^5 x Z,identical
+11,P2_1/m,4,"s=w1, omega=0",Z,0,Z2^2,Z2,Z2 x Z4 x Z,computed,primary-R,2ccde64,6,phoenix13,campaign,Z,0,Z2^2,Z2,Z2 x Z4 x Z,identical
+12,C2/m,4,"s=w1, omega=0",Z,0,Z2^3,Z2^3,Z2^2 x Z4^2 x Z,computed,primary-R,2ccde64,12,phoenix13,campaign,Z,0,Z2^3,Z2^3,Z2^2 x Z4^2 x Z,identical
+13,P2/c,4,"s=w1, omega=0",Z,Z2,Z2^3,Z2^2,Z2 x Z4 x Z8 x Z,computed,primary-R,2ccde64,7,phoenix14,campaign,Z,Z2,Z2^3,Z2^2,Z2 x Z4 x Z8 x Z,identical
+14,P2_1/c,4,"s=w1, omega=0",Z,Z2,Z2^2,Z2,Z2^4 x Z,computed,light-R,2ccde64,7,phoenix14,campaign,Z,Z2,Z2^2,Z2,Z2^4 x Z,identical
+15,C2/c,4,"s=w1, omega=0",Z,0,Z2^3,Z2,Z2^2 x Z4 x Z,computed,primary-R,2ccde64,13,phoenix12,campaign,Z,0,Z2^3,Z2,Z2^2 x Z4 x Z,identical
+16,P222,4,"s=w1, omega=0",0,0,0,Z2^16,Z2^16,computed,direct-sum,2ccde64,15,phoenix12,campaign,0,0,0,Z2^16,Z2^16,identical
+17,P222_1,4,"s=w1, omega=0",0,Z2^3,Z2^4,Z2^4,Z4 x Z8^3,computed,primary-R,2ccde64,7,phoenix14,campaign,0,Z2^3,Z2^4,Z2^4,Z4 x Z8^3,identical
+18,P2_12_12,4,"s=w1, omega=0",0,Z2^2,Z2^2,Z2^2,Z2 x Z4 x Z8,computed,primary-R,2ccde64,7,phoenix14,campaign,0,Z2^2,Z2^2,Z2^2,Z2 x Z4 x Z8,identical
+19,P2_12_12_1,4,"s=w1, omega=0",0,Z2^2,Z2,0,Z2^3,computed,primary-R,2ccde64,6,phoenix13,campaign,0,Z2^2,Z2,0,Z2^3,identical
+20,C222_1,4,"s=w1, omega=0",0,Z2^2,Z2^2,Z2^2,Z2 x Z4 x Z8,computed,primary-R,2ccde64,7,phoenix13,campaign,0,Z2^2,Z2^2,Z2^2,Z2 x Z4 x Z8,identical
+21,C222,4,"s=w1, omega=0",0,Z2,Z2,Z2^9,Z2^8 x Z8,computed,light-R,2ccde64,9,phoenix13,campaign,0,Z2,Z2,Z2^9,Z2^8 x Z8,identical
+22,F222,4,"s=w1, omega=0",0,Z2,0,Z2^8,Z2^9,computed,light-R,2ccde64,184,phoenix13,campaign,0,Z2,0,Z2^8,Z2^9,identical
+23,I222,4,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,10,phoenix14,campaign,0,0,0,Z2^8,Z2^8,identical
+24,I2_12_12_1,4,"s=w1, omega=0",0,Z2^2,Z2^3,Z2^3,Z4 x Z8^2,computed,primary-R,2ccde64,10,phoenix14,campaign,0,Z2^2,Z2^3,Z2^3,Z4 x Z8^2,identical
+25,Pmm2,4,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,13,phoenix12,campaign,0,0,0,Z2^8,Z2^8,identical
+26,Pmc2_1,4,"s=w1, omega=0",0,Z2,Z2,0,Z2^2,computed,primary-R,2ccde64,10,phoenix12,campaign,0,Z2,Z2,0,Z2^2,identical
+27,Pcc2,4,"s=w1, omega=0",Z2,Z2^3,Z2,0,Z2^5,computed,light-R,2ccde64,1096,phoenix13,campaign,Z2,Z2^3,Z2,0,Z2^5,identical
+28,Pma2,4,"s=w1, omega=0",0,Z2^2,Z2^3,Z2^3,Z4 x Z8^2,computed,primary-R,2ccde64,6,phoenix13,campaign,0,Z2^2,Z2^3,Z2^3,Z4 x Z8^2,identical
+29,Pca2_1,4,"s=w1, omega=0",Z2,Z2^3,Z2,0,Z2^5,computed,light-R,2ccde64,6,phoenix14,campaign,Z2,Z2^3,Z2,0,Z2^5,identical
+30,Pnc2,4,"s=w1, omega=0",Z2,Z2^2,Z2^2,Z2^2,Z2^2 x Z4 x Z8,computed,light-R,2ccde64,3251,phoenix14,campaign,Z2,Z2^2,Z2^2,Z2^2,Z2^2 x Z4 x Z8,identical
+31,Pmn2_1,4,"s=w1, omega=0",0,Z2,Z2,Z2,Z2 x Z4,computed,primary-R,2ccde64,12,phoenix12,campaign,0,Z2,Z2,Z2,Z2 x Z4,identical
+32,Pba2,4,"s=w1, omega=0",Z2,Z2^2,Z2^2,Z2^2,Z2^2 x Z4 x Z8,computed,light-R,2ccde64,17,phoenix12,campaign,Z2,Z2^2,Z2^2,Z2^2,Z2^2 x Z4 x Z8,identical
+33,Pna2_1,4,"s=w1, omega=0",Z2,Z2^2,Z2,0,Z2^4,computed,light-R,2ccde64,12,phoenix12,campaign,Z2,Z2^2,Z2,0,Z2^4,identical
+34,Pnn2,4,"s=w1, omega=0",Z2,Z2^2,Z2^2,Z2^2,Z2^2 x Z4 x Z8,computed,light-R,2ccde64,2941,phoenix12,campaign,Z2,Z2^2,Z2^2,Z2^2,Z2^2 x Z4 x Z8,identical
+35,Cmm2,4,"s=w1, omega=0",0,Z2,Z2,Z2^5,Z2^4 x Z8,computed,light-R,2ccde64,12,phoenix10,campaign,0,Z2,Z2,Z2^5,Z2^4 x Z8,identical
+36,Cmc2_1,4,"s=w1, omega=0",0,Z2,Z2,0,Z2^2,computed,primary-R,2ccde64,8,phoenix10,campaign,0,Z2,Z2,0,Z2^2,identical
+37,Ccc2,4,"s=w1, omega=0",Z2,Z2^2,Z2^2,Z2,Z2^3 x Z8,computed,light-R,2ccde64,693,phoenix12,campaign,Z2,Z2^2,Z2^2,Z2,Z2^3 x Z8,identical
+38,Amm2,4,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,16,phoenix12,campaign,0,0,0,Z2^4,Z2^4,identical
+39,Abm2,4,"s=w1, omega=0",0,Z2^2,Z2,0,Z2^3,computed,primary-R,2ccde64,8,phoenix10,campaign,0,Z2^2,Z2,0,Z2^3,identical
+40,Ama2,4,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,9,phoenix10,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+41,Aba2,4,"s=w1, omega=0",Z2,Z2^2,Z2,Z2,Z2^3 x Z4,computed,light-R,2ccde64,610,phoenix13,campaign,Z2,Z2^2,Z2,Z2,Z2^3 x Z4,identical
+42,Fmm2,4,"s=w1, omega=0",0,Z2,0,Z2^2,Z2^3,computed,light-R,2ccde64,63,phoenix13,campaign,0,Z2,0,Z2^2,Z2^3,identical
+43,Fdd2,4,"s=w1, omega=0",Z2,Z2,Z2,Z2,Z2^2 x Z4,computed,light-R,6ec182a,169,phoenix14,campaign,Z2,Z2,Z2,Z2,Z2^2 x Z4,identical
+44,Imm2,4,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,10,phoenix10,campaign,0,0,0,Z2^4,Z2^4,identical
+45,Iba2,4,"s=w1, omega=0",Z2,Z2^2,Z2,0,Z2^4,computed,light-R,2ccde64,337,phoenix12,campaign,Z2,Z2^2,Z2,0,Z2^4,identical
+46,Ima2,4,"s=w1, omega=0",0,Z2,Z2^2,Z2,Z2 x Z8,computed,primary-R,2ccde64,13,phoenix12,campaign,0,Z2,Z2^2,Z2,Z2 x Z8,identical
+47,Pmmm,8,"s=w1, omega=0",0,0,0,Z2^24,Z2^24,computed,direct-sum,2ccde64,500,phoenix13,campaign,0,0,0,Z2^24,Z2^24,identical
+48,Pnnn,8,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,9,phoenix13,campaign,0,0,0,Z2^8,Z2^8,identical
+49,Pccm,8,"s=w1, omega=0",0,0,Z2,Z2^9,Z2^8 x Z4,computed,primary-R,2ccde64,11,phoenix14,campaign,0,0,Z2,Z2^9,Z2^8 x Z4,identical
+50,Pban,8,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,9,phoenix14,campaign,0,0,0,Z2^8,Z2^8,identical
+51,Pmma,8,"s=w1, omega=0",0,0,Z2^2,Z2^6,Z2^4 x Z4^2,computed,primary-R,2ccde64,54,phoenix10,campaign,0,0,Z2^2,Z2^6,Z2^4 x Z4^2,identical
+52,Pnna,8,"s=w1, omega=0",0,Z2,Z2^3,Z2^2,Z2 x Z4 x Z8,computed,primary-R,2ccde64,12,phoenix10,campaign,0,Z2,Z2^3,Z2^2,Z2 x Z4 x Z8,identical
+53,Pmna,8,"s=w1, omega=0",0,Z2,Z2^3,Z2^4,Z2 x Z4^2 x Z8,computed,light-R,2ccde64,34,phoenix11,campaign,0,Z2,Z2^3,Z2^4,Z2 x Z4^2 x Z8,identical
+54,Pcca,8,"s=w1, omega=0",0,Z2^2,Z2^2,Z2,Z2^2 x Z8,computed,primary-R,2ccde64,15,phoenix11,campaign,0,Z2^2,Z2^2,Z2,Z2^2 x Z8,identical
+55,Pbam,8,"s=w1, omega=0",0,0,Z2^3,Z2^3,Z2^2 x Z4^2,computed,primary-R,2ccde64,13,phoenix12,campaign,0,0,Z2^3,Z2^3,Z2^2 x Z4^2,identical
+56,Pccn,8,"s=w1, omega=0",0,Z2,Z2^2,0,Z2^3,computed,primary-R,2ccde64,13,phoenix12,campaign,0,Z2,Z2^2,0,Z2^3,identical
+57,Pbcm,8,"s=w1, omega=0",0,Z2,Z2^2,Z2,Z2 x Z8,computed,primary-R,2ccde64,8,phoenix13,campaign,0,Z2,Z2^2,Z2,Z2 x Z8,identical
+58,Pnnm,8,"s=w1, omega=0",0,0,Z2^3,Z2^3,Z2^2 x Z4^2,computed,primary-R,2ccde64,7,phoenix13,campaign,0,0,Z2^3,Z2^3,Z2^2 x Z4^2,identical
+59,Pmmn,8,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,7,phoenix14,campaign,0,0,0,Z2^4,Z2^4,identical
+60,Pbcn,8,"s=w1, omega=0",0,Z2,Z2^2,Z2,Z2^2 x Z4,computed,primary-R,2ccde64,8,phoenix14,campaign,0,Z2,Z2^2,Z2,Z2^2 x Z4,identical
+61,Pbca,8,"s=w1, omega=0",0,Z2^2,Z2,Z2,Z2^4,computed,light-R,2ccde64,9,phoenix10,campaign,0,Z2^2,Z2,Z2,Z2^4,identical
+62,Pnma,8,"s=w1, omega=0",0,0,Z2^2,0,Z2^2,computed,direct-sum,2ccde64,8,phoenix10,campaign,0,0,Z2^2,0,Z2^2,identical
+63,Cmcm,8,"s=w1, omega=0",0,0,Z2,Z2^3,Z2^2 x Z4,computed,primary-R,2ccde64,16,phoenix11,campaign,0,0,Z2,Z2^3,Z2^2 x Z4,identical
+64,Cmca,8,"s=w1, omega=0",0,Z2,Z2,Z2^2,Z2^2 x Z4,computed,light-R,2ccde64,310,phoenix11,campaign,0,Z2,Z2,Z2^2,Z2^2 x Z4,identical
+65,Cmmm,8,"s=w1, omega=0",0,0,Z2,Z2^13,Z2^12 x Z4,computed,primary-R,2ccde64,172,phoenix12,campaign,0,0,Z2,Z2^13,Z2^12 x Z4,identical
+66,Cccm,8,"s=w1, omega=0",0,0,Z2^2,Z2^6,Z2^4 x Z4^2,computed,primary-R,2ccde64,19,phoenix12,campaign,0,0,Z2^2,Z2^6,Z2^4 x Z4^2,identical
+67,Cmma,8,"s=w1, omega=0",0,0,Z2,Z2^6,Z2^7,computed,primary-R,2ccde64,27,phoenix13,campaign,0,0,Z2,Z2^6,Z2^7,identical
+68,Ccca,8,"s=w1, omega=0",0,Z2,0,Z2^4,Z2^5,computed,light-R,2ccde64,304,phoenix13,campaign,0,Z2,0,Z2^4,Z2^5,identical
+69,Fmmm,8,"s=w1, omega=0",0,0,Z2,Z2^8,Z2^9,computed,primary-R,2ccde64,37,phoenix14,campaign,0,0,Z2,Z2^8,Z2^9,identical
+70,Fddd,8,"s=w1, omega=0",0,0,Z2,Z2^4,Z2^5,computed,primary-R,2ccde64,20,phoenix14,campaign,0,0,Z2,Z2^4,Z2^5,identical
+71,Immm,8,"s=w1, omega=0",0,0,0,Z2^12,Z2^12,computed,direct-sum,2ccde64,72,phoenix14,campaign,0,0,0,Z2^12,Z2^12,identical
+72,Ibam,8,"s=w1, omega=0",0,0,Z2,Z2^4,Z2^5,computed,primary-R,2ccde64,10,phoenix14,campaign,0,0,Z2,Z2^4,Z2^5,identical
+73,Ibca,8,"s=w1, omega=0",0,Z2^2,Z2,0,Z2^3,computed,primary-R,2ccde64,13,phoenix10,campaign,0,Z2^2,Z2,0,Z2^3,identical
+74,Imma,8,"s=w1, omega=0",0,0,Z2^2,Z2^4,Z2^2 x Z4^2,computed,primary-R,2ccde64,39,phoenix10,campaign,0,0,Z2^2,Z2^4,Z2^2 x Z4^2,identical
+75,P4,4,"s=w1, omega=0",Z,Z2^2,Z2^3,Z2 x Z4^2,Z2 x Z8^3 x Z,computed,primary-R,2ccde64,11,phoenix10,campaign,Z,Z2^2,Z2^3,Z2 x Z4^2,Z2 x Z8^3 x Z,identical
+76,P4_1,4,"s=w1, omega=0",Z,Z2^2,Z2,0,Z2^3 x Z,computed,primary-R,2ccde64,9,phoenix10,campaign,Z,Z2^2,Z2,0,Z2^3 x Z,identical
+77,P4_2,4,"s=w1, omega=0",Z,Z2^2,Z2^3,Z2^3,Z4 x Z8^2 x Z,computed,primary-R,2ccde64,10,phoenix10,campaign,Z,Z2^2,Z2^3,Z2^3,Z4 x Z8^2 x Z,identical
+78,P4_3,4,"s=w1, omega=0",Z,Z2^2,Z2,0,Z2^3 x Z,computed,primary-R,2ccde64,8,phoenix10,campaign,Z,Z2^2,Z2,0,Z2^3 x Z,identical
+79,I4,4,"s=w1, omega=0",Z,Z2,Z2^2,Z2 x Z4,Z8^2 x Z,computed,primary-R,2ccde64,9,phoenix14,campaign,Z,Z2,Z2^2,Z2 x Z4,Z8^2 x Z,identical
+80,I4_1,4,"s=w1, omega=0",Z,Z2,Z2,Z2,Z2 x Z4 x Z,computed,primary-R,2ccde64,7,phoenix14,campaign,Z,Z2,Z2,Z2,Z2 x Z4 x Z,identical
+81,P-4,4,"s=w1, omega=0",Z2 x Z,Z2^2,Z2^5,Z2 x Z4^2,Z2^2 x Z4 x Z8^3 x Z,computed,light-R,6ec182a,195,phoenix14,campaign,Z2 x Z,Z2^2,Z2^5,Z2 x Z4^2,Z2^2 x Z4 x Z8^3 x Z,identical
+82,I-4,4,"s=w1, omega=0",Z2 x Z,Z2,Z2^4,Z4^2,Z2^2 x Z4 x Z8^2 x Z,computed,light-R,6ec182a,4127,phoenix3,campaign,Z2 x Z,Z2,Z2^4,Z4^2,Z2^2 x Z4 x Z8^2 x Z,identical
+83,P4/m,8,"s=w1, omega=0",Z,0,Z2^5,Z2^4 x Z4^2,Z2^3 x Z4^2 x Z8^2 x Z,computed,primary-R,2ccde64,65,phoenix12,campaign,Z,0,Z2^5,Z2^4 x Z4^2,Z2^3 x Z4^2 x Z8^2 x Z,identical
+84,P4_2/m,8,"s=w1, omega=0",Z,0,Z2^5,Z2^4,Z2 x Z4^4 x Z,computed,primary-R,2ccde64,28,phoenix12,campaign,Z,0,Z2^5,Z2^4,Z2 x Z4^4 x Z,identical
+85,P4/n,8,"s=w1, omega=0",Z,Z2,Z2^3,Z4^2,Z2^2 x Z8^2 x Z,computed,primary-R,2ccde64,25,phoenix11,campaign,Z,Z2,Z2^3,Z4^2,Z2^2 x Z8^2 x Z,identical
+86,P4_2/n,8,"s=w1, omega=0",Z,Z2,Z2^3,Z2 x Z4,Z2 x Z8^2 x Z,computed,primary-R,2ccde64,19,phoenix11,campaign,Z,Z2,Z2^3,Z2 x Z4,Z2 x Z8^2 x Z,identical
+87,I4/m,8,"s=w1, omega=0",Z,0,Z2^4,Z2^2 x Z4,Z2^3 x Z4 x Z8 x Z,computed,primary-R,2ccde64,20,phoenix14,campaign,Z,0,Z2^4,Z2^2 x Z4,Z2^3 x Z4 x Z8 x Z,identical
+88,I4_1/a,8,"s=w1, omega=0",Z,0,Z2^3,Z4,Z2^2 x Z8 x Z,computed,primary-R,2ccde64,11,phoenix14,campaign,Z,0,Z2^3,Z4,Z2^2 x Z8 x Z,identical
+89,P422,8,"s=w1, omega=0",0,0,0,Z2^12,Z2^12,computed,direct-sum,2ccde64,33,phoenix10,campaign,0,0,0,Z2^12,Z2^12,identical
+90,P42_12,8,"s=w1, omega=0",0,Z2,Z2,Z2^4 x Z4,Z2^5 x Z8,computed,light-R,2ccde64,128,phoenix10,campaign,0,Z2,Z2,Z2^4 x Z4,Z2^5 x Z8,identical
+91,P4_122,8,"s=w1, omega=0",0,Z2^2,Z2^3,Z2^3,Z4 x Z8^2,computed,primary-R,2ccde64,12,phoenix10,campaign,0,Z2^2,Z2^3,Z2^3,Z4 x Z8^2,identical
+92,P4_12_12,8,"s=w1, omega=0",0,Z2,Z2,Z2,Z2 x Z4,computed,primary-R,2ccde64,11,phoenix10,campaign,0,Z2,Z2,Z2,Z2 x Z4,identical
+93,P4_222,8,"s=w1, omega=0",0,0,0,Z2^12,Z2^12,computed,direct-sum,2ccde64,19,phoenix11,campaign,0,0,0,Z2^12,Z2^12,identical
+94,P4_22_12,8,"s=w1, omega=0",0,Z2,Z2,Z2^5,Z2^4 x Z8,computed,light-R,2ccde64,19,phoenix11,campaign,0,Z2,Z2,Z2^5,Z2^4 x Z8,identical
+95,P4_322,8,"s=w1, omega=0",0,Z2^2,Z2^3,Z2^3,Z4 x Z8^2,computed,primary-R,2ccde64,8,phoenix14,campaign,0,Z2^2,Z2^3,Z2^3,Z4 x Z8^2,identical
+96,P4_32_12,8,"s=w1, omega=0",0,Z2,Z2,Z2,Z2 x Z4,computed,primary-R,2ccde64,8,phoenix14,campaign,0,Z2,Z2,Z2,Z2 x Z4,identical
+97,I422,8,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,15,phoenix14,campaign,0,0,0,Z2^8,Z2^8,identical
+98,I4_122,8,"s=w1, omega=0",0,Z2,Z2,Z2^5,Z2^4 x Z8,computed,light-R,2ccde64,10,phoenix14,campaign,0,Z2,Z2,Z2^5,Z2^4 x Z8,identical
+99,P4mm,8,"s=w1, omega=0",0,0,0,Z2^6,Z2^6,computed,direct-sum,2ccde64,8,phoenix14,campaign,0,0,0,Z2^6,Z2^6,identical
+100,P4bm,8,"s=w1, omega=0",0,Z2,Z2,Z2^2 x Z4,Z2^3 x Z8,computed,light-R,2ccde64,34,phoenix14,campaign,0,Z2,Z2,Z2^2 x Z4,Z2^3 x Z8,identical
+101,P4_2cm,8,"s=w1, omega=0",0,Z2,0,Z2^2,Z2^3,computed,light-R,2ccde64,727,phoenix10,campaign,0,Z2,0,Z2^2,Z2^3,identical
+102,P4_2nm,8,"s=w1, omega=0",0,Z2,Z2,Z2^3,Z2^2 x Z8,computed,light-R,2ccde64,12,phoenix10,campaign,0,Z2,Z2,Z2^3,Z2^2 x Z8,identical
+103,P4cc,8,"s=w1, omega=0",Z2,Z2^2,Z2^2,0,Z2^5,computed,light-R,6ec182a,831,phoenix13,campaign,Z2,Z2^2,Z2^2,0,Z2^5,identical
+104,P4nc,8,"s=w1, omega=0",Z2,Z2,Z2^2,Z4,Z2 x Z4 x Z8,computed,light-R,6ec182a,1064,phoenix13,campaign,Z2,Z2,Z2^2,Z4,Z2 x Z4 x Z8,identical
+105,P4_2mc,8,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,8,phoenix13,campaign,0,0,0,Z2^4,Z2^4,identical
+106,P4_2bc,8,"s=w1, omega=0",Z2,Z2,Z2^2,Z2,Z2^2 x Z8,computed,light-R,2ccde64,573,phoenix13,campaign,Z2,Z2,Z2^2,Z2,Z2^2 x Z8,identical
+107,I4mm,8,"s=w1, omega=0",0,0,0,Z2^3,Z2^3,computed,direct-sum,2ccde64,8,phoenix14,campaign,0,0,0,Z2^3,Z2^3,identical
+108,I4cm,8,"s=w1, omega=0",0,Z2,Z2,Z2,Z2^3,computed,light-R,2ccde64,194,phoenix14,campaign,0,Z2,Z2,Z2,Z2^3,identical
+109,I4_1md,8,"s=w1, omega=0",0,0,0,Z2^2,Z2^2,computed,direct-sum,2ccde64,19,phoenix11,campaign,0,0,0,Z2^2,Z2^2,identical
+110,I4_1cd,8,"s=w1, omega=0",Z2,Z2,Z2,0,Z2^3,computed,light-R,2ccde64,1747,phoenix11,campaign,Z2,Z2,Z2,0,Z2^3,identical
+111,P-42m,8,"s=w1, omega=0",0,0,0,Z2^10,Z2^10,computed,direct-sum,2ccde64,128,phoenix11,campaign,0,0,0,Z2^10,Z2^10,identical
+112,P-42c,8,"s=w1, omega=0",Z2,0,Z2^2,Z2^8,Z2^9 x Z4,computed,light-R,6ec182a,1135,phoenix3,campaign,Z2,0,Z2^2,Z2^8,Z2^9 x Z4,identical
+113,P-42_1m,8,"s=w1, omega=0",0,Z2,Z2^2,Z2^2 x Z4,Z2^4 x Z8,computed,light-R,2ccde64,216,phoenix13,campaign,0,Z2,Z2^2,Z2^2 x Z4,Z2^4 x Z8,identical
+114,P-42_1c,8,"s=w1, omega=0",Z2,Z2,Z2^3,Z4,Z4^2 x Z8,computed,light-R,6ec182a,5310,phoenix3,campaign,Z2,Z2,Z2^3,Z4,Z4^2 x Z8,identical
+115,P-4m2,8,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,54,phoenix14,campaign,0,0,0,Z2^8,Z2^8,identical
+116,P-4c2,8,"s=w1, omega=0",Z2,Z2,Z2^2,Z2^4,Z2^6 x Z4,computed,light-R,6ec182a,1662,phoenix5,campaign,Z2,Z2,Z2^2,Z2^4,Z2^6 x Z4,identical
+117,P-4b2,8,"s=w1, omega=0",Z2,Z2,Z2^2,Z2^4 x Z4,Z2^5 x Z4 x Z8,computed,light-R,6ec182a,463,phoenix5,campaign,Z2,Z2,Z2^2,Z2^4 x Z4,Z2^5 x Z4 x Z8,identical
+118,P-4n2,8,"s=w1, omega=0",Z2,Z2,Z2^2,Z2^4 x Z4,Z2^5 x Z4 x Z8,computed,light-R,6ec182a,1513,phoenix13,campaign,Z2,Z2,Z2^2,Z2^4 x Z4,Z2^5 x Z4 x Z8,identical
+119,I-4m2,8,"s=w1, omega=0",0,0,0,Z2^6,Z2^6,computed,direct-sum,2ccde64,36,phoenix14,campaign,0,0,0,Z2^6,Z2^6,identical
+120,I-4c2,8,"s=w1, omega=0",Z2,Z2,Z2^2,Z2^4,Z2^6 x Z4,computed,light-R,6ec182a,680,phoenix13,campaign,Z2,Z2,Z2^2,Z2^4,Z2^6 x Z4,identical
+121,I-42m,8,"s=w1, omega=0",0,0,Z2,Z2^5,Z2^6,computed,primary-R,2ccde64,40,phoenix11,campaign,0,0,Z2,Z2^5,Z2^6,identical
+122,I-42d,8,"s=w1, omega=0",Z2,Z2,Z2^3,Z2 x Z4,Z4 x Z8^2,computed,light-R,6ec182a,968,phoenix3,campaign,Z2,Z2,Z2^3,Z2 x Z4,Z4 x Z8^2,identical
+123,P4/mmm,16,"s=w1, omega=0",0,0,0,Z2^18,Z2^18,computed,direct-sum,2ccde64,470,phoenix13,campaign,0,0,0,Z2^18,Z2^18,identical
+124,P4/mcc,16,"s=w1, omega=0",0,0,Z2^2,Z2^7,Z2^7 x Z4,computed,primary-R,2ccde64,26,phoenix12,campaign,0,0,Z2^2,Z2^7,Z2^7 x Z4,identical
+125,P4/nbm,16,"s=w1, omega=0",0,0,0,Z2^7,Z2^7,computed,direct-sum,2ccde64,60,phoenix13,campaign,0,0,0,Z2^7,Z2^7,identical
+126,P4/nnc,16,"s=w1, omega=0",0,0,Z2,Z2^6,Z2^7,computed,primary-R,2ccde64,14,phoenix14,campaign,0,0,Z2,Z2^6,Z2^7,identical
+127,P4/mbm,16,"s=w1, omega=0",0,0,Z2^2,Z2^7 x Z4,Z2^8 x Z8,computed,primary-R,2ccde64,55,phoenix10,campaign,0,0,Z2^2,Z2^7 x Z4,Z2^8 x Z8,identical
+128,P4/mnc,16,"s=w1, omega=0",0,0,Z2^3,Z2^3 x Z4,Z2^5 x Z8,computed,primary-R,2ccde64,24,phoenix11,campaign,0,0,Z2^3,Z2^3 x Z4,Z2^5 x Z8,identical
+129,P4/nmm,16,"s=w1, omega=0",0,0,0,Z2^5,Z2^5,computed,direct-sum,2ccde64,102,phoenix12,campaign,0,0,0,Z2^5,Z2^5,identical
+130,P4/ncc,16,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z2^5,computed,light-R,2ccde64,1531,phoenix11,campaign,0,Z2,Z2^2,Z2^2,Z2^5,identical
+131,P4_2/mmc,16,"s=w1, omega=0",0,0,0,Z2^14,Z2^14,computed,direct-sum,2ccde64,290,phoenix12,campaign,0,0,0,Z2^14,Z2^14,identical
+132,P4_2/mcm,16,"s=w1, omega=0",0,0,0,Z2^10,Z2^10,computed,direct-sum,2ccde64,96,phoenix10,campaign,0,0,0,Z2^10,Z2^10,identical
+133,P4_2/nbc,16,"s=w1, omega=0",0,0,Z2,Z2^6,Z2^7,computed,primary-R,2ccde64,13,phoenix13,campaign,0,0,Z2,Z2^6,Z2^7,identical
+134,P4_2/nnm,16,"s=w1, omega=0",0,0,0,Z2^7,Z2^7,computed,direct-sum,2ccde64,47,phoenix13,campaign,0,0,0,Z2^7,Z2^7,identical
+135,P4_2/mbc,16,"s=w1, omega=0",0,0,Z2^3,Z2^3,Z2^4 x Z4,computed,primary-R,2ccde64,10,phoenix13,campaign,0,0,Z2^3,Z2^3,Z2^4 x Z4,identical
+136,P4_2/mnm,16,"s=w1, omega=0",0,0,Z2^2,Z2^7,Z2^7 x Z4,computed,primary-R,2ccde64,62,phoenix14,campaign,0,0,Z2^2,Z2^7,Z2^7 x Z4,identical
+137,P4_2/nmc,16,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,55,phoenix12,campaign,0,0,0,Z2^4,Z2^4,identical
+138,P4_2/ncm,16,"s=w1, omega=0",0,0,Z2^2,Z2^3,Z2^5,computed,primary-R,2ccde64,13,phoenix14,campaign,0,0,Z2^2,Z2^3,Z2^5,identical
+139,I4/mmm,16,"s=w1, omega=0",0,0,0,Z2^10,Z2^10,computed,direct-sum,2ccde64,245,phoenix11,campaign,0,0,0,Z2^10,Z2^10,identical
+140,I4/mcm,16,"s=w1, omega=0",0,0,Z2,Z2^6,Z2^7,computed,primary-R,2ccde64,39,phoenix10,campaign,0,0,Z2,Z2^6,Z2^7,identical
+141,I4_1/amd,16,"s=w1, omega=0",0,0,Z2,Z2^4,Z2^3 x Z4,computed,primary-R,2ccde64,34,phoenix12,campaign,0,0,Z2,Z2^4,Z2^3 x Z4,identical
+142,I4_1/acd,16,"s=w1, omega=0",0,Z2,Z2,Z2^2,Z2^4,computed,light-R,2ccde64,325,phoenix12,campaign,0,Z2,Z2,Z2^2,Z2^4,identical
+143,P3,3,"s=w1, omega=0",Z,Z2,Z2,Z3^3,Z2^2 x Z3^3 x Z,computed,primary-R,2ccde64,14,phoenix12,campaign,Z,Z2,Z2,Z3^3,Z2^2 x Z3^3 x Z,identical
+144,P3_1,3,"s=w1, omega=0",Z,Z2,Z2,0,Z2^2 x Z,computed,primary-R,2ccde64,11,phoenix12,campaign,Z,Z2,Z2,0,Z2^2 x Z,identical
+145,P3_2,3,"s=w1, omega=0",Z,Z2,Z2,0,Z2^2 x Z,computed,primary-R,2ccde64,6,phoenix14,campaign,Z,Z2,Z2,0,Z2^2 x Z,identical
+146,R3,3,"s=w1, omega=0",Z,Z2,Z2,Z3,Z2^2 x Z3 x Z,computed,primary-R,2ccde64,7,phoenix14,campaign,Z,Z2,Z2,Z3,Z2^2 x Z3 x Z,identical
+147,P-3,6,"s=w1, omega=0",Z,0,Z2^2,Z2 x Z3^2,Z2^3 x Z3^2 x Z,computed,primary-R,2ccde64,17,phoenix12,campaign,Z,0,Z2^2,Z2 x Z3^2,Z2^3 x Z3^2 x Z,identical
+148,R-3,6,"s=w1, omega=0",Z,0,Z2^2,Z2 x Z3,Z2^3 x Z3 x Z,computed,primary-R,2ccde64,13,phoenix12,campaign,Z,0,Z2^2,Z2 x Z3,Z2^3 x Z3 x Z,identical
+149,P312,6,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,18,phoenix11,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+150,P321,6,"s=w1, omega=0",0,Z2,Z2^2,Z2^2 x Z3,Z3 x Z4 x Z8,computed,primary-R,2ccde64,28,phoenix11,campaign,0,Z2,Z2^2,Z2^2 x Z3,Z3 x Z4 x Z8,identical
+151,P3_112,6,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,8,phoenix13,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+152,P3_121,6,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,8,phoenix13,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+153,P3_212,6,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,10,phoenix10,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+154,P3_221,6,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,11,phoenix10,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+155,R32,6,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,9,phoenix13,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+156,P3m1,6,"s=w1, omega=0",0,0,Z2,Z2,Z4,computed,primary-R,2ccde64,12,phoenix13,campaign,0,0,Z2,Z2,Z4,identical
+157,P31m,6,"s=w1, omega=0",0,0,Z2,Z2 x Z3,Z3 x Z4,computed,primary-R,2ccde64,13,phoenix12,campaign,0,0,Z2,Z2 x Z3,Z3 x Z4,identical
+158,P3c1,6,"s=w1, omega=0",Z2,Z2,Z2,0,Z2^3,computed,light-R,2ccde64,19917,phoenix12,campaign,Z2,Z2,Z2,0,Z2^3,identical
+159,P31c,6,"s=w1, omega=0",Z2,Z2,Z2,Z3,Z2^3 x Z3,computed,light-R,2ccde64,12721,phoenix10,campaign,Z2,Z2,Z2,Z3,Z2^3 x Z3,identical
+160,R3m,6,"s=w1, omega=0",0,0,Z2,Z2,Z4,computed,primary-R,2ccde64,34,phoenix10,campaign,0,0,Z2,Z2,Z4,identical
+161,R3c,6,"s=w1, omega=0",Z2,Z2,Z2,0,Z2^3,computed,light-R,6ec182a,340,phoenix13,campaign,Z2,Z2,Z2,0,Z2^3,identical
+162,P-31m,12,"s=w1, omega=0",0,0,Z2^2,Z2^3,Z2 x Z4^2,computed,primary-R,2ccde64,34,phoenix13,campaign,0,0,Z2^2,Z2^3,Z2 x Z4^2,identical
+163,P-31c,12,"s=w1, omega=0",0,0,Z2^2,Z2,Z2 x Z4,computed,primary-R,2ccde64,13,phoenix10,campaign,0,0,Z2^2,Z2,Z2 x Z4,identical
+164,P-3m1,12,"s=w1, omega=0",0,0,Z2^2,Z2^3,Z2 x Z4^2,computed,primary-R,2ccde64,65,phoenix12,campaign,0,0,Z2^2,Z2^3,Z2 x Z4^2,identical
+165,P-3c1,12,"s=w1, omega=0",0,0,Z2^2,Z2,Z2 x Z4,computed,primary-R,2ccde64,8,phoenix13,campaign,0,0,Z2^2,Z2,Z2 x Z4,identical
+166,R-3m,12,"s=w1, omega=0",0,0,Z2^2,Z2^3,Z2 x Z4^2,computed,primary-R,2ccde64,22,phoenix14,campaign,0,0,Z2^2,Z2^3,Z2 x Z4^2,identical
+167,R-3c,12,"s=w1, omega=0",0,0,Z2^2,Z2,Z2 x Z4,computed,primary-R,2ccde64,25,phoenix12,campaign,0,0,Z2^2,Z2,Z2 x Z4,identical
+168,P6,6,"s=w1, omega=0",Z,Z2,Z2^2,Z2^2 x Z3^2,Z3^2 x Z4 x Z8 x Z,computed,primary-R,2ccde64,19,phoenix12,campaign,Z,Z2,Z2^2,Z2^2 x Z3^2,Z3^2 x Z4 x Z8 x Z,identical
+169,P6_1,6,"s=w1, omega=0",Z,Z2,Z2,0,Z2^2 x Z,computed,primary-R,2ccde64,10,phoenix10,campaign,Z,Z2,Z2,0,Z2^2 x Z,identical
+170,P6_5,6,"s=w1, omega=0",Z,Z2,Z2,0,Z2^2 x Z,computed,primary-R,2ccde64,10,phoenix10,campaign,Z,Z2,Z2,0,Z2^2 x Z,identical
+171,P6_2,6,"s=w1, omega=0",Z,Z2,Z2^2,Z2^2,Z4 x Z8 x Z,computed,primary-R,2ccde64,7,phoenix13,campaign,Z,Z2,Z2^2,Z2^2,Z4 x Z8 x Z,identical
+172,P6_4,6,"s=w1, omega=0",Z,Z2,Z2^2,Z2^2,Z4 x Z8 x Z,computed,primary-R,2ccde64,7,phoenix13,campaign,Z,Z2,Z2^2,Z2^2,Z4 x Z8 x Z,identical
+173,P6_3,6,"s=w1, omega=0",Z,Z2,Z2,Z3^2,Z2^2 x Z3^2 x Z,computed,primary-R,2ccde64,18,phoenix12,campaign,Z,Z2,Z2,Z3^2,Z2^2 x Z3^2 x Z,identical
+174,P-6,6,"s=w1, omega=0",Z,Z2,Z2^2,Z2^2 x Z3^3,Z3^3 x Z4 x Z8 x Z,computed,primary-R,2ccde64,13,phoenix12,campaign,Z,Z2,Z2^2,Z2^2 x Z3^3,Z3^3 x Z4 x Z8 x Z,identical
+175,P6/m,12,"s=w1, omega=0",Z,0,Z2^3,Z2^4 x Z3^2,Z2 x Z3^2 x Z4^3 x Z,computed,primary-R,2ccde64,154,phoenix14,campaign,Z,0,Z2^3,Z2^4 x Z3^2,Z2 x Z3^2 x Z4^3 x Z,identical
+176,P6_3/m,12,"s=w1, omega=0",Z,0,Z2^2,Z2 x Z3^2,Z2 x Z3^2 x Z4 x Z,computed,primary-R,2ccde64,13,phoenix12,campaign,Z,0,Z2^2,Z2 x Z3^2,Z2 x Z3^2 x Z4 x Z,identical
+177,P622,12,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,33,phoenix14,campaign,0,0,0,Z2^8,Z2^8,identical
+178,P6_122,12,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,11,phoenix14,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+179,P6_522,12,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,15,phoenix10,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+180,P6_222,12,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,13,phoenix13,campaign,0,0,0,Z2^8,Z2^8,identical
+181,P6_422,12,"s=w1, omega=0",0,0,0,Z2^8,Z2^8,computed,direct-sum,2ccde64,13,phoenix14,campaign,0,0,0,Z2^8,Z2^8,identical
+182,P6_322,12,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,12,phoenix10,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+183,P6mm,12,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,34,phoenix10,campaign,0,0,0,Z2^4,Z2^4,identical
+184,P6cc,12,"s=w1, omega=0",Z2,Z2,Z2,0,Z2^3,computed,light-R,6ec182a,2101,phoenix13,campaign,Z2,Z2,Z2,0,Z2^3,identical
+185,P6_3cm,12,"s=w1, omega=0",0,0,Z2,0,Z2,computed,direct-sum,2ccde64,8,phoenix14,campaign,0,0,Z2,0,Z2,identical
+186,P6_3mc,12,"s=w1, omega=0",0,0,Z2,0,Z2,computed,direct-sum,2ccde64,15,phoenix10,campaign,0,0,Z2,0,Z2,identical
+187,P-6m2,12,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,123,phoenix10,campaign,0,0,0,Z2^4,Z2^4,identical
+188,P-6c2,12,"s=w1, omega=0",0,Z2,Z2^2,Z2^2,Z4 x Z8,computed,primary-R,2ccde64,8,phoenix13,campaign,0,Z2,Z2^2,Z2^2,Z4 x Z8,identical
+189,P-62m,12,"s=w1, omega=0",0,0,0,Z2^4 x Z3,Z2^4 x Z3,computed,direct-sum,2ccde64,83,phoenix11,campaign,0,0,0,Z2^4 x Z3,Z2^4 x Z3,identical
+190,P-62c,12,"s=w1, omega=0",0,Z2,Z2^2,Z2^2 x Z3,Z3 x Z4 x Z8,computed,primary-R,2ccde64,17,phoenix12,campaign,0,Z2,Z2^2,Z2^2 x Z3,Z3 x Z4 x Z8,identical
+191,P6/mmm,24,"s=w1, omega=0",0,0,0,Z2^12,Z2^12,computed,direct-sum,2ccde64,342,phoenix13,campaign,0,0,0,Z2^12,Z2^12,identical
+192,P6/mcc,24,"s=w1, omega=0",0,0,Z2,Z2^5,Z2^4 x Z4,computed,primary-R,2ccde64,39,phoenix13,campaign,0,0,Z2,Z2^5,Z2^4 x Z4,identical
+193,P6_3/mcm,24,"s=w1, omega=0",0,0,Z2,Z2^3,Z2^2 x Z4,computed,primary-R,2ccde64,32,phoenix14,campaign,0,0,Z2,Z2^3,Z2^2 x Z4,identical
+194,P6_3/mmc,24,"s=w1, omega=0",0,0,Z2,Z2^3,Z2^2 x Z4,computed,primary-R,2ccde64,104,phoenix10,campaign,0,0,Z2,Z2^3,Z2^2 x Z4,identical
+195,P23,12,"s=w1, omega=0",0,0,0,Z2^4 x Z3,Z2^4 x Z3,computed,direct-sum,2ccde64,12,phoenix14,campaign,0,0,0,Z2^4 x Z3,Z2^4 x Z3,identical
+196,F23,12,"s=w1, omega=0",0,Z2,0,Z3,Z2 x Z3,computed,direct-sum,2ccde64,384,phoenix13,campaign,0,Z2,0,Z3,Z2 x Z3,identical
+197,I23,12,"s=w1, omega=0",0,0,0,Z2^2 x Z3,Z2^2 x Z3,computed,direct-sum,2ccde64,11,phoenix13,campaign,0,0,0,Z2^2 x Z3,Z2^2 x Z3,identical
+198,P2_13,12,"s=w1, omega=0",0,0,Z2,Z3,Z2 x Z3,computed,direct-sum,2ccde64,6,phoenix14,campaign,0,0,Z2,Z3,Z2 x Z3,identical
+199,I2_13,12,"s=w1, omega=0",0,0,Z2,Z2 x Z3,Z3 x Z4,computed,primary-R,2ccde64,14,phoenix10,campaign,0,0,Z2,Z2 x Z3,Z3 x Z4,identical
+200,Pm-3,24,"s=w1, omega=0",0,0,0,Z2^8 x Z3,Z2^8 x Z3,computed,direct-sum,2ccde64,213,phoenix10,campaign,0,0,0,Z2^8 x Z3,Z2^8 x Z3,identical
+201,Pn-3,24,"s=w1, omega=0",0,0,0,Z2^2 x Z3,Z2^2 x Z3,computed,direct-sum,2ccde64,11,phoenix13,campaign,0,0,0,Z2^2 x Z3,Z2^2 x Z3,identical
+202,Fm-3,24,"s=w1, omega=0",0,0,Z2,Z2^2 x Z3,Z2^3 x Z3,computed,primary-R,2ccde64,125,phoenix14,campaign,0,0,Z2,Z2^2 x Z3,Z2^3 x Z3,identical
+203,Fd-3,24,"s=w1, omega=0",0,0,Z2,Z3,Z2 x Z3,computed,direct-sum,2ccde64,19,phoenix10,campaign,0,0,Z2,Z3,Z2 x Z3,identical
+204,Im-3,24,"s=w1, omega=0",0,0,0,Z2^4 x Z3,Z2^4 x Z3,computed,direct-sum,2ccde64,107,phoenix12,campaign,0,0,0,Z2^4 x Z3,Z2^4 x Z3,identical
+205,Pa-3,24,"s=w1, omega=0",0,0,Z2,Z2 x Z3,Z2^2 x Z3,computed,primary-R,2ccde64,10,phoenix13,campaign,0,0,Z2,Z2 x Z3,Z2^2 x Z3,identical
+206,Ia-3,24,"s=w1, omega=0",0,0,Z2,Z3,Z2 x Z3,computed,direct-sum,2ccde64,17,phoenix14,campaign,0,0,Z2,Z3,Z2 x Z3,identical
+207,P432,24,"s=w1, omega=0",0,0,0,Z2^6,Z2^6,computed,direct-sum,2ccde64,36,phoenix10,campaign,0,0,0,Z2^6,Z2^6,identical
+208,P4_232,24,"s=w1, omega=0",0,0,0,Z2^6,Z2^6,computed,direct-sum,2ccde64,27,phoenix12,campaign,0,0,0,Z2^6,Z2^6,identical
+209,F432,24,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,83,phoenix13,campaign,0,0,0,Z2^4,Z2^4,identical
+210,F4_132,24,"s=w1, omega=0",0,Z2,Z2,Z2,Z8,computed,primary-R,2ccde64,31,phoenix14,campaign,0,Z2,Z2,Z2,Z8,identical
+211,I432,24,"s=w1, omega=0",0,0,0,Z2^5,Z2^5,computed,direct-sum,2ccde64,78,phoenix10,campaign,0,0,0,Z2^5,Z2^5,identical
+212,P4_332,24,"s=w1, omega=0",0,0,Z2,Z2,Z4,computed,primary-R,2ccde64,21,phoenix12,campaign,0,0,Z2,Z2,Z4,identical
+213,P4_132,24,"s=w1, omega=0",0,0,Z2,Z2,Z4,computed,primary-R,2ccde64,12,phoenix13,campaign,0,0,Z2,Z2,Z4,identical
+214,I4_132,24,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,23,phoenix14,campaign,0,0,0,Z2^4,Z2^4,identical
+215,P-43m,24,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,479,phoenix10,campaign,0,0,0,Z2^4,Z2^4,identical
+216,F-43m,24,"s=w1, omega=0",0,0,0,Z2^2,Z2^2,computed,direct-sum,2ccde64,723,phoenix10,campaign,0,0,0,Z2^2,Z2^2,identical
+217,I-43m,24,"s=w1, omega=0",0,0,Z2,Z2^2,Z2^3,computed,primary-R,2ccde64,70,phoenix12,campaign,0,0,Z2,Z2^2,Z2^3,identical
+218,P-43n,24,"s=w1, omega=0",Z2,0,Z2^2,Z2^2,Z2^3 x Z4,computed,light-R,fa11ecf,88459,,branch,Z2,0,Z2^2,Z2^2,Z2^3 x Z4,identical
+219,F-43c,24,"s=w1, omega=0",Z2,Z2,Z2^2,0,Z2^2 x Z4,computed,light-R,6ec182a,100743,phoenix3,campaign,Z2,Z2,Z2^2,0,Z2^2 x Z4,identical
+220,I-43d,24,"s=w1, omega=0",Z2,0,Z2^2,Z4,Z4 x Z8,computed,light-R,2ccde64,75,phoenix10,campaign,Z2,0,Z2^2,Z4,Z4 x Z8,identical
+221,Pm-3m,48,"s=w1, omega=0",0,0,0,Z2^10,Z2^10,computed,direct-sum,2ccde64,1579,phoenix12,campaign,0,0,0,Z2^10,Z2^10,identical
+222,Pn-3n,48,"s=w1, omega=0",0,0,Z2,Z2^3,Z2^4,computed,primary-R,2ccde64,43,phoenix14,campaign,0,0,Z2,Z2^3,Z2^4,identical
+223,Pm-3n,48,"s=w1, omega=0",0,0,0,Z2^6,Z2^6,computed,direct-sum,2ccde64,89,phoenix10,campaign,0,0,0,Z2^6,Z2^6,identical
+224,Pn-3m,48,"s=w1, omega=0",0,0,0,Z2^4,Z2^4,computed,direct-sum,2ccde64,197,phoenix13,campaign,0,0,0,Z2^4,Z2^4,identical
+225,Fm-3m,48,"s=w1, omega=0",0,0,0,Z2^7,Z2^7,computed,direct-sum,2ccde64,462,phoenix14,campaign,0,0,0,Z2^7,Z2^7,identical
+226,Fm-3c,48,"s=w1, omega=0",0,0,Z2,Z2^3,Z2^4,computed,primary-R,2ccde64,106,phoenix14,campaign,0,0,Z2,Z2^3,Z2^4,identical
+227,Fd-3m,48,"s=w1, omega=0",0,0,Z2,Z2^2,Z2 x Z4,computed,primary-R,2ccde64,467,phoenix10,campaign,0,0,Z2,Z2^2,Z2 x Z4,identical
+228,Fd-3c,48,"s=w1, omega=0",0,Z2,Z2,0,Z2^2,computed,primary-R,2ccde64,32,phoenix12,campaign,0,Z2,Z2,0,Z2^2,identical
+229,Im-3m,48,"s=w1, omega=0",0,0,0,Z2^6,Z2^6,computed,direct-sum,2ccde64,917,phoenix12,campaign,0,0,0,Z2^6,Z2^6,identical
+230,Ia-3d,48,"s=w1, omega=0",0,0,Z2,Z2^2,Z2^3,computed,primary-R,2ccde64,45,phoenix14,campaign,0,0,Z2,Z2^2,Z2^3,identical
